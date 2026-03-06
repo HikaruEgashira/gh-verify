@@ -15,36 +15,50 @@ pub fn getPrFiles(
     repo: []const u8,
     pr_number: u32,
 ) ![]PrFile {
-    const path = try std.fmt.allocPrint(
+    var all_files: std.ArrayList(PrFile) = .empty;
+
+    var current_path: []const u8 = try std.fmt.allocPrint(
         alloc,
         "/repos/{s}/{s}/pulls/{d}/files?per_page=100",
         .{ owner, repo, pr_number },
     );
-    defer alloc.free(path);
 
-    const body = try client.get(alloc, cfg, path, null);
-    defer alloc.free(body);
+    const max_pages = 10;
+    var page: usize = 0;
 
-    const parsed = try std.json.parseFromSlice(
-        []PrFile,
-        alloc,
-        body,
-        .{ .ignore_unknown_fields = true },
-    );
-    defer parsed.deinit();
+    while (page < max_pages) : (page += 1) {
+        const res = try client.getWithLink(alloc, cfg, current_path, null);
+        defer alloc.free(res.body);
 
-    // ArenaAllocator を使わないため、深コピーして返す
-    var result = try alloc.alloc(PrFile, parsed.value.len);
-    for (parsed.value, 0..) |f, i| {
-        result[i] = PrFile{
-            .filename = try alloc.dupe(u8, f.filename),
-            .status = try alloc.dupe(u8, f.status),
-            .additions = f.additions,
-            .deletions = f.deletions,
-            .changes = f.changes,
-        };
+        const parsed = try std.json.parseFromSlice(
+            []PrFile,
+            alloc,
+            res.body,
+            .{ .ignore_unknown_fields = true },
+        );
+        defer parsed.deinit();
+
+        for (parsed.value) |f| {
+            try all_files.append(alloc, PrFile{
+                .filename = try alloc.dupe(u8, f.filename),
+                .status = try alloc.dupe(u8, f.status),
+                .additions = f.additions,
+                .deletions = f.deletions,
+                .changes = f.changes,
+                .patch = if (f.patch) |p| try alloc.dupe(u8, p) else null,
+            });
+        }
+
+        if (res.next_path) |next| {
+            alloc.free(current_path);
+            current_path = next;
+        } else {
+            break;
+        }
     }
-    return result;
+
+    alloc.free(current_path);
+    return all_files.toOwnedSlice(alloc);
 }
 
 /// PR のメタデータを取得する。
