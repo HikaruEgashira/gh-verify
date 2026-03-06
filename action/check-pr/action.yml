@@ -1,0 +1,65 @@
+name: "ghlint: check-pr"
+description: >
+  Run gh-lint SDLC checks on a pull request and report results.
+  Fails if any rule returns an error-level finding.
+
+inputs:
+  pr-number:
+    description: "Pull request number to lint"
+    required: true
+  repo:
+    description: "Repository in OWNER/REPO format (defaults to current repo)"
+    required: false
+    default: "${{ github.repository }}"
+  format:
+    description: "Output format: human or json"
+    required: false
+    default: "human"
+  rule:
+    description: "Run only a specific rule ID (empty = all rules)"
+    required: false
+    default: ""
+
+outputs:
+  result:
+    description: "Overall result: pass, warning, or error"
+    value: ${{ steps.lint.outputs.result }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install gh-lint
+      shell: bash
+      run: |
+        gh extension install HikaruEgashira/ghlint 2>/dev/null || \
+          gh extension upgrade ghlint 2>/dev/null || true
+
+    - name: Run gh-lint
+      id: lint
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        ARGS="${{ inputs.pr-number }} --repo ${{ inputs.repo }} --format ${{ inputs.format }}"
+        if [ -n "${{ inputs.rule }}" ]; then
+          ARGS="$ARGS --rule ${{ inputs.rule }}"
+        fi
+
+        set +e
+        OUTPUT=$(gh lint pr $ARGS 2>&1)
+        EXIT_CODE=$?
+        set -e
+
+        echo "$OUTPUT"
+
+        if [ $EXIT_CODE -eq 0 ]; then
+          # Check for warnings in output
+          if echo "$OUTPUT" | grep -q "warning:"; then
+            echo "result=warning" >> "$GITHUB_OUTPUT"
+          else
+            echo "result=pass" >> "$GITHUB_OUTPUT"
+          fi
+        else
+          echo "result=error" >> "$GITHUB_OUTPUT"
+          exit 1
+        fi

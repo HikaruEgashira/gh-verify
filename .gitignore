@@ -2,3 +2,12 @@
 zig-out/
 dist/
 zig-*/
+
+# Nix
+result
+result-*
+.direnv/
+.envrc.local
+
+# Benchmark results
+benchmarks/results/*.json
