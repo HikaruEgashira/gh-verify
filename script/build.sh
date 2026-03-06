@@ -8,7 +8,7 @@ TAG="${1:-dev}"
 EXT_NAME="gh-lint"
 
 # Zig のインストール
-ZIG_VERSION="0.14.0"
+ZIG_VERSION="0.15.0"
 ZIG_DIR="zig-${ZIG_VERSION}"
 
 if ! command -v zig &>/dev/null || [[ "$(zig version)" != "${ZIG_VERSION}" ]]; then

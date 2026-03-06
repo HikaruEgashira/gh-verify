@@ -6,6 +6,7 @@ pub const PrFile = struct {
     additions: u32,
     deletions: u32,
     changes: u32,
+    patch: ?[]const u8 = null,
 };
 
 pub const PrMetadata = struct {

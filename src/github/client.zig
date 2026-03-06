@@ -33,7 +33,13 @@ pub fn get(alloc: std.mem.Allocator, cfg: Config, path: []const u8, accept: ?[]c
     var response = try req.receiveHead(&redirect_buf);
 
     if (response.head.status != .ok) {
-        return error.HttpError;
+        return switch (response.head.status) {
+            .unauthorized => error.Unauthorized,
+            .forbidden => error.Forbidden,
+            .not_found => error.NotFound,
+            .too_many_requests => error.RateLimited,
+            else => error.HttpError,
+        };
     }
 
     var transfer_buf: [8192]u8 = undefined;
@@ -41,5 +47,11 @@ pub fn get(alloc: std.mem.Allocator, cfg: Config, path: []const u8, accept: ?[]c
 
     var body: std.ArrayList(u8) = .empty;
     try reader.appendRemainingUnlimited(alloc, &body);
+
+    const max_body_size = 10 * 1024 * 1024; // 10MB
+    if (body.items.len > max_body_size) {
+        return error.ResponseTooLarge;
+    }
+
     return body.toOwnedSlice(alloc);
 }

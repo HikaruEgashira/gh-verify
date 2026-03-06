@@ -56,10 +56,21 @@ pub fn main() !void {
     std.process.exit(1);
 }
 
+fn validateHost(host: []const u8) !void {
+    if (host.len == 0) return error.InvalidHost;
+    // Block localhost
+    if (std.mem.startsWith(u8, host, "localhost")) return error.InvalidHost;
+    // Block IP addresses (starts with digit)
+    if (host[0] >= '0' and host[0] <= '9') return error.InvalidHost;
+    // Must contain a dot (valid hostname)
+    if (std.mem.indexOf(u8, host, ".") == null) return error.InvalidHost;
+}
+
 fn loadConfig(alloc: std.mem.Allocator) !Config {
     const token = try resolveToken(alloc);
     const repo = std.process.getEnvVarOwned(alloc, "GH_REPO") catch try alloc.dupe(u8, "");
     const host = std.process.getEnvVarOwned(alloc, "GH_HOST") catch try alloc.dupe(u8, "api.github.com");
+    try validateHost(host);
     return Config{ .token = token, .repo = repo, .host = host };
 }
 
@@ -78,8 +89,9 @@ fn resolveToken(alloc: std.mem.Allocator) ![]const u8 {
     var out_buf: [4096]u8 = undefined;
     const n = try child.stdout.?.readAll(&out_buf);
     _ = try child.wait();
-    const out = try alloc.dupe(u8, out_buf[0..n]);
-    return std.mem.trim(u8, out, "\n\r ");
+    const out = try alloc.dupe(u8, std.mem.trim(u8, out_buf[0..n], "\n\r "));
+    @memset(&out_buf, 0);
+    return out;
 }
 
 fn printUsage() void {

@@ -48,16 +48,12 @@ pub fn run(alloc: std.mem.Allocator, cfg: Config, args: []const []const u8) !voi
 
     // OWNER/REPO の解決
     const repo_str = repo_override orelse cfg.repo;
-    var owner: []const u8 = undefined;
-    var repo_name: []const u8 = undefined;
-
-    if (std.mem.indexOf(u8, repo_str, "/")) |slash_idx| {
-        owner = repo_str[0..slash_idx];
-        repo_name = repo_str[slash_idx + 1 ..];
-    } else {
+    const slash_idx = std.mem.indexOf(u8, repo_str, "/") orelse {
         try stderr.print("Could not resolve repo. Use --repo OWNER/REPO or set GH_REPO env var.\n", .{});
         std.process.exit(1);
-    }
+    };
+    const owner = repo_str[0..slash_idx];
+    const repo_name = repo_str[slash_idx + 1 ..];
 
     // GitHub API からデータ取得
     const pr_files = pr_api.getPrFiles(alloc, cfg, owner, repo_name, pr_number) catch |err| {

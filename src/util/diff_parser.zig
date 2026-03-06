@@ -55,8 +55,8 @@ pub fn classifyPath(path: []const u8) Domain {
     // auth
     if (containsSegment(lower, "auth") or
         containsPath(lower, "login") or
-        containsPath(lower, "token") or
-        containsPath(lower, "session") or
+        containsSegment(lower, "token") or
+        containsSegment(lower, "session") or
         containsPath(lower, "oauth"))
         return .auth;
 
@@ -64,7 +64,7 @@ pub fn classifyPath(path: []const u8) Domain {
     if (containsSegment(lower, "db") or
         containsSegment(lower, "database") or
         containsSegment(lower, "migration") or
-        containsPath(lower, "schema") or
+        containsSegment(lower, "schema") or
         std.mem.endsWith(u8, lower, ".sql"))
         return .database;
 
@@ -92,6 +92,7 @@ pub fn classifyPath(path: []const u8) Domain {
         std.mem.endsWith(u8, lower, ".toml") or
         std.mem.endsWith(u8, lower, ".yaml") or
         std.mem.endsWith(u8, lower, ".yml") or
+        std.mem.endsWith(u8, lower, ".json") or
         std.mem.endsWith(u8, lower, ".env"))
         return .config;
 
