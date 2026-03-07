@@ -1,0 +1,12 @@
+{
+  "id": "error-007",
+  "description": "Prisma init --db migration touching auth, database, and config",
+  "repo": "prisma/prisma",
+  "pr_number": 29283,
+  "expected": "error",
+  "rationale": "auth.ts = auth (8 lines). auth-client.ts = database (10 lines, contains database client logic). package.json + pnpm-lock.yaml = config (62 lines). 3 domains = ERROR.",
+  "category": "multi-domain-error",
+  "domains_expected": ["auth", "database", "config"],
+  "ecosystem": "typescript",
+  "notes": "auth-client.ts classified as database despite 'auth' in name - worth investigating if this is correct or a false positive from semantic analysis."
+}

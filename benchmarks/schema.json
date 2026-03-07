@@ -41,7 +41,10 @@
         "docs-plus-feature",
         "noise-threshold",
         "multi-domain-warn",
-        "multi-domain-error"
+        "multi-domain-error",
+        "conflict-imports",
+        "clean-single-domain",
+        "path-only-fallback"
       ]
     },
     "domains_expected": {

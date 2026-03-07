@@ -1,0 +1,12 @@
+{
+  "id": "pass-010",
+  "description": "Pure database adapter fix - MariaDB relationJoins capability check with only ORM imports",
+  "repo": "prisma/prisma",
+  "pr_number": 29246,
+  "expected": "pass",
+  "rationale": "Two files changed: packages/adapter-mariadb/src/mariadb.ts (database adapter source) and mariadb.test.ts (test). Path classification: adapter-mariadb/ = database domain. Test file excluded. Semantic analysis: mariadb.ts imports only from @prisma/* packages (database-domain libraries). The test file imports from the same adapter (database) + test utilities. Clean single-domain imports reinforce path classification. 1 domain = PASS.",
+  "category": "clean-single-domain",
+  "domains_expected": ["database"],
+  "ecosystem": "typescript",
+  "notes": "Control case: pure database ORM adapter change. Semantic analysis should detect only database-domain imports (@prisma/*, mariadb adapters) and confirm the path classification. No conflict detection needed here."
+}

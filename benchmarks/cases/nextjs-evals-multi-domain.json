@@ -1,0 +1,12 @@
+{
+  "id": "error-006",
+  "description": "Next.js evals standardization PR touching ui/database/docs/config/api domains",
+  "repo": "vercel/next.js",
+  "pr_number": 90883,
+  "expected": "error",
+  "rationale": "Eval test fixtures contain .tsx pages (ui), prisma schema (database), README.md (docs), package.json (config), api routes (api). Genuinely multi-domain PR that should be flagged.",
+  "category": "multi-domain-error",
+  "domains_expected": ["ui", "database", "docs", "config", "api"],
+  "ecosystem": "typescript",
+  "notes": "Large PR (5 domains). Evals are test-like but live under evals/ not test/, so not classified as test."
+}

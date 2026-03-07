@@ -1,0 +1,12 @@
+{
+  "id": "warn-004",
+  "description": "shadcn-ui sidebar tooltip fix - .tsx components (ui) + .json style configs (config)",
+  "repo": "shadcn-ui/ui",
+  "pr_number": 9758,
+  "expected": "warning",
+  "rationale": "sidebar.tsx under ui/ = ui (6 lines, above threshold). sidebar.json files under public/r/styles/ = config (10 lines, .json extension). 2 domains (ui + config) = WARNING.",
+  "category": "multi-domain-warn",
+  "domains_expected": ["ui", "config"],
+  "ecosystem": "typescript",
+  "notes": "Reveals a classification gap: .json style/registry files are classified as config, but they're actually UI-related (component style definitions). This is a known limitation of extension-based classification."
+}

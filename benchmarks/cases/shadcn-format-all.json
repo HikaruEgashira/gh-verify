@@ -1,0 +1,12 @@
+{
+  "id": "error-011",
+  "description": "shadcn-ui format run on all components - auth+ui+config from path patterns",
+  "repo": "shadcn-ui/ui",
+  "pr_number": 9768,
+  "expected": "error",
+  "rationale": "Some components under auth-like paths = auth. .tsx components = ui. package.json files = config. 3 domains = ERROR.",
+  "category": "multi-domain-error",
+  "domains_expected": ["auth", "ui", "config"],
+  "ecosystem": "typescript",
+  "notes": "FALSE POSITIVE: formatting-only change should arguably be pass. But ghlint correctly detects the paths touch multiple domains. Scope issue, not classification issue."
+}

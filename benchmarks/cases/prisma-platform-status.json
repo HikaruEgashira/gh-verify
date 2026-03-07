@@ -1,0 +1,12 @@
+{
+  "id": "warn-009",
+  "description": "Prisma platform status command - UI components + database client code",
+  "repo": "prisma/prisma",
+  "pr_number": 29207,
+  "expected": "warning",
+  "rationale": "CLI output rendering with view/page semantics → ui (254 lines). Management API client code → database (153 lines, semantic analysis detects prisma imports). 2 domains = WARNING.",
+  "category": "multi-domain-warn",
+  "domains_expected": ["ui", "database"],
+  "ecosystem": "typescript",
+  "notes": "Interesting case: CLI rendering classified as ui, API client as database. The domains overlap but ghlint flags it."
+}

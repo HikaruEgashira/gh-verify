@@ -1,0 +1,12 @@
+{
+  "id": "warn-007",
+  "description": "Next.js vendor update for @vercel/og - compiled types (ui) + package.json (config)",
+  "repo": "vercel/next.js",
+  "pr_number": 90933,
+  "expected": "warning",
+  "rationale": "Compiled .d.ts under @vercel/og classified as ui (38 lines). package.json + pnpm-lock.yaml = config (47 lines). 2 domains = WARNING.",
+  "category": "multi-domain-warn",
+  "domains_expected": ["ui", "config"],
+  "ecosystem": "typescript",
+  "notes": "Vendor update pattern - config+ui is common for dependency bumps. Could argue this should be pass."
+}

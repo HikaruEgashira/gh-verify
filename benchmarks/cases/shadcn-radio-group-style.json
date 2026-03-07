@@ -1,0 +1,12 @@
+{
+  "id": "warn-010",
+  "description": "shadcn-ui radio group style update - components (ui) + config",
+  "repo": "shadcn-ui/ui",
+  "pr_number": 9676,
+  "expected": "warning",
+  "rationale": "Component .tsx files = ui (78 lines). Package config = config (20 lines). 2 domains = WARNING.",
+  "category": "multi-domain-warn",
+  "domains_expected": ["ui", "config"],
+  "ecosystem": "typescript",
+  "notes": "Common pattern: component change + package.json update. Arguably should be pass (docs-plus-feature equivalent for ui+config)."
+}

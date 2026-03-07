@@ -1,0 +1,12 @@
+{
+  "id": "pass-015",
+  "description": "Supabase partner refactor - most files unknown, only login.tsx (auth) above threshold",
+  "repo": "supabase/supabase",
+  "pr_number": 43466,
+  "expected": "pass",
+  "rationale": "data/partners/*.ts files = unknown (no domain keywords in path). login.tsx under pages/partners/stripe/ = auth (login segment, 6 lines). api-types/types/platform.d.ts = unknown (27 lines but no domain match). Only 1 active domain (auth) = PASS.",
+  "category": "single-domain",
+  "domains_expected": ["auth"],
+  "ecosystem": "typescript",
+  "notes": "Partners/data paths don't match any domain pattern. The majority of code changes are in unknown-classified files, which are ignored for domain counting."
+}
