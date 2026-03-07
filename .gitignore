@@ -15,4 +15,3 @@ benchmarks/results/*.json
 # devenv runtime
 .devenv/
 .devenv.flake.nix
-devenv.lock

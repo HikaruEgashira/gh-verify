@@ -1,4 +1,6 @@
 { pkgs, ... }: {
+  cachix.enable = false;
+
   packages = [
     pkgs.zig_0_15
     pkgs.gh
