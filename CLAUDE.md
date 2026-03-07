@@ -1,39 +1,39 @@
 # ghlint - GitHub SDLC Linter
 
-SLSA ベースの GitHub SDLC 健全性検証ツール。gh CLI 拡張として動作する Zig 製バイナリ。
+SLSA-based GitHub SDLC health checker. Runs as a `gh` CLI extension, built in Zig.
 
 ## Commands
 
 ```bash
-zig build                                    # Debug ビルド
-zig build -Doptimize=ReleaseSafe             # リリースビルド
+zig build                                    # Debug build
+zig build -Doptimize=ReleaseSafe             # Release build
 ./zig-out/bin/gh-lint pr 123 --repo o/r      # PR lint
-./zig-out/bin/gh-lint pr 123 --format json   # JSON 出力
-./zig-out/bin/gh-lint pr list-rules          # ルール一覧
+./zig-out/bin/gh-lint pr 123 --format json   # JSON output
+./zig-out/bin/gh-lint pr list-rules          # List rules
 ```
 
 ## Architecture (Open/Closed Principle)
 
-拡張は「新規ファイル追加 + 登録1行」で完結する。既存ファイルのロジック変更を伴わない。
+Extensions require only a new file and one line of registration. No changes to existing logic.
 
-| 変更 | 作成ファイル | 登録 |
+| Change | File to create | Registration |
 |---|---|---|
-| 新ルール | `src/rules/<name>.zig` | `engine.zig` の `rules` 配列に1行 |
-| 新サブコマンド | `src/cli/<name>.zig` | `main.zig` の `dispatch_table` に1行 |
-| 新出力フォーマット | `src/output/<name>.zig` | `formatter.zig` の switch に1行 |
-| 新APIエンドポイント | `src/github/<name>.zig` | 不要 |
+| New rule | `src/rules/<name>.zig` | 1 line in `engine.zig` `rules` array |
+| New subcommand | `src/cli/<name>.zig` | 1 line in `main.zig` `dispatch_table` |
+| New output format | `src/output/<name>.zig` | 1 case in `formatter.zig` switch |
+| New API endpoint | `src/github/<name>.zig` | None |
 
 ## Zig 0.15 Conventions
 
 ```zig
-// ArrayList: Unmanaged（alloc を各操作で渡す）
+// ArrayList: Unmanaged (pass alloc to each operation)
 var list: std.ArrayList(T) = .empty;
 try list.append(alloc, item);
 
 // stdout/stderr
 const stdout = std.fs.File.stdout().deprecatedWriter();
 
-// HTTP: request API（fetch ではない）
+// HTTP: request API (not fetch)
 var req = try client.request(.GET, uri, .{
     .headers = .{ .accept_encoding = .{ .override = "identity" } },
     .extra_headers = &[_]std.http.Header{...},
@@ -47,24 +47,24 @@ try reader.appendRemainingUnlimited(alloc, &body);
 const parsed = try std.json.parseFromSlice(T, alloc, body, .{ .ignore_unknown_fields = true });
 const json_str = try std.json.Stringify.valueAlloc(alloc, value, .{ .whitespace = .indent_2 });
 
-// build.zig: root_module + createModule（root_source_file 直接指定ではない）
+// build.zig: root_module + createModule (not direct root_source_file)
 ```
 
 ## Naming
 
-- ルール ID: kebab-case (`detect-unscoped-change`)
-- ファイル名: snake_case (`detect_unscoped_change.zig`)
-- Zig 予約語の enum variant: `@"test"`, `@"error"`
+- Rule ID: kebab-case (`detect-unscoped-change`)
+- File name: snake_case (`detect_unscoped_change.zig`)
+- Zig reserved-word enum variants: `@"test"`, `@"error"`
 
 ## Exit Codes
 
-- `0`: 全ルール pass / warning のみ
-- `1`: いずれかのルールが error
+- `0`: all rules pass / warnings only
+- `1`: one or more rules returned error
 
 ## Dependencies
 
 - tree-sitter (core, go, python): Homebrew
-- tree-sitter-typescript: `deps/` にベンダリング
+- tree-sitter-typescript: vendored in `deps/`
 
 ## PR Template
 
@@ -73,8 +73,8 @@ const json_str = try std.json.Stringify.valueAlloc(alloc, value, .{ .whitespace 
 ## Why
 ## How
 ## Verification
-- [ ] `zig build` が成功する
-- [ ] 既存ルールが引き続き動作する
-- [ ] 新ルールの場合: pass/warning/error の3パターンを確認
-- [ ] `--format json` 出力が valid JSON
+- [ ] `zig build` succeeds
+- [ ] Existing rules still work
+- [ ] For new rules: verified pass/warning/error cases
+- [ ] `--format json` output is valid JSON
 ```

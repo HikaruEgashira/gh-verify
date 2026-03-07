@@ -9,7 +9,7 @@ const JsonResult = struct {
     suggestion: ?[]const u8,
 };
 
-/// RuleResult のリストを JSON 形式で stdout に出力する。
+/// Print a list of RuleResults to stdout in JSON format.
 pub fn print(alloc: std.mem.Allocator, results: []const rule.RuleResult) !void {
     var json_results = try alloc.alloc(JsonResult, results.len);
     for (results, 0..) |r, i| {

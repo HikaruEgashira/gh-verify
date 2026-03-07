@@ -7,7 +7,7 @@ const YELLOW = "\x1b[33m";
 const GREEN = "\x1b[32m";
 const BOLD = "\x1b[1m";
 
-/// RuleResult のリストを人間が読みやすい形式で stdout に出力する。
+/// Print a list of RuleResults to stdout in human-readable format.
 pub fn print(results: []const rule.RuleResult) !void {
     const stdout = std.fs.File.stdout().deprecatedWriter();
 
