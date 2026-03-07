@@ -1,0 +1,12 @@
+{
+  "id": "pass-002",
+  "description": "Test-only PR - test domain is always ignored by ghlint",
+  "repo": "expressjs/express",
+  "pr_number": 7037,
+  "expected": "pass",
+  "rationale": "All files are in test/ directory, classified as test domain which is always ignored. 0 active domains = PASS.",
+  "category": "test-only",
+  "domains_expected": [],
+  "ecosystem": "javascript",
+  "notes": "Edge case: test domain is excluded from domain count. A PR touching ONLY tests always passes regardless of scope."
+}

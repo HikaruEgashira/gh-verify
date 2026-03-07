@@ -1,0 +1,12 @@
+{
+  "id": "pass-005",
+  "description": "UI-only PR - single React component fix",
+  "repo": "shadcn-ui/ui",
+  "pr_number": 9737,
+  "expected": "pass",
+  "rationale": "Single .tsx file in components/ path, classified as ui domain. Single domain = PASS.",
+  "category": "single-domain",
+  "domains_expected": ["ui"],
+  "ecosystem": "typescript",
+  "notes": "CSS class fix in a single component. Ideal focused PR."
+}

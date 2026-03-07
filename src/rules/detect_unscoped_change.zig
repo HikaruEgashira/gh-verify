@@ -1,6 +1,7 @@
 const std = @import("std");
 const rule = @import("rule.zig");
 const diff_parser = @import("../util/diff_parser.zig");
+const file_classifier = @import("../util/file_classifier.zig");
 
 const NOISE_THRESHOLD = 5; // 変更行数がこれ以下のドメインは無視
 
@@ -20,7 +21,7 @@ pub fn run(alloc: std.mem.Allocator, ctx: rule.RuleContext) ![]rule.RuleResult {
     }
 
     for (ctx.pr_files) |f| {
-        const domain = diff_parser.classifyPath(f.filename);
+        const domain = file_classifier.classifyFile(f);
         var data = domain_map.getPtr(domain);
         data.lines += f.additions + f.deletions;
         try data.files.append(alloc, f.filename);

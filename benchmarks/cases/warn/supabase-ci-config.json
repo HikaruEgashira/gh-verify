@@ -1,0 +1,12 @@
+{
+  "id": "warn-001",
+  "description": "CI workflows + lockfile in same PR - ci and config domains mixed",
+  "repo": "supabase/supabase",
+  "pr_number": 43450,
+  "expected": "warning",
+  "rationale": ".github/workflows/*.yml files = ci domain. pnpm-lock.yaml and pnpm-workspace.yaml end with .yaml = config domain. 2 unrelated domains = WARNING.",
+  "category": "multi-domain-warn",
+  "domains_expected": ["ci", "config"],
+  "ecosystem": "typescript",
+  "notes": "PR title says 'fix: cannot resize table editor columns on safari' but the bulk of changes are CI/lockfile updates bundled together. Classic scope creep."
+}

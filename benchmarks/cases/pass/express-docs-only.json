@@ -1,0 +1,12 @@
+{
+  "id": "pass-003",
+  "description": "Docs-only PR - single .md file change",
+  "repo": "expressjs/express",
+  "pr_number": 7029,
+  "expected": "pass",
+  "rationale": "Only Readme.md changed, classified as docs domain. Single domain = PASS.",
+  "category": "single-domain",
+  "domains_expected": ["docs"],
+  "ecosystem": "javascript",
+  "notes": "README fix. docs domain = PASS."
+}

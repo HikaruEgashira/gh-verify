@@ -1,0 +1,12 @@
+{
+  "id": "warn-003",
+  "description": "OAuth refactor with docs guide update - auth domain mixed with UI components",
+  "repo": "supabase/supabase",
+  "pr_number": 43366,
+  "expected": "warning",
+  "rationale": "apps/docs/content/guides/auth/ path contains 'auth' substring = auth domain (10 lines). OAuthApp*.tsx components = ui domain (418 lines). 2 unrelated domains = WARNING.",
+  "category": "multi-domain-warn",
+  "domains_expected": ["auth", "ui"],
+  "ecosystem": "typescript",
+  "notes": "Interesting: the 'auth' domain is triggered by a DOCS file (guides/auth/...) not actual auth code. The bulk is UI component refactoring. The auth doc change should be a separate PR."
+}

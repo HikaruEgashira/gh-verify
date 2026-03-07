@@ -1,0 +1,12 @@
+{
+  "id": "pass-001",
+  "description": "CI workflow only - GitHub Actions files only, single ci domain",
+  "repo": "expressjs/express",
+  "pr_number": 7074,
+  "expected": "pass",
+  "rationale": "All changed files are under .github/workflows/ which classifies as ci domain. Single domain = PASS.",
+  "category": "ci-only",
+  "domains_expected": ["ci"],
+  "ecosystem": "javascript",
+  "notes": "Dependabot bump for actions/upload-artifact. Classic single-domain CI change."
+}

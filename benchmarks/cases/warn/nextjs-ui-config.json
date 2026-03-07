@@ -1,0 +1,12 @@
+{
+  "id": "warn-002",
+  "description": "Next.js feature flag PR - UI components mixed with config changes",
+  "repo": "vercel/next.js",
+  "pr_number": 90928,
+  "expected": "warning",
+  "rationale": ".tsx files in client/ and server/app-render/ = ui domain. server/config.ts = config domain (contains 'config' substring). 2 unrelated domains = WARNING.",
+  "category": "multi-domain-warn",
+  "domains_expected": ["ui", "config"],
+  "ecosystem": "typescript",
+  "notes": "Feature flag implementation requires touching both config schema and render components. This is a common pattern in Next.js that gets flagged. May indicate the feature flag should be separated into its own PR."
+}

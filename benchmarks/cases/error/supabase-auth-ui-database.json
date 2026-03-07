@@ -1,0 +1,12 @@
+{
+  "id": "pass-008",
+  "description": "Marketing event pages with session naming + schema file - correctly classified as single UI domain",
+  "repo": "supabase/supabase",
+  "pr_number": 43343,
+  "expected": "pass",
+  "rationale": "After tightening session/schema to segment-based matching: stripe-sessions-contest.tsx no longer matches auth (sessions is not a path segment). schemas.ts no longer matches database (schemas is not a path segment). All .tsx files = ui domain. Single domain = PASS.",
+  "category": "single-domain",
+  "domains_expected": ["ui"],
+  "ecosystem": "typescript",
+  "notes": "Previously a false positive (3 domains due to loose substring matching). Now correctly classified. Tree-sitter could further distinguish marketing vs UI if needed."
+}

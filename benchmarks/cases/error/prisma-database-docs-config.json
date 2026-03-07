@@ -1,0 +1,12 @@
+{
+  "id": "pass-009",
+  "description": "Prisma port PR - _schema.ts test fixtures correctly classified as unknown after segment-based matching",
+  "repo": "prisma/prisma",
+  "pr_number": 29270,
+  "expected": "pass",
+  "rationale": "After tightening schema to segment-based matching: _schema.ts no longer matches database (_schema is not a path segment bounded by / or .). Files become unknown. README.md = docs, pnpm-lock.yaml = config, but neither exceeds NOISE_THRESHOLD alone. 0-1 active domains = PASS.",
+  "category": "single-domain",
+  "domains_expected": [],
+  "ecosystem": "typescript",
+  "notes": "Previously a false positive (3 domains due to _schema.ts matching database). The _schema.ts files are test fixtures, not actual DB schemas. Tree-sitter could identify them as test fixtures via import analysis."
+}
