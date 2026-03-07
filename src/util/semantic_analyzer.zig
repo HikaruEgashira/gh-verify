@@ -218,35 +218,45 @@ fn classifyGoImport(mod: []const u8, s: *ImportSignals) void {
 // --- シグナルからヒント生成 ---
 
 fn hintsFromSignals(s: ImportSignals) SemanticHints {
-    // 検証スキーマライブラリ → UI/validation (データベースではない)
+    // 各カテゴリのシグナルを集計
+    const is_ui = s.has_react or s.has_vue or s.has_svelte or s.has_validation;
+    const is_auth = s.has_jwt or s.has_passport or s.has_nextauth;
+    const is_db = s.has_prisma or s.has_sqlalchemy or s.has_sql_db;
+    const is_api = s.has_web_framework or s.has_net_http;
+    const is_test = s.has_pytest or s.has_testing;
+
+    // 複数カテゴリのシグナルが競合 → 信頼度を返さない（パス分類を尊重）
+    const category_count = @as(u8, @intFromBool(is_ui)) +
+        @as(u8, @intFromBool(is_auth)) +
+        @as(u8, @intFromBool(is_db)) +
+        @as(u8, @intFromBool(is_api)) +
+        @as(u8, @intFromBool(is_test));
+    if (category_count > 1) return .{};
+
+    // 単一カテゴリのみ検出 → 高信頼度
     if (s.has_validation) return .{
         .domain_suppress = .database,
         .domain_boost = .ui,
         .confidence = 0.9,
     };
-    // React/Vue/Svelte → UI (auth ではない)
     if (s.has_react or s.has_vue or s.has_svelte) return .{
         .domain_suppress = .auth,
         .domain_boost = .ui,
         .confidence = 0.85,
     };
-    // 認証専用ライブラリ → auth domain を強化
-    if (s.has_jwt or s.has_passport or s.has_nextauth) return .{
+    if (is_auth) return .{
         .domain_boost = .auth,
         .confidence = 0.85,
     };
-    // ORM / DB ドライバー → database
-    if (s.has_prisma or s.has_sqlalchemy or s.has_sql_db) return .{
+    if (is_db) return .{
         .domain_boost = .database,
         .confidence = 0.85,
     };
-    // Web フレームワーク → api
-    if (s.has_web_framework or s.has_net_http) return .{
+    if (is_api) return .{
         .domain_boost = .api,
         .confidence = 0.8,
     };
-    // テストフレームワーク → test
-    if (s.has_pytest or s.has_testing) return .{
+    if (is_test) return .{
         .domain_boost = .@"test",
         .confidence = 0.9,
     };
