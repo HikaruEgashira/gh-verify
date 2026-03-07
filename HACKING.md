@@ -3,19 +3,20 @@
 ## Setup
 
 ```bash
-# Nix flake (recommended: provides zig / gh / jq automatically)
-direnv allow   # or: nix develop
-
-# Manual: install Zig 0.15.x, GitHub CLI, jq
+# devenv (recommended: provides zig / gh / jq automatically)
+direnv allow   # or: devenv shell
 ```
 
-## Build & Test
+## Tasks
+
+All development tasks are managed via devenv. Run with `devenv tasks run <task>`.
 
 ```bash
-build          # zig build -Doptimize=ReleaseSafe
-lint-test      # unit tests (no network required)
-lint-classify  # display domain classification table
-lint-bench     # benchmarks (uses GitHub API)
+devenv tasks run ghlint:build      # Release build
+devenv tasks run ghlint:test       # Unit tests (no network required)
+devenv tasks run ghlint:classify   # Display domain classification table
+devenv tasks run ghlint:bench      # Benchmarks (uses GitHub API)
+devenv tasks run ghlint:dist       # Cross-compile for all platforms
 ```
 
 ## Adding a Rule

@@ -43,12 +43,7 @@ Run `gh lint pr list-rules` to see all registered rules.
 
 ### CLI
 
-Requires: [GitHub CLI](https://cli.github.com/) (`gh`), Zig 0.15+.
-
 ```bash
-# Build
-zig build
-
 # Lint a PR
 gh lint pr 123 --repo owner/repo
 
@@ -75,7 +70,7 @@ jobs:
       contents: read
       pull-requests: read
     steps:
-      - uses: HikaruEgashira/ghlint/action/check-pr@main
+      - uses: HikaruEgashira/gh-lint/action/check-pr@main
         with:
           pr-number: ${{ github.event.pull_request.number }}
 ```
