@@ -1,12 +1,12 @@
 {
-  "id": "pass-009",
-  "description": "Prisma port PR - _schema.ts test fixtures correctly classified as unknown after segment-based matching",
+  "id": "error-005",
+  "description": "Prisma DB adapter refactor touching database adapters, docs, and config",
   "repo": "prisma/prisma",
   "pr_number": 29270,
-  "expected": "pass",
-  "rationale": "After tightening schema to segment-based matching: _schema.ts no longer matches database (_schema is not a path segment bounded by / or .). Files become unknown. README.md = docs, pnpm-lock.yaml = config, but neither exceeds NOISE_THRESHOLD alone. 0-1 active domains = PASS.",
-  "category": "single-domain",
-  "domains_expected": [],
+  "expected": "error",
+  "rationale": "conversion.ts and query-interpreter.ts import @prisma/ packages → semantic analysis correctly classifies as database (133 lines). README.md = docs (10 lines). package.json files = config (84 lines). 3 domains above noise threshold = ERROR.",
+  "category": "multi-domain-error",
+  "domains_expected": ["database", "docs", "config"],
   "ecosystem": "typescript",
-  "notes": "Previously a false positive (3 domains due to _schema.ts matching database). The _schema.ts files are test fixtures, not actual DB schemas. Tree-sitter could identify them as test fixtures via import analysis."
+  "notes": "Tree-sitter semantic analysis correctly identifies @prisma/ imports → database domain. This PR is genuinely multi-domain: adapter code + docs + config."
 }
