@@ -14,23 +14,41 @@ pub const SemanticHints = struct {
     confidence: f32 = 0,
 };
 
+// --- キャッシュ: パーサーとクエリは呼び出し毎に再生成しない ---
+
+var cached_parser: ?*c.TSParser = null;
+var cached_queries: [3]?*c.TSQuery = .{ null, null, null };
+
+fn getParser() ?*c.TSParser {
+    if (cached_parser) |p| return p;
+    const p = c.ts_parser_new() orelse return null;
+    cached_parser = p;
+    return p;
+}
+
+fn getCachedQuery(lang: Language) ?*c.TSQuery {
+    const idx = @intFromEnum(lang);
+    if (cached_queries[idx]) |q| return q;
+    const grammar = selectGrammar(lang) orelse return null;
+    const src = selectQuery(lang);
+    var err_offset: u32 = 0;
+    var err_type: c.TSQueryError = c.TSQueryErrorNone;
+    const q = c.ts_query_new(grammar, src.ptr, @intCast(src.len), &err_offset, &err_type) orelse return null;
+    cached_queries[idx] = q;
+    return q;
+}
+
 /// パッチ内容を Tree-sitter で AST 解析してセマンティックシグナルを抽出する。
 /// patch には unified diff 形式の文字列を渡す（+ で始まる追加行 + コンテキスト行）。
 pub fn analyzeSemantics(filename: []const u8, patch: []const u8) SemanticHints {
     const lang = detectLanguage(filename) orelse return .{};
 
-    // パッチから表示可能な行を抽出（+ 行とコンテキスト行、--- / +++ ヘッダーを除く）
     var buf: [65536]u8 = undefined;
     const source = extractSource(patch, &buf);
     if (source.len == 0) return .{};
 
+    const parser = getParser() orelse return .{};
     const grammar = selectGrammar(lang) orelse return .{};
-    const query_src = selectQuery(lang);
-
-    // Tree-sitter でパース
-    const parser = c.ts_parser_new() orelse return .{};
-    defer c.ts_parser_delete(parser);
-
     _ = c.ts_parser_set_language(parser, grammar);
 
     const tree = c.ts_parser_parse_string(parser, null, source.ptr, @intCast(source.len)) orelse return .{};
@@ -38,11 +56,7 @@ pub fn analyzeSemantics(filename: []const u8, patch: []const u8) SemanticHints {
 
     const root = c.ts_tree_root_node(tree);
 
-    // クエリを実行してインポートモジュール名を収集
-    var error_offset: u32 = 0;
-    var error_type: c.TSQueryError = c.TSQueryErrorNone;
-    const query = c.ts_query_new(grammar, query_src.ptr, @intCast(query_src.len), &error_offset, &error_type) orelse return .{};
-    defer c.ts_query_delete(query);
+    const query = getCachedQuery(lang) orelse return .{};
 
     const cursor = c.ts_query_cursor_new() orelse return .{};
     defer c.ts_query_cursor_delete(cursor);
@@ -57,8 +71,7 @@ pub fn analyzeSemantics(filename: []const u8, patch: []const u8) SemanticHints {
             const start = c.ts_node_start_byte(cap.node);
             const end = c.ts_node_end_byte(cap.node);
             if (end > start and end <= source.len) {
-                const text = source[start..end];
-                classifyImport(lang, text, &signals);
+                classifyImport(lang, source[start..end], &signals);
             }
         }
     }
@@ -74,14 +87,11 @@ const ImportSignals = struct {
     has_react: bool = false,
     has_vue: bool = false,
     has_svelte: bool = false,
-    has_zod: bool = false,
-    has_yup: bool = false,
-    has_joi: bool = false,
+    has_validation: bool = false, // zod/yup/joi (TS), pydantic (Python)
     has_prisma: bool = false,
     has_sqlalchemy: bool = false,
     has_sql_db: bool = false,
-    has_fastapi: bool = false,
-    has_express: bool = false,
+    has_web_framework: bool = false, // express/fastapi/flask/django/net.http
     has_net_http: bool = false,
     has_pytest: bool = false,
     has_testing: bool = false,
@@ -171,7 +181,7 @@ fn classifyImport(lang: Language, raw: []const u8, signals: *ImportSignals) void
 
     switch (lang) {
         .typescript => classifyTsImport(text, signals),
-        .python => classifyPyImport(text, signals), // routes to classifyPyImport
+        .python => classifyPyImport(text, signals),
         .go => classifyGoImport(text, signals),
     }
 }
@@ -180,11 +190,9 @@ fn classifyTsImport(mod: []const u8, s: *ImportSignals) void {
     if (std.mem.eql(u8, mod, "react") or std.mem.eql(u8, mod, "react-dom")) s.has_react = true;
     if (std.mem.eql(u8, mod, "vue")) s.has_vue = true;
     if (std.mem.eql(u8, mod, "svelte")) s.has_svelte = true;
-    if (std.mem.eql(u8, mod, "zod")) s.has_zod = true;
-    if (std.mem.eql(u8, mod, "yup")) s.has_yup = true;
-    if (std.mem.eql(u8, mod, "joi")) s.has_joi = true;
+    if (std.mem.eql(u8, mod, "zod") or std.mem.eql(u8, mod, "yup") or std.mem.eql(u8, mod, "joi")) s.has_validation = true;
     if (std.mem.startsWith(u8, mod, "@prisma/")) s.has_prisma = true;
-    if (std.mem.eql(u8, mod, "express") or std.mem.startsWith(u8, mod, "express/")) s.has_express = true;
+    if (std.mem.eql(u8, mod, "express") or std.mem.startsWith(u8, mod, "express/")) s.has_web_framework = true;
     if (std.mem.startsWith(u8, mod, "jsonwebtoken") or std.mem.eql(u8, mod, "jose")) s.has_jwt = true;
     if (std.mem.startsWith(u8, mod, "passport")) s.has_passport = true;
     if (std.mem.startsWith(u8, mod, "next-auth") or std.mem.eql(u8, mod, "@auth/core")) s.has_nextauth = true;
@@ -192,11 +200,11 @@ fn classifyTsImport(mod: []const u8, s: *ImportSignals) void {
 
 fn classifyPyImport(mod: []const u8, s: *ImportSignals) void {
     if (std.mem.startsWith(u8, mod, "sqlalchemy") or std.mem.startsWith(u8, mod, "SQLAlchemy")) s.has_sqlalchemy = true;
-    if (std.mem.startsWith(u8, mod, "fastapi") or std.mem.startsWith(u8, mod, "FastAPI")) s.has_fastapi = true;
+    if (std.mem.startsWith(u8, mod, "fastapi") or std.mem.startsWith(u8, mod, "FastAPI") or
+        std.mem.eql(u8, mod, "flask") or std.mem.startsWith(u8, mod, "flask.") or
+        std.mem.startsWith(u8, mod, "django")) s.has_web_framework = true;
     if (std.mem.startsWith(u8, mod, "pytest")) s.has_pytest = true;
-    if (std.mem.eql(u8, mod, "flask") or std.mem.startsWith(u8, mod, "flask.")) s.has_fastapi = true; // Flask も api として扱う
-    if (std.mem.startsWith(u8, mod, "django")) s.has_fastapi = true;
-    if (std.mem.eql(u8, mod, "pydantic") or std.mem.startsWith(u8, mod, "pydantic.")) s.has_zod = true; // validation
+    if (std.mem.eql(u8, mod, "pydantic") or std.mem.startsWith(u8, mod, "pydantic.")) s.has_validation = true;
 }
 
 fn classifyGoImport(mod: []const u8, s: *ImportSignals) void {
@@ -211,7 +219,7 @@ fn classifyGoImport(mod: []const u8, s: *ImportSignals) void {
 
 fn hintsFromSignals(s: ImportSignals) SemanticHints {
     // 検証スキーマライブラリ → UI/validation (データベースではない)
-    if (s.has_zod or s.has_yup or s.has_joi) return .{
+    if (s.has_validation) return .{
         .domain_suppress = .database,
         .domain_boost = .ui,
         .confidence = 0.9,
@@ -233,7 +241,7 @@ fn hintsFromSignals(s: ImportSignals) SemanticHints {
         .confidence = 0.85,
     };
     // Web フレームワーク → api
-    if (s.has_fastapi or s.has_express or s.has_net_http) return .{
+    if (s.has_web_framework or s.has_net_http) return .{
         .domain_boost = .api,
         .confidence = 0.8,
     };
