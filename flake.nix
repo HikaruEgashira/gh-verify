@@ -16,24 +16,6 @@
     let
       forEachSystem = nixpkgs.lib.genAttrs (import systems);
     in {
-      packages = forEachSystem (system:
-        let pkgs = nixpkgs.legacyPackages.${system}; in {
-          default = pkgs.stdenv.mkDerivation {
-            pname = "gh-lint";
-            version = "0.1.0";
-            src = ./.;
-            nativeBuildInputs = [ pkgs.zig_0_15 ];
-            buildPhase = ''
-              zig build -Doptimize=ReleaseSafe --global-cache-dir $TMPDIR/zig-cache
-            '';
-            installPhase = ''
-              mkdir -p $out/bin
-              cp zig-out/bin/gh-lint $out/bin/
-            '';
-          };
-        }
-      );
-
       devShells = forEachSystem (system:
         let pkgs = nixpkgs.legacyPackages.${system}; in {
           default = devenv.lib.mkShell {
