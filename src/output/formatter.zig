@@ -5,8 +5,8 @@ const json = @import("json.zig");
 
 pub const Format = enum { human, json };
 
-/// --format フラグに応じて出力フォーマットを振り分ける。
-/// 新しいフォーマット追加時はここに1行追加するだけ。
+/// Dispatch output formatting based on the --format flag.
+/// Add new formats here.
 pub fn print(alloc: std.mem.Allocator, format: Format, results: []const rule.RuleResult) !void {
     switch (format) {
         .human => try human.print(results),

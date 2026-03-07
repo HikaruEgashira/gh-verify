@@ -1,4 +1,4 @@
-/// GitHub API レスポンス型定義。ロジックなし、追加専用。
+/// GitHub API response type definitions. Data-only, append-only.
 
 pub const PrFile = struct {
     filename: []const u8,

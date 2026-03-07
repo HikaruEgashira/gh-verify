@@ -8,7 +8,7 @@ const RawResponse = struct {
     link_header: ?[]const u8,
 };
 
-/// HTTP GET を実行してボディと Link ヘッダを返す内部関数。
+/// Internal function: execute HTTP GET and return body and Link header.
 fn doGet(alloc: std.mem.Allocator, cfg: Config, path: []const u8, accept: ?[]const u8) !RawResponse {
     var http_client = std.http.Client{ .allocator = alloc };
     defer http_client.deinit();
@@ -73,8 +73,8 @@ fn doGet(alloc: std.mem.Allocator, cfg: Config, path: []const u8, accept: ?[]con
     };
 }
 
-/// GitHub REST API への GET リクエスト。
-/// レスポンスボディを caller-owned スライスで返す（JSON 解析はしない）。
+/// GET request to GitHub REST API.
+/// Returns response body as a caller-owned slice (no JSON parsing).
 pub fn get(alloc: std.mem.Allocator, cfg: Config, path: []const u8, accept: ?[]const u8) ![]const u8 {
     const raw = try doGet(alloc, cfg, path, accept);
     if (raw.link_header) |h| alloc.free(h);
@@ -86,8 +86,8 @@ pub const GetResult = struct {
     next_path: ?[]const u8,
 };
 
-/// GitHub REST API への GET リクエスト（ページネーション対応）。
-/// Link ヘッダから next URL を抽出して返す。
+/// GET request to GitHub REST API with pagination support.
+/// Extracts next URL from Link header.
 pub fn getWithLink(alloc: std.mem.Allocator, cfg: Config, path: []const u8, accept: ?[]const u8) !GetResult {
     const raw = try doGet(alloc, cfg, path, accept);
 
@@ -105,7 +105,7 @@ pub fn getWithLink(alloc: std.mem.Allocator, cfg: Config, path: []const u8, acce
     };
 }
 
-/// Link ヘッダから rel="next" の URL パス部分を抽出する。
+/// Extract the URL path for rel="next" from a Link header.
 fn parseLinkNext(alloc: std.mem.Allocator, link_header: []const u8, base_prefix: []const u8) !?[]const u8 {
     // Format: <URL>; rel="next", <URL>; rel="last"
     var rest = link_header;

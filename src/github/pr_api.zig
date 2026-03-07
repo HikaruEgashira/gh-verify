@@ -6,7 +6,7 @@ const Config = @import("../main.zig").Config;
 pub const PrFile = types.PrFile;
 pub const PrMetadata = types.PrMetadata;
 
-/// PR の変更ファイル一覧を取得する。
+/// Fetch the list of changed files for a PR.
 /// GET /repos/{owner}/{repo}/pulls/{pr_number}/files
 pub fn getPrFiles(
     alloc: std.mem.Allocator,
@@ -61,7 +61,7 @@ pub fn getPrFiles(
     return all_files.toOwnedSlice(alloc);
 }
 
-/// PR のメタデータを取得する。
+/// Fetch PR metadata.
 /// GET /repos/{owner}/{repo}/pulls/{pr_number}
 pub fn getPrMetadata(
     alloc: std.mem.Allocator,

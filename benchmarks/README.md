@@ -1,75 +1,77 @@
-# ghlint ベンチマーク
+# ghlint Benchmarks
 
-実世界の GitHub PR を対象に ghlint の `detect-unscoped-change` ルールを検証するベンチマーク群です。
+Benchmark suite for validating ghlint's `detect-unscoped-change` rule against real-world GitHub PRs.
 
-## 実行方法
+## Running
 
 ```bash
-# ghlint をビルド
+# Build ghlint
 cd ..
 zig build
 
-# ベンチマーク実行
+# Run benchmarks
 cd benchmarks
 GHLINT_BIN=../zig-out/bin/gh-lint bash run.sh
 ```
 
-結果は `results/run_<timestamp>.json` に保存されます。
+Results are saved to `results/run_<timestamp>.json`.
 
-## ケース構成
+## Case Structure
 
-| カテゴリ | 件数 | 説明 |
-|--------|------|------|
-| pass/  | 7    | 単一ドメインまたは正当なスコープのPR |
-| warn/  | 4    | 2つの無関係ドメインを跨ぐPR |
-| error/ | 3    | 3つ以上のドメインを跨ぐPR |
+All benchmark cases are stored as flat JSON files in `cases/`.
 
-## ドメイン分類ルール（`src/util/diff_parser.zig`）
+| Prefix | Description |
+|--------|-------------|
+| pass-* | Single-domain or legitimately scoped PRs |
+| warn-* | PRs spanning 2 unrelated domains |
+| error-* | PRs spanning 3+ domains |
 
-| ドメイン | 検出パターン |
-|---------|------------|
-| `test`  | パスに "test"/"spec" を含む、または `_test.*`/`.spec.*`/`.test.*` |
-| `ci`    | `.github/` で始まる、または "ci"/"workflow" を含む |
-| `docs`  | `docs/` で始まる、または `.md`/`.rst`/`.txt` で終わる |
-| `auth`  | "auth"/"login"/"token"/"session"/"oauth" を含む |
-| `database` | "db"/"database"/"migration"/"schema" を含む、または `.sql` |
-| `ui`    | "ui"/"component"/"view"/"page" を含む、または `.css`/`.scss`/`.tsx`/`.jsx` |
-| `api`   | "api"/"handler"/"route"/"controller"/"endpoint" を含む |
-| `config`| "config" を含む、または `.toml`/`.yaml`/`.yml`/`.env` で終わる |
-| `unknown` | 上記のどれにも一致しない（カウントから除外） |
+## Domain Classification Rules (`src/util/diff_parser.zig`)
 
-**優先順位**: 上から順に最初に一致したドメインが採用される。
+| Domain | Detection Patterns |
+|--------|-------------------|
+| `test` | Path contains "test"/"spec", or `_test.*`/`.spec.*`/`.test.*` suffix |
+| `ci` | Starts with `.github/`, or contains "ci"/"workflow" |
+| `docs` | Starts with `docs/`, or `.md`/`.rst`/`.txt` suffix |
+| `auth` | Contains "auth"/"login"/"token"/"session"/"oauth" |
+| `database` | Contains "db"/"database"/"migration"/"schema", or `.sql` suffix |
+| `ui` | Contains "ui"/"component"/"view"/"page", or `.css`/`.scss`/`.tsx`/`.jsx` suffix |
+| `api` | Contains "api"/"handler"/"route"/"controller"/"endpoint" |
+| `config` | Contains "config", or `.toml`/`.yaml`/`.yml`/`.env` suffix |
+| `unknown` | No pattern matched (excluded from counting) |
 
-**特別ルール**:
-- `test` ドメインは常に無視される（カウント対象外）
-- `unknown` ドメインも無視される
-- ノイズ閾値: ドメインあたり5行以下は無視
-- PASS 条件: ドメイン数 ≤1、または ドメイン数が2かつ一方が `docs`
-- WARN 条件: 無関係ドメイン数 = 2
-- ERROR 条件: 無関係ドメイン数 ≥ 3
+**Priority**: First match wins (evaluated top to bottom).
 
-## 発見された既知の問題（False Positive / False Negative）
+**Special rules**:
+- `test` domain is always ignored (not counted)
+- `unknown` domain is also ignored
+- Noise threshold: domains with ≤5 changed lines are ignored
+- PASS: domain count ≤1, or exactly 2 domains with one being `docs`
+- WARN: 2 unrelated domains
+- ERROR: 3+ unrelated domains
 
-### False Positive（誤検知）
+## Known Issues (False Positives / False Negatives)
 
-| ケース | 問題 | 例 |
-|--------|------|-----|
-| 部分文字列マッチ | `token_parser` が "token" を含むため `auth` ドメインに分類される | `stripe-sessions-contest.tsx` → `auth` |
-| `schema` の過剰マッチ | Zod スキーマや JSON スキーマが `database` ドメインに分類される | `schemas.ts` → `database` |
-| `session` の過剰マッチ | カンファレンスセッション等が `auth` ドメインに分類される | `stripe-sessions-contest.tsx` |
+### False Positives
 
-### False Negative（見逃し）
+| Issue | Description | Example |
+|-------|-------------|---------|
+| Substring match | `token_parser` contains "token" → classified as `auth` | `stripe-sessions-contest.tsx` → `auth` |
+| `schema` over-match | Zod/JSON schemas classified as `database` | `schemas.ts` → `database` |
+| `session` over-match | Conference sessions classified as `auth` | `stripe-sessions-contest.tsx` |
 
-| ケース | 問題 | 例 |
-|--------|------|-----|
-| `package.json` | `.json` はどのパターンにもマッチせず `unknown` として無視 | 依存関係バンプPRが常にPASS |
-| `Dockerfile` | `unknown` に分類され無視される | 大規模インフラ変更でもPASS |
-| 大文字ディレクトリ | case-sensitive マッチのため `Auth/` が `auth` と一致しない | Java/Kotlinリポジトリ |
-| `.go`/`.rs`/`.py` | 標準的なソースファイルがドメインパスを使わない場合 `unknown` に | 汎用Goリポジトリ全体 |
+### False Negatives
 
-## ケース選定基準
+| Issue | Description | Example |
+|-------|-------------|---------|
+| `package.json` | `.json` matches no domain pattern → `unknown` | Dependency bump PRs always PASS |
+| `Dockerfile` | Classified as `unknown` and ignored | Large infra changes still PASS |
+| Case-sensitive dirs | `Auth/` doesn't match `auth` | Java/Kotlin repositories |
+| Generic source files | `.go`/`.rs`/`.py` without domain path segments → `unknown` | Generic Go repositories |
 
-1. **実行可能性**: 公開リポジトリの Merged PR のみ
-2. **確認済み**: `ghlint pr <num> --repo <owner>/<repo> --format json` で実際に検証済み
-3. **多様性**: 複数のエコシステム（TypeScript, Python, JavaScript）
-4. **教育的価値**: false positive/negative を含む興味深いケースを優先
+## Case Selection Criteria
+
+1. **Executable**: Only merged PRs from public repositories
+2. **Verified**: Each case tested with `ghlint pr <num> --repo <owner>/<repo> --format json`
+3. **Diverse**: Multiple ecosystems (TypeScript, Python, JavaScript)
+4. **Educational**: Includes interesting false positive/negative cases

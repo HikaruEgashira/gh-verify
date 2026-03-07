@@ -1,18 +1,18 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "BenchmarkCase",
-  "description": "ghlint ベンチマークケース定義",
+  "description": "ghlint benchmark case definition",
   "type": "object",
   "required": ["id", "description", "repo", "pr_number", "expected", "rationale", "category", "domains_expected", "ecosystem"],
   "properties": {
     "id": {
       "type": "string",
       "pattern": "^(pass|warn|error)-\\d{3}$",
-      "description": "一意のID: pass-001, warn-002, error-003 形式"
+      "description": "Unique ID in format: pass-001, warn-002, error-003"
     },
     "description": {
       "type": "string",
-      "description": "このPRが何をデモするかの1行説明"
+      "description": "One-line description of what this PR demonstrates"
     },
     "repo": {
       "type": "string",
@@ -26,11 +26,11 @@
     "expected": {
       "type": "string",
       "enum": ["pass", "warning", "error"],
-      "description": "ghlintが返すべき severity"
+      "description": "Expected severity that ghlint should return"
     },
     "rationale": {
       "type": "string",
-      "description": "期待値の根拠（どのファイルがどのドメインに分類されるか）"
+      "description": "Rationale for expected value (which files map to which domains)"
     },
     "category": {
       "type": "string",
@@ -53,15 +53,15 @@
         "type": "string",
         "enum": ["auth", "ui", "database", "docs", "ci", "config", "api"]
       },
-      "description": "ghlintが検出すべきアクティブドメイン（test/unknownは除外）"
+      "description": "Active domains ghlint should detect (test/unknown excluded)"
     },
     "ecosystem": {
       "type": "string",
-      "description": "言語/フレームワーク: go, rust, typescript, python, ruby等"
+      "description": "Language/framework: go, rust, typescript, python, ruby, etc."
     },
     "notes": {
       "type": "string",
-      "description": "既知の分類クセ、false positive/negative、その他注意点"
+      "description": "Known classification quirks, false positives/negatives, and other notes"
     }
   },
   "additionalProperties": false

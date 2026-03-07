@@ -14,7 +14,13 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
+      - uses: DeterminateSystems/nix-installer-action@e50d5f73bfe71c2dd0aa4218de8f4afa59f8f669 # v16
+
+      - uses: cachix/devenv-install-action@6b11d2f44dc6b1109fef47c25f0b37b7f5091eea # v0
+
       - name: Build cross-platform binaries
-        uses: cli/gh-extension-precompile@a2c05b95d3f9fb5d41a0ff6d2890d8f82261601c # v2.0.0
+        run: devenv shell -- dist-build ${{ github.ref_name }}
+
+      - uses: softprops/action-gh-release@c95fe1489396fe8a6f36d0f87a8b4e7df4bb07a2 # v2
         with:
-          build_script_override: "script/build.sh"
+          files: dist/*

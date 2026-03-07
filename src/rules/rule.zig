@@ -23,5 +23,5 @@ pub const RuleContext = struct {
     pr_metadata: PrMetadata,
 };
 
-/// 全ルール関数が実装するシグネチャ
+/// Signature that all rule functions must implement
 pub const RuleFn = *const fn (std.mem.Allocator, RuleContext) anyerror![]RuleResult;

@@ -16,9 +16,9 @@ pub const Domain = enum {
     }
 };
 
-/// ファイルパスをドメインに分類する。純粋関数（副作用なし）。
+/// Classify a file path into a domain. Pure function (no side effects).
 pub fn classifyPath(path: []const u8) Domain {
-    const lower = path; // Zig にはランタイム tolower がないため大文字小文字を考慮したパターンで対応
+    const lower = path; // Zig has no runtime tolower; patterns must account for case manually
 
     // test
     if (containsSegment(lower, "test") or

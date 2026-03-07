@@ -5,8 +5,8 @@ const engine = @import("../rules/engine.zig");
 const rule = @import("../rules/rule.zig");
 const formatter = @import("../output/formatter.zig");
 
-/// `gh lint pr` サブコマンドのエントリポイント。
-/// ルールのロジックを含まず、各レイヤーへの委譲のみ行う。
+/// Entry point for the `gh lint pr` subcommand.
+/// Contains no rule logic; delegates to each layer.
 pub fn run(alloc: std.mem.Allocator, cfg: Config, args: []const []const u8) !void {
     const stderr = std.fs.File.stderr().deprecatedWriter();
 
@@ -29,7 +29,7 @@ pub fn run(alloc: std.mem.Allocator, cfg: Config, args: []const []const u8) !voi
         std.process.exit(1);
     };
 
-    // フラグ解析
+    // Parse flags
     var format: formatter.Format = .human;
     var repo_override: ?[]const u8 = null;
     var i: usize = 1;
@@ -46,7 +46,7 @@ pub fn run(alloc: std.mem.Allocator, cfg: Config, args: []const []const u8) !voi
         }
     }
 
-    // OWNER/REPO の解決
+    // Resolve OWNER/REPO
     const repo_str = repo_override orelse cfg.repo;
     const slash_idx = std.mem.indexOf(u8, repo_str, "/") orelse {
         try stderr.print("Could not resolve repo. Use --repo OWNER/REPO or set GH_REPO env var.\n", .{});
@@ -55,7 +55,7 @@ pub fn run(alloc: std.mem.Allocator, cfg: Config, args: []const []const u8) !voi
     const owner = repo_str[0..slash_idx];
     const repo_name = repo_str[slash_idx + 1 ..];
 
-    // GitHub API からデータ取得
+    // Fetch data from GitHub API
     const pr_files = pr_api.getPrFiles(alloc, cfg, owner, repo_name, pr_number) catch |err| {
         try stderr.print("Failed to fetch PR files: {}\n", .{err});
         std.process.exit(1);
@@ -66,17 +66,17 @@ pub fn run(alloc: std.mem.Allocator, cfg: Config, args: []const []const u8) !voi
         std.process.exit(1);
     };
 
-    // ルール実行
+    // Run rules
     const ctx = rule.RuleContext{
         .pr_files = pr_files,
         .pr_metadata = pr_meta,
     };
     const results = try engine.runAll(alloc, ctx);
 
-    // 出力
+    // Output
     try formatter.print(alloc, format, results);
 
-    // エラーがあれば exit code 1
+    // Exit with code 1 if any errors
     for (results) |r| {
         if (r.severity == .@"error") std.process.exit(1);
     }

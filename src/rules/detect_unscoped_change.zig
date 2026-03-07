@@ -3,10 +3,10 @@ const rule = @import("rule.zig");
 const diff_parser = @import("../util/diff_parser.zig");
 const file_classifier = @import("../util/file_classifier.zig");
 
-const NOISE_THRESHOLD = 5; // 変更行数がこれ以下のドメインは無視
+const NOISE_THRESHOLD = 5; // Domains with changes at or below this line count are ignored
 
 pub fn run(alloc: std.mem.Allocator, ctx: rule.RuleContext) ![]rule.RuleResult {
-    // ドメインごとに変更行数とファイルパスを集約
+    // Aggregate changed lines and file paths per domain
     const DomainData = struct {
         lines: u32,
         files: std.ArrayList([]const u8),
@@ -27,7 +27,7 @@ pub fn run(alloc: std.mem.Allocator, ctx: rule.RuleContext) ![]rule.RuleResult {
         try data.files.append(alloc, f.filename);
     }
 
-    // ノイズ除去: lines > NOISE_THRESHOLD かつ test 以外のドメインを集計
+    // Noise filtering: count domains with lines > NOISE_THRESHOLD, excluding test/unknown
     var active_domains: std.ArrayList(diff_parser.Domain) = .empty;
     for (std.enums.values(diff_parser.Domain)) |d| {
         if (d == .@"test" or d == .unknown) continue;
@@ -39,11 +39,11 @@ pub fn run(alloc: std.mem.Allocator, ctx: rule.RuleContext) ![]rule.RuleResult {
 
     const domain_count = active_domains.items.len;
 
-    // PASS 判定
+    // PASS determination
     const is_pass = blk: {
         if (domain_count <= 1) break :blk true;
         if (domain_count == 2) {
-            // docs + 他1つは許容
+            // docs + one other domain is acceptable
             for (active_domains.items) |d| {
                 if (d == .docs) break :blk true;
             }
@@ -63,10 +63,10 @@ pub fn run(alloc: std.mem.Allocator, ctx: rule.RuleContext) ![]rule.RuleResult {
         return results;
     }
 
-    // 警告/エラー判定
+    // Warning/error determination
     const severity: rule.Severity = if (domain_count >= 3) .@"error" else .warning;
 
-    // 影響ファイルリストと詳細メッセージ構築
+    // Build affected file list and detail message
     var affected: std.ArrayList([]const u8) = .empty;
     var detail_buf: std.ArrayList(u8) = .empty;
     const writer = detail_buf.writer(alloc);

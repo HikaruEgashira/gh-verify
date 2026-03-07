@@ -14,7 +14,7 @@ pub const SemanticHints = struct {
     confidence: f32 = 0,
 };
 
-// --- キャッシュ: パーサーとクエリは呼び出し毎に再生成しない ---
+// --- Cache: reuse parser and compiled queries across calls ---
 
 var cached_parser: ?*c.TSParser = null;
 var cached_queries: [3]?*c.TSQuery = .{ null, null, null };
@@ -38,8 +38,8 @@ fn getCachedQuery(lang: Language) ?*c.TSQuery {
     return q;
 }
 
-/// パッチ内容を Tree-sitter で AST 解析してセマンティックシグナルを抽出する。
-/// patch には unified diff 形式の文字列を渡す（+ で始まる追加行 + コンテキスト行）。
+/// Extract semantic signals from patch content via Tree-sitter AST analysis.
+/// `patch` is a unified diff string (added lines with '+' prefix + context lines).
 pub fn analyzeSemantics(filename: []const u8, patch: []const u8) SemanticHints {
     const lang = detectLanguage(filename) orelse return .{};
 
@@ -79,7 +79,7 @@ pub fn analyzeSemantics(filename: []const u8, patch: []const u8) SemanticHints {
     return hintsFromSignals(signals);
 }
 
-// --- 内部型 ---
+// --- Internal types ---
 
 const Language = enum { typescript, python, go };
 
@@ -100,7 +100,7 @@ const ImportSignals = struct {
     has_nextauth: bool = false,
 };
 
-// --- ファイル言語判定 ---
+// --- Language detection ---
 
 fn detectLanguage(filename: []const u8) ?Language {
     if (std.mem.endsWith(u8, filename, ".ts") or
@@ -112,7 +112,7 @@ fn detectLanguage(filename: []const u8) ?Language {
     return null;
 }
 
-// --- グラマー選択 ---
+// --- Grammar selection ---
 
 fn selectGrammar(lang: Language) ?*const c.TSLanguage {
     return switch (lang) {
@@ -122,8 +122,8 @@ fn selectGrammar(lang: Language) ?*const c.TSLanguage {
     };
 }
 
-// --- 言語ごとの Tree-sitter クエリ ---
-// インポート文からモジュール名（文字列リテラル）を @source キャプチャする。
+// --- Per-language Tree-sitter queries ---
+// Capture module name (string literal) from import statements as @source.
 
 fn selectQuery(lang: Language) []const u8 {
     return switch (lang) {
@@ -145,7 +145,7 @@ fn selectQuery(lang: Language) []const u8 {
     };
 }
 
-// --- パッチからソースコード断片を抽出 ---
+// --- Extract source fragment from patch ---
 
 fn extractSource(patch: []const u8, buf: []u8) []const u8 {
     var out_len: usize = 0;
@@ -154,11 +154,11 @@ fn extractSource(patch: []const u8, buf: []u8) []const u8 {
         const content: []const u8 = blk: {
             if (line.len == 0) break :blk "\n";
             if (std.mem.startsWith(u8, line, "+++") or std.mem.startsWith(u8, line, "---") or std.mem.startsWith(u8, line, "@@")) continue;
-            // 追加行: '+' プレフィックスを除去
+            // Added line: strip '+' prefix
             if (line[0] == '+') break :blk line[1..];
-            // コンテキスト行: そのまま（先頭スペース除去）
+            // Context line: strip leading space
             if (line[0] == ' ') break :blk line[1..];
-            // 削除行: スキップ
+            // Deleted line: skip
             continue;
         };
         if (out_len + content.len + 1 >= buf.len) break;
@@ -170,10 +170,10 @@ fn extractSource(patch: []const u8, buf: []u8) []const u8 {
     return buf[0..out_len];
 }
 
-// --- インポートパスからシグナルを検出 ---
+// --- Detect signals from import paths ---
 
 fn classifyImport(lang: Language, raw: []const u8, signals: *ImportSignals) void {
-    // 文字列リテラルのクォートを除去（Go は含む場合がある）
+    // Strip quotes from string literals (Go includes them)
     const text = if (raw.len >= 2 and (raw[0] == '"' or raw[0] == '\''))
         raw[1 .. raw.len - 1]
     else
@@ -215,17 +215,17 @@ fn classifyGoImport(mod: []const u8, s: *ImportSignals) void {
     if (std.mem.startsWith(u8, mod, "gorm.io/") or std.mem.startsWith(u8, mod, "github.com/lib/pq")) s.has_sql_db = true;
 }
 
-// --- シグナルからヒント生成 ---
+// --- Generate hints from signals ---
 
 fn hintsFromSignals(s: ImportSignals) SemanticHints {
-    // 各カテゴリのシグナルを集計
+    // Aggregate signals per category
     const is_ui = s.has_react or s.has_vue or s.has_svelte or s.has_validation;
     const is_auth = s.has_jwt or s.has_passport or s.has_nextauth;
     const is_db = s.has_prisma or s.has_sqlalchemy or s.has_sql_db;
     const is_api = s.has_web_framework or s.has_net_http;
     const is_test = s.has_pytest or s.has_testing;
 
-    // 複数カテゴリのシグナルが競合 → 信頼度を返さない（パス分類を尊重）
+    // Conflicting signals from multiple categories: return no hints (defer to path classification)
     const category_count = @as(u8, @intFromBool(is_ui)) +
         @as(u8, @intFromBool(is_auth)) +
         @as(u8, @intFromBool(is_db)) +
@@ -233,7 +233,7 @@ fn hintsFromSignals(s: ImportSignals) SemanticHints {
         @as(u8, @intFromBool(is_test));
     if (category_count > 1) return .{};
 
-    // 単一カテゴリのみ検出 → 高信頼度
+    // Single category detected: high confidence
     if (s.has_validation) return .{
         .domain_suppress = .database,
         .domain_boost = .ui,

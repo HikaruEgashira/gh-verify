@@ -12,7 +12,7 @@ const SubCommand = struct {
     run: *const fn (std.mem.Allocator, Config, []const []const u8) anyerror!void,
 };
 
-// 新しいサブコマンドはここに1行追加するだけ
+// Add new subcommands here
 const dispatch_table = [_]SubCommand{
     .{ .name = "pr", .run = cli_pr.run },
 };
@@ -81,7 +81,7 @@ fn resolveToken(alloc: std.mem.Allocator) ![]const u8 {
     if (std.process.getEnvVarOwned(alloc, "GH_ENTERPRISE_TOKEN")) |token| {
         return token;
     } else |_| {}
-    // フォールバック: gh auth token を実行
+    // Fallback: run `gh auth token`
     var child = std.process.Child.init(&[_][]const u8{ "gh", "auth", "token" }, alloc);
     child.stdout_behavior = .Pipe;
     child.stderr_behavior = .Ignore;

@@ -7,14 +7,14 @@ const Rule = struct {
     run: rule.RuleFn,
 };
 
-/// 全ルールの登録。新しいルール追加時はここに1行追加するだけ。
+/// Rule registry. Add new rules here.
 const rules = [_]Rule{
     .{ .id = "detect-unscoped-change", .run = detect_unscoped_change.run },
-    // 将来の追加例:
+    // Future additions:
     // .{ .id = "commit-message", .run = commit_message.run },
 };
 
-/// 全登録ルールを実行し、結果を集約して返す。
+/// Run all registered rules and return aggregated results.
 pub fn runAll(alloc: std.mem.Allocator, ctx: rule.RuleContext) ![]rule.RuleResult {
     var results: std.ArrayList(rule.RuleResult) = .empty;
     for (rules) |r| {
@@ -32,7 +32,7 @@ const rule_ids: [rules.len][]const u8 = blk: {
     break :blk ids;
 };
 
-/// 登録されている全ルールの ID リストを返す。rules 配列から自動導出する。
+/// Return IDs of all registered rules. Derived automatically from the rules array.
 pub fn listRuleIds() []const []const u8 {
     return &rule_ids;
 }
