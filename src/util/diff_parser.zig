@@ -12,17 +12,7 @@ pub const Domain = enum {
     unknown,
 
     pub fn name(self: Domain) []const u8 {
-        return switch (self) {
-            .auth => "auth",
-            .ui => "ui",
-            .database => "database",
-            .docs => "docs",
-            .ci => "ci",
-            .@"test" => "test",
-            .config => "config",
-            .api => "api",
-            .unknown => "unknown",
-        };
+        return @tagName(self);
     }
 };
 

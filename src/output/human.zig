@@ -10,7 +10,6 @@ const BOLD = "\x1b[1m";
 /// RuleResult のリストを人間が読みやすい形式で stdout に出力する。
 pub fn print(results: []const rule.RuleResult) !void {
     const stdout = std.fs.File.stdout().deprecatedWriter();
-    var any_issue = false;
 
     for (results) |r| {
         switch (r.severity) {
@@ -20,7 +19,6 @@ pub fn print(results: []const rule.RuleResult) !void {
                 });
             },
             .warning => {
-                any_issue = true;
                 try stdout.print("{s}[{s}]{s} {s}warning{s}: {s}\n", .{
                     BOLD, r.rule_id, RESET, YELLOW, RESET, r.message,
                 });
@@ -30,7 +28,6 @@ pub fn print(results: []const rule.RuleResult) !void {
                 try stdout.print("  Suggestion: Consider splitting into separate PRs by domain.\n", .{});
             },
             .@"error" => {
-                any_issue = true;
                 try stdout.print("{s}[{s}]{s} {s}error{s}: {s}\n", .{
                     BOLD, r.rule_id, RESET, RED, RESET, r.message,
                 });
