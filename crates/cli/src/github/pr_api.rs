@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 
 use super::client::GitHubClient;
-use super::types::{PrFile, PrMetadata};
+use super::types::{PrFile, PrMetadata, PullRequestListItem};
 
 const MAX_PAGES: usize = 10;
 
@@ -17,8 +17,7 @@ pub fn get_pr_files(
 
     for _ in 0..MAX_PAGES {
         let (body, next_path) = client.get_with_link(&current_path)?;
-        let files: Vec<PrFile> =
-            serde_json::from_str(&body).context("failed to parse PR files")?;
+        let files: Vec<PrFile> = serde_json::from_str(&body).context("failed to parse PR files")?;
         all_files.extend(files);
 
         match next_path {
@@ -40,4 +39,39 @@ pub fn get_pr_metadata(
     let path = format!("/repos/{owner}/{repo}/pulls/{pr_number}");
     let body = client.get(&path)?;
     serde_json::from_str(&body).context("failed to parse PR metadata")
+}
+
+/// Fetch recent merged PRs for a repository from the closed PR listing.
+pub fn list_recent_merged_prs(
+    client: &GitHubClient,
+    owner: &str,
+    repo: &str,
+    limit: usize,
+) -> Result<Vec<PullRequestListItem>> {
+    let mut merged = Vec::new();
+    let mut current_path = format!(
+        "/repos/{owner}/{repo}/pulls?state=closed&sort=updated&direction=desc&per_page=100"
+    );
+
+    for _ in 0..MAX_PAGES {
+        let (body, next_path) = client.get_with_link(&current_path)?;
+        let prs: Vec<PullRequestListItem> =
+            serde_json::from_str(&body).context("failed to parse pull request list")?;
+
+        for pr in prs {
+            if pr.merged_at.is_some() {
+                merged.push(pr);
+                if merged.len() >= limit {
+                    return Ok(merged);
+                }
+            }
+        }
+
+        match next_path {
+            Some(next) => current_path = next,
+            None => break,
+        }
+    }
+
+    Ok(merged)
 }

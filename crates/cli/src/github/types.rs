@@ -21,6 +21,14 @@ pub struct PrMetadata {
     pub body: Option<String>,
 }
 
+/// Pull request summary from the list pulls endpoint.
+#[derive(Debug, Clone, Deserialize)]
+pub struct PullRequestListItem {
+    pub number: u32,
+    pub title: String,
+    pub merged_at: Option<String>,
+}
+
 /// GitHub API response type for a tag.
 #[allow(dead_code)]
 #[derive(Debug, Clone, Deserialize)]

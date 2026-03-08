@@ -1,0 +1,19 @@
+{
+  "id": "pass-020",
+  "description": "Vue runtime-vapor transition fix spans source, e2e test, and fixture for one behavior",
+  "repo": "vuejs/core",
+  "pr_number": 14538,
+  "expected": "pass",
+  "rationale": "The PR changes one runtime file plus the e2e spec and fixture that exercise the same behavior. These files form one semantic unit and should not be treated as three unrelated clusters.",
+  "category": "connected-calls",
+  "domains_expected": [],
+  "ecosystem": "typescript",
+  "notes": "Current engine returns error because fixture files and end-to-end tests have no direct import/call edge to the runtime file inside the patch.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 10005,
+    "collection_name": "Javascript Framework",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-03-09T00:00:00Z"
+  }
+}

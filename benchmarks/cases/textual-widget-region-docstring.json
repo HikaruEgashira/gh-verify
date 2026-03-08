@@ -1,0 +1,19 @@
+{
+  "id": "pass-016",
+  "description": "Textual widget docstring fix stays in a single Python file",
+  "repo": "Textualize/textual",
+  "pr_number": 6399,
+  "expected": "pass",
+  "rationale": "Only src/textual/widget.py changes. Single-file code edits should remain scoped and pass.",
+  "category": "single-file",
+  "domains_expected": [],
+  "ecosystem": "python",
+  "notes": "Discovered from the OSS Insight TUI Framework collection. Included as a low-noise single-file control case.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 10045,
+    "collection_name": "TUI Framework",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-03-09T00:00:00Z"
+  }
+}

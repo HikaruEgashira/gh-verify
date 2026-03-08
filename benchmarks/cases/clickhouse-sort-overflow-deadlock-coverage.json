@@ -1,0 +1,19 @@
+{
+  "id": "pass-017",
+  "description": "ClickHouse deadlock coverage PR is a single SQL test file",
+  "repo": "ClickHouse/ClickHouse",
+  "pr_number": 98947,
+  "expected": "pass",
+  "rationale": "The PR changes only tests/queries/0_stateless/04019_pipeline_stuck_sort_overflow.sql. A single changed code file should pass.",
+  "category": "single-file",
+  "domains_expected": [],
+  "ecosystem": "cpp",
+  "notes": "Real-world control case sourced from the Open Source Database collection.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 2,
+    "collection_name": "Open Source Database",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-03-09T00:00:00Z"
+  }
+}
