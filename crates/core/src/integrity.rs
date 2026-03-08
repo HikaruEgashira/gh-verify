@@ -71,8 +71,7 @@ pub struct CommitPrAssoc {
 /// Core predicate for the four-eyes principle.
 /// Verified by Creusot in `gh-verify-verif` crate.
 pub fn is_approver_independent(is_commit_author: bool, is_pr_author: bool) -> bool {
-    // BUG: uses OR instead of AND. Creusot should find counterexample.
-    !is_commit_author || !is_pr_author
+    !is_commit_author && !is_pr_author
 }
 
 /// Core predicate for PR coverage.
@@ -349,6 +348,32 @@ mod tests {
             pr_number: 1,
             pr_author: "alice".to_string(),
             commit_authors: vec!["alice".to_string()],
+            approvers: vec!["alice".to_string()],
+        }];
+        let result = check_mutual_approval(&prs);
+        assert_eq!(result.severity, Severity::Error);
+    }
+
+    /// ORロジックでは誤って true を返す反例: commit author が approver の場合
+    #[test]
+    fn commit_author_cannot_approve() {
+        let prs = vec![PrWithReviews {
+            pr_number: 1,
+            pr_author: "alice".to_string(),
+            commit_authors: vec!["bob".to_string()],
+            approvers: vec!["bob".to_string()],
+        }];
+        let result = check_mutual_approval(&prs);
+        assert_eq!(result.severity, Severity::Error);
+    }
+
+    /// ORロジックでは誤って true を返す反例: PR author が approver の場合
+    #[test]
+    fn pr_author_cannot_approve() {
+        let prs = vec![PrWithReviews {
+            pr_number: 1,
+            pr_author: "alice".to_string(),
+            commit_authors: vec!["bob".to_string()],
             approvers: vec!["alice".to_string()],
         }];
         let result = check_mutual_approval(&prs);

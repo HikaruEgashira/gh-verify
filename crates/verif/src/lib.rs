@@ -31,7 +31,9 @@ pub enum Severity {
 /// so the spec requires `false`, but OR returns `true`.
 #[ensures(result == (!is_commit_author && !is_pr_author))]
 pub fn is_approver_independent(is_commit_author: bool, is_pr_author: bool) -> bool {
-    // BUG: uses OR instead of AND. Creusot should reject this.
+    // INTENTIONAL BUG for Creusot demo: OR should be AND.
+    // Creusot finds counterexample: (true, false) → spec=false, impl=true.
+    // Do NOT copy this to crates/core — see ADR-0001.
     !is_commit_author || !is_pr_author
 }
 
