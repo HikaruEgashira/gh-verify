@@ -2,24 +2,36 @@
   cachix.enable = false;
 
   packages = [
-    pkgs.zig_0_15
     pkgs.gh
     pkgs.jq
     pkgs.python3
   ];
 
+  languages.rust = {
+    enable = true;
+    channel = "stable";
+  };
+
   tasks = {
     "ghverify:build" = {
       description = "Build release binary";
-      exec = "zig build -Doptimize=ReleaseSafe";
+      exec = "cargo build --release -p gh-verify";
     };
 
     "ghverify:test" = {
       description = "Unit tests (no network required)";
-      after = [ "ghverify:build" ];
       exec = ''
         set -euo pipefail
-        BINARY="$DEVENV_ROOT/zig-out/bin/gh-verify"
+        echo "ghverify tests"; echo ""
+
+        # Run all Rust unit tests
+        cargo test --workspace 2>&1
+
+        # Integration tests with binary
+        BINARY="$DEVENV_ROOT/target/release/gh-verify"
+        if [ ! -f "$BINARY" ]; then
+          cargo build --release -p gh-verify
+        fi
         PASS=0; FAIL=0
 
         run_test() {
@@ -28,12 +40,12 @@
           else         echo "  FAIL $name"; FAIL=$((FAIL+1)); fi
         }
 
-        test_version()  { local o; o=$("$BINARY" version 2>&1); [[ "$o" == *"gh-verify"* ]]; }
-        test_help()     { local o; o=$("$BINARY" help 2>&1);    [[ "$o" == *"Usage"* ]]; }
+        test_version()  { local o; o=$("$BINARY" --version 2>&1); [[ "$o" == *"gh-verify"* ]]; }
+        test_help()     { local o; o=$("$BINARY" --help 2>&1);    [[ "$o" == *"Usage"* ]]; }
         test_exits_1()  { "$BINARY" notacommand 2>/dev/null; [[ $? -ne 0 ]]; }
         test_rules()    { local o; GH_TOKEN=fake GH_REPO=fake/fake o=$("$BINARY" pr list-rules 2>&1) || true; [[ "$o" == *"detect-unscoped-change"* ]]; }
 
-        echo "ghverify tests"; echo ""
+        echo ""; echo "Integration tests:"
         run_test "version output"         test_version
         run_test "help output"            test_help
         run_test "unknown subcmd exits 1" test_exits_1
@@ -48,7 +60,7 @@
       after = [ "ghverify:build" ];
       exec = ''
         set -euo pipefail
-        GHVERIFY="$DEVENV_ROOT/zig-out/bin/gh-verify"
+        GHVERIFY="$DEVENV_ROOT/target/release/gh-verify"
         TIMESTAMP="$(date -u +%Y%m%dT%H%M%SZ)"
         RAW_FILE="$DEVENV_ROOT/benchmarks/results/raw_''${TIMESTAMP}.jsonl"
         echo ""; echo "ghverify benchmark"; echo "================"; echo ""
@@ -77,27 +89,16 @@
     };
 
     "ghverify:dist" = {
-      description = "Cross-compile release binaries for all platforms";
+      description = "Build release binaries using cargo";
       exec = ''
         set -euo pipefail
         TAG="''${1:-dev}"
         EXT_NAME="gh-verify"
         mkdir -p dist
 
-        declare -A TARGETS=(
-          ["aarch64-macos"]="darwin arm64"   ["x86_64-macos"]="darwin amd64"
-          ["x86_64-linux-musl"]="linux amd64" ["aarch64-linux-musl"]="linux arm64"
-          ["x86_64-windows"]="windows amd64"
-        )
-        for ZIG_TARGET in "''${!TARGETS[@]}"; do
-          read -r OS ARCH <<< "''${TARGETS[$ZIG_TARGET]}"
-          EXT=""; [[ "$OS" == "windows" ]] && EXT=".exe"
-          echo "Building for ''${ZIG_TARGET}..."
-          zig build -Dtarget="''${ZIG_TARGET}" -Doptimize=ReleaseSafe
-          OUTPUT_NAME="''${EXT_NAME}_''${TAG}_''${OS}-''${ARCH}''${EXT}"
-          cp "zig-out/bin/''${EXT_NAME}''${EXT}" "dist/''${OUTPUT_NAME}"
-          echo "  -> dist/''${OUTPUT_NAME}"
-        done
+        echo "Building release binary..."
+        cargo build --release -p gh-verify
+        cp "target/release/''${EXT_NAME}" "dist/''${EXT_NAME}_''${TAG}_$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m)"
         echo "Build complete."
       '';
     };
@@ -105,7 +106,7 @@
 
   enterShell = ''
     echo "ghverify dev environment"
-    echo "  zig : $(zig version)"
+    echo "  rust: $(rustc --version)"
     echo "  gh  : $(gh --version | head -1)"
   '';
 }

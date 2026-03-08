@@ -1,60 +1,51 @@
 # ghverify - GitHub SDLC Verifier
 
-SLSA-based GitHub SDLC health checker. Runs as a `gh` CLI extension, built in Zig.
+SLSA-based GitHub SDLC health checker. Runs as a `gh` CLI extension, built in Rust.
+Core verification logic is formally specified with Creusot annotations.
 
 ## Commands
 
 ```bash
-zig build                                    # Debug build
-zig build -Doptimize=ReleaseSafe             # Release build
-./zig-out/bin/gh-verify pr 123 --repo o/r    # PR verify
-./zig-out/bin/gh-verify pr 123 --format json # JSON output
-./zig-out/bin/gh-verify pr list-rules        # List rules
+cargo build                                    # Debug build
+cargo build --release -p gh-verify             # Release build
+cargo test --workspace                         # Run all tests
+./target/release/gh-verify pr 123 --repo o/r   # PR verify
+./target/release/gh-verify pr 123 --format json # JSON output
+./target/release/gh-verify pr list-rules       # List rules
 ```
 
-## Architecture (Open/Closed Principle)
+## Architecture
 
-Extensions require only a new file and one line of registration. No changes to existing logic.
+Two-crate workspace: `gh-verify-core` (pure, formally verifiable) + `gh-verify` (CLI with I/O).
+
+### gh-verify-core (crates/core/)
+
+Pure verification logic. No I/O, no unsafe, no external deps except serde.
+Creusot formal specs via `#[cfg(feature = "contracts")]`.
+
+| Module | Purpose | Creusot specs |
+|--------|---------|---------------|
+| `verdict.rs` | Severity, RuleResult types | Ordering invariant |
+| `integrity.rs` | SLSA release checks (signatures, approval, coverage) | Biconditional pass/fail specs |
+| `scope.rs` | PR scope classification | Exhaustive classify_scope postconditions |
+| `union_find.rs` | Disjoint set union for call graph | Structural invariants, idempotency, transitivity |
+
+### gh-verify (crates/cli/)
+
+I/O layer. Delegates all judgments to core.
 
 | Change | File to create | Registration |
 |---|---|---|
-| New rule | `src/rules/<name>.zig` | 1 line in `engine.zig` `rules` array |
-| New subcommand | `src/cli/<name>.zig` | 1 line in `main.zig` `dispatch_table` |
-| New output format | `src/output/<name>.zig` | 1 case in `formatter.zig` switch |
-| New API endpoint | `src/github/<name>.zig` | None |
-
-## Zig 0.15 Conventions
-
-```zig
-// ArrayList: Unmanaged (pass alloc to each operation)
-var list: std.ArrayList(T) = .empty;
-try list.append(alloc, item);
-
-// stdout/stderr
-const stdout = std.fs.File.stdout().deprecatedWriter();
-
-// HTTP: request API (not fetch)
-var req = try client.request(.GET, uri, .{
-    .headers = .{ .accept_encoding = .{ .override = "identity" } },
-    .extra_headers = &[_]std.http.Header{...},
-});
-try req.sendBodiless();
-var response = try req.receiveHead(&redirect_buf);
-const reader = response.reader(&transfer_buf);
-try reader.appendRemainingUnlimited(alloc, &body);
-
-// JSON
-const parsed = try std.json.parseFromSlice(T, alloc, body, .{ .ignore_unknown_fields = true });
-const json_str = try std.json.Stringify.valueAlloc(alloc, value, .{ .whitespace = .indent_2 });
-
-// build.zig: root_module + createModule (not direct root_source_file)
-```
+| New rule | `crates/cli/src/rules/<name>.rs` + impl `Rule` trait | Add to `engine.rs` `run_all` Vec |
+| New subcommand | Add variant to `Commands` enum in `main.rs` | clap handles dispatch |
+| New output format | `crates/cli/src/output/<name>.rs` | Add case in `output/mod.rs` |
+| New API endpoint | `crates/cli/src/github/<name>.rs` | None |
 
 ## Naming
 
 - Rule ID: kebab-case (`detect-unscoped-change`)
-- File name: snake_case (`detect_unscoped_change.zig`)
-- Zig reserved-word enum variants: `@"test"`, `@"error"`
+- File name: snake_case (`detect_unscoped_change.rs`)
+- Crate name: kebab-case (`gh-verify-core`)
 
 ## Exit Codes
 
@@ -63,8 +54,11 @@ const json_str = try std.json.Stringify.valueAlloc(alloc, value, .{ .whitespace 
 
 ## Dependencies
 
-- tree-sitter (core, go, python): Homebrew
-- tree-sitter-typescript: vendored in `deps/`
+- tree-sitter (core, go, python, typescript): via crates.io
+- reqwest: HTTP client
+- clap: CLI parsing
+- serde/serde_json: serialization
+- creusot-std: formal verification specs (optional, feature-gated)
 
 ## PR Template
 
@@ -73,7 +67,7 @@ const json_str = try std.json.Stringify.valueAlloc(alloc, value, .{ .whitespace 
 ## Why
 ## How
 ## Verification
-- [ ] `zig build` succeeds
+- [ ] `cargo test --workspace` passes
 - [ ] Existing rules still work
 - [ ] For new rules: verified pass/warning/error cases
 - [ ] `--format json` output is valid JSON
