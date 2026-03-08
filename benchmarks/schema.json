@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "BenchmarkCase",
-  "description": "ghlint benchmark case definition",
+  "description": "gh-verify benchmark case definition",
   "type": "object",
   "required": ["id", "description", "repo", "pr_number", "expected", "rationale", "category", "domains_expected", "ecosystem"],
   "properties": {
@@ -26,7 +26,7 @@
     "expected": {
       "type": "string",
       "enum": ["pass", "warning", "error"],
-      "description": "Expected severity that ghlint should return"
+      "description": "Expected severity that gh-verify should return"
     },
     "rationale": {
       "type": "string",

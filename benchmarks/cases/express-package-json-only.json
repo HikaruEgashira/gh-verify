@@ -8,5 +8,5 @@
   "category": "single-domain",
   "domains_expected": [],
   "ecosystem": "javascript",
-  "notes": "FALSE NEGATIVE example: package.json is a config file conceptually, but ghlint classifies it as unknown. A PR bumping a vulnerable dependency in package.json passes even if mixed with API changes, because package.json itself doesn't count."
+  "notes": "FALSE NEGATIVE example: package.json is a config file conceptually, but gh-verify classifies it as unknown. A PR bumping a vulnerable dependency in package.json passes even if mixed with API changes, because package.json itself doesn't count."
 }

@@ -8,5 +8,5 @@
   "category": "multi-domain-error",
   "domains_expected": ["auth", "ui", "config"],
   "ecosystem": "typescript",
-  "notes": "FALSE POSITIVE: formatting-only change should arguably be pass. But ghlint correctly detects the paths touch multiple domains. Scope issue, not classification issue."
+  "notes": "FALSE POSITIVE: formatting-only change should arguably be pass. But gh-verify correctly detects the paths touch multiple domains. Scope issue, not classification issue."
 }

@@ -1,6 +1,6 @@
 {
   "id": "pass-002",
-  "description": "Test-only PR - test domain is always ignored by ghlint",
+  "description": "Test-only PR - test domain is always ignored by gh-verify",
   "repo": "expressjs/express",
   "pr_number": 7037,
   "expected": "pass",
