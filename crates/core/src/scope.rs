@@ -12,6 +12,9 @@
 //! #[ensures(components == 2 ==> result == Severity::Warning)]
 //! ```
 
+#[cfg(feature = "contracts")]
+use creusot_std::prelude::*;
+
 use crate::verdict::Severity;
 
 /// Classify the scope of a PR based on the number of connected components

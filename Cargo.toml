@@ -22,7 +22,7 @@ tree-sitter-python = "0.23"
 tree-sitter-go = "0.23"
 colored = "3"
 regex = "1"
-creusot-contracts = "0.4"
+creusot-std = "0.10"
 
 [profile.release]
 lto = true

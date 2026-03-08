@@ -10,6 +10,9 @@
 //! 2. **Mutual Approval**: No PR may be approved solely by its own author or commit author.
 //! 3. **PR Coverage**: All non-merge commits must be associated with a pull request.
 
+#[cfg(feature = "contracts")]
+use creusot_std::prelude::*;
+
 use crate::verdict::{RuleResult, Severity};
 
 const RULE_ID: &str = "verify-release-integrity";
@@ -62,15 +65,15 @@ pub struct CommitPrAssoc {
 ///
 /// # Formal specification (Creusot)
 ///
-/// ```text
-/// #[requires(commits.len() > 0)]
-/// #[ensures(
-///     result.severity == Severity::Pass
-///     <==> forall(|i| i < commits.len() ==> commits[i].verified == true)
-/// )]
-/// ```
+/// The result is `Pass` if and only if every commit has `verified == true`.
+/// This is a biconditional: `result == Pass <=> ∀i. commits[i].verified`.
 ///
-/// In plain language: the result is Pass if and only if every commit is verified.
+/// ```text
+/// #[requires(!commits.is_empty())]
+/// #[ensures(result.severity == Severity::Pass
+///     <==> forall(|i: usize| i < commits@.len()
+///          ==> commits@[i].verified == true))]
+/// ```
 pub fn check_commit_signatures(commits: &[Commit]) -> RuleResult {
     let unsigned: Vec<&Commit> = commits.iter().filter(|c| !c.verified).collect();
 
@@ -103,10 +106,9 @@ pub fn check_commit_signatures(commits: &[Commit]) -> RuleResult {
 /// # Formal specification (Creusot)
 ///
 /// ```text
-/// #[ensures(
-///     result.severity == Severity::Pass
-///     <==> forall(|i| i < prs.len() ==> has_independent_approver(&prs[i]))
-/// )]
+/// #[ensures(result.severity == Severity::Pass
+///     <==> forall(|i: usize| i < prs@.len()
+///          ==> has_independent_approver(&prs@[i])))]
 /// ```
 pub fn check_mutual_approval(prs: &[PrWithReviews]) -> RuleResult {
     let mut violations: Vec<(u32, String)> = Vec::new();
@@ -147,6 +149,15 @@ pub fn check_mutual_approval(prs: &[PrWithReviews]) -> RuleResult {
 /// (neither a commit author nor the PR author).
 ///
 /// This is a key predicate for the mutual approval specification.
+///
+/// # Formal specification (Creusot)
+///
+/// ```text
+/// #[ensures(result == true <==>
+///     exists(|j: usize| j < pr.approvers@.len()
+///         && !pr.commit_authors.contains(&pr.approvers[j])
+///         && pr.approvers[j] != pr.pr_author))]
+/// ```
 fn has_independent_approver(pr: &PrWithReviews) -> bool {
     for approver in &pr.approvers {
         // Check against commit authors
@@ -166,11 +177,9 @@ fn has_independent_approver(pr: &PrWithReviews) -> bool {
 /// # Formal specification (Creusot)
 ///
 /// ```text
-/// #[ensures(
-///     result.severity == Severity::Pass
-///     <==> forall(|i| i < assocs.len()
-///          ==> assocs[i].is_merge || !assocs[i].pr_numbers.is_empty())
-/// )]
+/// #[ensures(result.severity == Severity::Pass
+///     <==> forall(|i: usize| i < assocs@.len()
+///          ==> assocs@[i].is_merge || !assocs@[i].pr_numbers.is_empty()))]
 /// ```
 pub fn check_pr_coverage(assocs: &[CommitPrAssoc]) -> RuleResult {
     let uncovered: Vec<&CommitPrAssoc> = assocs
@@ -422,7 +431,8 @@ mod tests {
 
     // --- Specification property tests ---
 
-    /// Property: check_commit_signatures returns Pass iff all commits are verified
+    /// Property: check_commit_signatures returns Pass iff all commits are verified.
+    /// This directly tests the biconditional in the formal spec.
     #[test]
     fn signature_biconditional() {
         // Forward: all verified => Pass
@@ -435,7 +445,7 @@ mod tests {
             Severity::Pass
         );
 
-        // Backward: Pass => all verified (contrapositive: not all verified => not Pass)
+        // Backward (contrapositive): not all verified => not Pass
         let not_all_verified = vec![
             make_commit("aaa", true, "a"),
             make_commit("bbb", false, "b"),
@@ -446,7 +456,7 @@ mod tests {
         );
     }
 
-    /// Property: check_pr_coverage returns Pass iff all non-merge commits have PRs
+    /// Property: check_pr_coverage returns Pass iff all non-merge commits have PRs.
     #[test]
     fn coverage_biconditional() {
         // Forward: all covered => Pass
@@ -466,14 +476,10 @@ mod tests {
         assert_ne!(check_pr_coverage(&uncovered).severity, Severity::Pass);
     }
 
-    /// Property: merge commits are always excluded from coverage check
+    /// Property: merge commits are always excluded from coverage check.
     #[test]
     fn merge_commits_excluded_from_coverage() {
-        let merge_only = vec![
-            make_merge_commit("aaa"),
-            make_merge_commit("bbb"),
-        ];
-        // Merge commits have no PR association but should still pass
+        let merge_only = vec![make_merge_commit("aaa"), make_merge_commit("bbb")];
         let assocs: Vec<CommitPrAssoc> = merge_only
             .iter()
             .map(|c| CommitPrAssoc {
