@@ -1,6 +1,8 @@
 use std::collections::HashMap;
+use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::process;
+use std::time::Instant;
 
 use anyhow::{Context, Result};
 use clap::Parser;
@@ -133,22 +135,45 @@ fn run() -> Result<()> {
     eprintln!();
 
     let mut results = Vec::with_capacity(cases.len());
+    let total_cases = cases.len();
+    let mut correct_so_far = 0usize;
+    let bench_started = Instant::now();
 
-    for case in &cases {
+    for (idx, case) in cases.iter().enumerate() {
+        let case_no = idx + 1;
+        eprintln!(
+            "[{case_no}/{total_cases}] RUN  {:<12} | {:<30} #{:<5} | expected={}",
+            case.id,
+            case.repo,
+            case.pr_number,
+            sev_str(&case.expected)
+        );
+        let _ = io::stderr().flush();
+
+        let case_started = Instant::now();
         let actual = run_case(&client, case);
         let pass = actual.matches(&case.expected);
+        let case_elapsed = case_started.elapsed();
+        let case_secs = case_elapsed.as_secs_f32();
+
+        if pass {
+            correct_so_far += 1;
+        }
+        let progress_accuracy = (correct_so_far as f64 / case_no as f64) * 100.0;
 
         if pass {
             eprintln!(
-                "\x1b[32m[PASS]\x1b[0m {:<12} | {:<30} #{:<5} | expected={}",
-                case.id, case.repo, case.pr_number, sev_str(&case.expected)
+                "\x1b[32m[PASS]\x1b[0m {:<12} | {:.2}s | progress={}/{} ({:.1}%)",
+                case.id, case_secs, correct_so_far, case_no, progress_accuracy
             );
         } else {
             eprintln!(
-                "\x1b[31m[FAIL]\x1b[0m {:<12} | {:<30} #{:<5} | expected={:<7} actual={}",
+                "\x1b[31m[FAIL]\x1b[0m {:<12} | {:.2}s | progress={}/{} ({:.1}%) | expected={:<7} actual={}",
                 case.id,
-                case.repo,
-                case.pr_number,
+                case_secs,
+                correct_so_far,
+                case_no,
+                progress_accuracy,
                 sev_str(&case.expected),
                 actual_str(&actual)
             );
@@ -182,6 +207,7 @@ fn run() -> Result<()> {
     };
 
     eprintln!();
+    eprintln!("Elapsed: {:.2}s", bench_started.elapsed().as_secs_f32());
     eprintln!("Accuracy: {correct}/{total} ({:.1}%)", accuracy * 100.0);
     if let Some(f1) = macro_f1 {
         eprintln!("Macro F1: {f1:.4}");
