@@ -2,30 +2,17 @@
 //!
 //! Determines whether a PR's changes are well-scoped (single logical unit)
 //! or spread across disconnected domains.
-//!
-//! # Formal specification (Creusot)
-//!
-//! ```text
-//! #[ensures(code_files_count <= 1 ==> result == Severity::Pass)]
-//! #[ensures(components == 1 ==> result == Severity::Pass)]
-//! #[ensures(components >= 3 ==> result == Severity::Error)]
-//! #[ensures(components == 2 ==> result == Severity::Warning)]
-//! ```
 
-#[cfg(feature = "contracts")]
-use creusot_std::prelude::*;
+use creusot_std::macros::ensures;
 
 use crate::verdict::Severity;
 
 /// Classify the scope of a PR based on the number of connected components
 /// among its changed code files.
-///
-/// # Arguments
-/// * `code_files_count` - Number of code files changed (non-doc, non-config)
-/// * `components` - Number of disconnected components in the call graph
-///
-/// # Returns
-/// The severity level reflecting how well-scoped the change is.
+#[ensures(code_files_count <= 1usize ==> result == Severity::Pass)]
+#[ensures(code_files_count > 1usize && components <= 1usize ==> result == Severity::Pass)]
+#[ensures(code_files_count > 1usize && components == 2usize ==> result == Severity::Warning)]
+#[ensures(code_files_count > 1usize && components >= 3usize ==> result == Severity::Error)]
 pub fn classify_scope(code_files_count: usize, components: usize) -> Severity {
     if code_files_count <= 1 {
         return Severity::Pass;
@@ -113,13 +100,11 @@ pub fn resolve_import(import_path: &str, filenames: &[&str]) -> Option<usize> {
 mod tests {
     use super::*;
 
-    // --- classify_scope ---
-
     #[test]
     fn zero_or_one_file_is_pass() {
         assert_eq!(classify_scope(0, 0), Severity::Pass);
         assert_eq!(classify_scope(1, 1), Severity::Pass);
-        assert_eq!(classify_scope(1, 5), Severity::Pass); // components irrelevant
+        assert_eq!(classify_scope(1, 5), Severity::Pass);
     }
 
     #[test]
@@ -138,8 +123,6 @@ mod tests {
         assert_eq!(classify_scope(10, 7), Severity::Error);
     }
 
-    // --- is_non_code_file ---
-
     #[test]
     fn markdown_is_non_code() {
         assert!(is_non_code_file("README.md"));
@@ -157,8 +140,6 @@ mod tests {
         assert!(!is_non_code_file("lib/utils.ts"));
         assert!(!is_non_code_file("app.py"));
     }
-
-    // --- resolve_import ---
 
     #[test]
     fn resolve_relative_import() {
@@ -184,11 +165,8 @@ mod tests {
         assert_eq!(resolve_import("nonexistent", &files), None);
     }
 
-    // --- Specification property tests ---
-
     #[test]
     fn classify_scope_exhaustive_for_small_inputs() {
-        // Verify the biconditional for all realistic component counts
         for files in 0..=10 {
             for comps in 0..=10 {
                 let result = classify_scope(files, comps);

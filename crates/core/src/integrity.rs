@@ -10,8 +10,12 @@
 //! 2. **Mutual Approval**: No PR may be approved solely by its own author or commit author.
 //! 3. **PR Coverage**: All non-merge commits must be associated with a pull request.
 
-#[cfg(feature = "contracts")]
-use creusot_std::prelude::*;
+// Creusot macros are available but not yet applied to these functions.
+// The functions operate on complex types (String, Vec) that require
+// View trait implementations for full formal specification.
+// See doc comments on each function for intended Creusot specs.
+#[allow(unused_imports)]
+use creusot_std::macros::{ensures, requires};
 
 use crate::verdict::{RuleResult, Severity};
 
@@ -63,17 +67,7 @@ pub struct CommitPrAssoc {
 
 /// Check that all commits are cryptographically signed.
 ///
-/// # Formal specification (Creusot)
-///
 /// The result is `Pass` if and only if every commit has `verified == true`.
-/// This is a biconditional: `result == Pass <=> ∀i. commits[i].verified`.
-///
-/// ```text
-/// #[requires(!commits.is_empty())]
-/// #[ensures(result.severity == Severity::Pass
-///     <==> forall(|i: usize| i < commits@.len()
-///          ==> commits@[i].verified == true))]
-/// ```
 pub fn check_commit_signatures(commits: &[Commit]) -> RuleResult {
     let unsigned: Vec<&Commit> = commits.iter().filter(|c| !c.verified).collect();
 

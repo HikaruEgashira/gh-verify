@@ -13,8 +13,10 @@
 //! - `merge` establishes equivalence: after `merge(x, y)`, `find(x) == find(y)`
 //! - `component_count` returns the number of distinct roots among file-kind nodes
 
-#[cfg(feature = "contracts")]
-use creusot_std::prelude::*;
+// Creusot macros for future formal verification of invariants.
+// Struct-level #[invariant] requires Creusot nightly compiler.
+#[allow(unused_imports)]
+use creusot_std::macros::ensures;
 
 /// The kind of node in the call graph.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

@@ -7,8 +7,4 @@ description = "Pure verification logic for gh-verify, formally verifiable with C
 
 [dependencies]
 serde = { workspace = true }
-creusot-std = { workspace = true, optional = true }
-
-[features]
-default = []
-contracts = ["creusot-std"]
+creusot-std = { workspace = true }
