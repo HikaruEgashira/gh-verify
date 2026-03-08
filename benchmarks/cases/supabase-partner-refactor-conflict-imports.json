@@ -3,10 +3,10 @@
   "description": "Supabase partner refactor - most files unknown, only login.tsx (auth) above threshold",
   "repo": "supabase/supabase",
   "pr_number": 43466,
-  "expected": "pass",
-  "rationale": "data/partners/*.ts files = unknown (no domain keywords in path). login.tsx under pages/partners/stripe/ = auth (login segment, 6 lines). api-types/types/platform.d.ts = unknown (27 lines but no domain match). Only 1 active domain (auth) = PASS.",
-  "category": "single-domain",
-  "domains_expected": ["auth"],
+  "expected": "warning",
+  "rationale": "Call-graph analysis: partner data files and login.tsx form one cluster, but api-types/types/platform.d.ts is disconnected with no call-graph edges to the other files. 2 disconnected components = WARNING.",
+  "category": "disconnected-components",
+  "domains_expected": [],
   "ecosystem": "typescript",
-  "notes": "Partners/data paths don't match any domain pattern. The majority of code changes are in unknown-classified files, which are ignored for domain counting."
+  "notes": "Previously pass (only 1 active domain with unknown files ignored). Call-graph analysis does not ignore unknown-classified files; it checks actual connectivity. The type definition file has no import relationship to the partner refactor files."
 }

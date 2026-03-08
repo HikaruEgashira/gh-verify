@@ -1,6 +1,7 @@
 const std = @import("std");
 const rule = @import("rule.zig");
 const detect_unscoped_change = @import("detect_unscoped_change.zig");
+const verify_release_integrity = @import("verify_release_integrity.zig");
 
 const Rule = struct {
     id: []const u8,
@@ -10,8 +11,7 @@ const Rule = struct {
 /// Rule registry. Add new rules here.
 const rules = [_]Rule{
     .{ .id = "detect-unscoped-change", .run = detect_unscoped_change.run },
-    // Future additions:
-    // .{ .id = "commit-message", .run = commit_message.run },
+    .{ .id = "verify-release-integrity", .run = verify_release_integrity.run },
 };
 
 /// Run all registered rules and return aggregated results.

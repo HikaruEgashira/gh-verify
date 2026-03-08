@@ -3,10 +3,10 @@
   "description": "Next.js vendor update for @vercel/og - compiled types (ui) + package.json (config)",
   "repo": "vercel/next.js",
   "pr_number": 90933,
-  "expected": "warning",
-  "rationale": "Compiled .d.ts under @vercel/og classified as ui (38 lines). package.json + pnpm-lock.yaml = config (47 lines). 2 domains = WARNING.",
-  "category": "multi-domain-warn",
-  "domains_expected": ["ui", "config"],
+  "expected": "error",
+  "rationale": "Call-graph analysis: compiled .d.ts type definitions and package.json/pnpm-lock.yaml have no function call relationships. Type declaration files are generated artifacts with no import edges to package manifests. 3+ disconnected components = ERROR.",
+  "category": "multi-component",
+  "domains_expected": [],
   "ecosystem": "typescript",
-  "notes": "Vendor update pattern - config+ui is common for dependency bumps. Could argue this should be pass."
+  "notes": "Previously warning (ui+config = 2 domains). Call-graph analysis is stricter here: compiled type definitions and package config files have no call-graph edges connecting them, resulting in multiple disconnected components."
 }

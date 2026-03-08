@@ -1,12 +1,12 @@
 {
   "id": "warn-002",
-  "description": "Next.js feature flag PR - UI components mixed with config changes",
+  "description": "Next.js feature flag PR - cachedNavigations property added across 17 files",
   "repo": "vercel/next.js",
   "pr_number": 90928,
-  "expected": "warning",
-  "rationale": ".tsx files in client/ and server/app-render/ = ui domain. server/config.ts = config domain (contains 'config' substring). 2 unrelated domains = WARNING.",
-  "category": "multi-domain-warn",
-  "domains_expected": ["ui", "config"],
+  "expected": "error",
+  "rationale": "Call-graph analysis: changes are property additions (interface fields, config values, conditionals) across 17 files. No function definitions or calls are modified, so no call-graph edges are created. Each file becomes an isolated component = 17 components = ERROR.",
+  "category": "multi-component",
+  "domains_expected": [],
   "ecosystem": "typescript",
-  "notes": "Feature flag implementation requires touching both config schema and render components. This is a common pattern in Next.js that gets flagged. May indicate the feature flag should be separated into its own PR."
+  "notes": "Known limitation: cross-cutting property/feature-flag changes that only add interface fields and config values are not connected by the call graph. A shared-identifier analysis (same property name across files) could improve this, but is not yet implemented."
 }

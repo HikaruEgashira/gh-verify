@@ -1,10 +1,16 @@
 const std = @import("std");
 const cli_pr = @import("cli/pr.zig");
+const cli_release = @import("cli/release.zig");
 
 pub const Config = struct {
     token: []const u8,
     repo: []const u8,
     host: []const u8,
+    arena: std.heap.ArenaAllocator,
+
+    pub fn deinit(self: *Config) void {
+        self.arena.deinit();
+    }
 };
 
 const SubCommand = struct {
@@ -15,6 +21,7 @@ const SubCommand = struct {
 // Add new subcommands here
 const dispatch_table = [_]SubCommand{
     .{ .name = "pr", .run = cli_pr.run },
+    .{ .name = "release", .run = cli_release.run },
 };
 
 pub fn main() !void {
@@ -42,7 +49,8 @@ pub fn main() !void {
         return;
     }
 
-    const cfg = try loadConfig(alloc);
+    var cfg = try loadConfig(alloc);
+    defer cfg.deinit();
 
     for (dispatch_table) |cmd| {
         if (std.mem.eql(u8, cmd.name, subcmd)) {
@@ -66,12 +74,14 @@ fn validateHost(host: []const u8) !void {
     if (std.mem.indexOf(u8, host, ".") == null) return error.InvalidHost;
 }
 
-fn loadConfig(alloc: std.mem.Allocator) !Config {
+fn loadConfig(parent_alloc: std.mem.Allocator) !Config {
+    var arena = std.heap.ArenaAllocator.init(parent_alloc);
+    const alloc = arena.allocator();
     const token = try resolveToken(alloc);
     const repo = std.process.getEnvVarOwned(alloc, "GH_REPO") catch try alloc.dupe(u8, "");
     const host = std.process.getEnvVarOwned(alloc, "GH_HOST") catch try alloc.dupe(u8, "api.github.com");
     try validateHost(host);
-    return Config{ .token = token, .repo = repo, .host = host };
+    return Config{ .token = token, .repo = repo, .host = host, .arena = arena };
 }
 
 fn resolveToken(alloc: std.mem.Allocator) ![]const u8 {
@@ -99,9 +109,10 @@ fn printUsage() void {
         \\Usage: gh lint <subcommand> [flags]
         \\
         \\Subcommands:
-        \\  pr <PR_NUMBER>   Lint a pull request
-        \\  version          Show version
-        \\  help             Show this help
+        \\  pr <PR_NUMBER>           Lint a pull request
+        \\  release <TAG|BASE..HEAD> Verify release integrity
+        \\  version                  Show version
+        \\  help                     Show this help
         \\
     ;
     std.fs.File.stdout().deprecatedWriter().print("{s}", .{usage}) catch {};

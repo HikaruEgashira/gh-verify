@@ -3,10 +3,10 @@
   "description": "shadcn-ui accordion aria-disabled fix - ui + config",
   "repo": "shadcn-ui/ui",
   "pr_number": 9654,
-  "expected": "warning",
-  "rationale": "Accordion component .tsx = ui (6 lines). Config files = config (10 lines). 2 domains = WARNING.",
-  "category": "multi-domain-warn",
-  "domains_expected": ["ui", "config"],
+  "expected": "error",
+  "rationale": "Call-graph analysis: accordion component .tsx file and JSON config files have no function call relationships. TSX components do not import or call into JSON config files. 3+ disconnected components (tsx + multiple json config files) = ERROR.",
+  "category": "multi-component",
+  "domains_expected": [],
   "ecosystem": "typescript",
-  "notes": "Small fix + config change. Similar to docs-plus-feature pattern but for ui+config."
+  "notes": "Previously warning (ui+config = 2 domains). Call-graph analysis finds no import/call edges between .tsx components and .json configuration files, resulting in 3+ disconnected components."
 }

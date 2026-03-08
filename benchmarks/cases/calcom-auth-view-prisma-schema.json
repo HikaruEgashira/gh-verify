@@ -3,10 +3,10 @@
   "description": "Auth setup wizard fix + Prisma enum generator - database/config files below noise threshold",
   "repo": "calcom/cal.com",
   "pr_number": 28244,
-  "expected": "pass",
-  "rationale": "setup-view.tsx under modules/auth/ = auth (8 lines, above threshold). schema.prisma = database (1 line, below NOISE_THRESHOLD=5). package.json = config (3 lines, below threshold). yarn.lock = config (2 lines, below threshold). Only 1 active domain (auth) = PASS.",
-  "category": "noise-threshold",
-  "domains_expected": ["auth"],
+  "expected": "error",
+  "rationale": "Call-graph analysis: setup-view.tsx, schema.prisma, package.json, and yarn.lock have no function call relationships connecting them. Multiple disconnected files with no call-graph connectivity = 3+ components = ERROR.",
+  "category": "multi-component",
+  "domains_expected": [],
   "ecosystem": "typescript",
-  "notes": "Noise threshold correctly filters out trivial database/config changes. The conflict detection hypothesis is not exercised here because the files don't have enough lines to matter."
+  "notes": "Under domain-based classification, noise threshold filtered small changes leaving 1 domain. Under call-graph connectivity, these files are independent with no import/call relationships, forming multiple disconnected components."
 }

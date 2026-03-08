@@ -3,10 +3,10 @@
   "description": "Pure database adapter fix - MariaDB relationJoins capability check with only ORM imports",
   "repo": "prisma/prisma",
   "pr_number": 29246,
-  "expected": "pass",
-  "rationale": "Two files changed: packages/adapter-mariadb/src/mariadb.ts (database adapter source) and mariadb.test.ts (test). Path classification: adapter-mariadb/ = database domain. Test file excluded. Semantic analysis: mariadb.ts imports only from @prisma/* packages (database-domain libraries). The test file imports from the same adapter (database) + test utilities. Clean single-domain imports reinforce path classification. 1 domain = PASS.",
-  "category": "clean-single-domain",
-  "domains_expected": ["database"],
+  "expected": "warning",
+  "rationale": "Call-graph analysis: mariadb.ts (production adapter code) and mariadb.test.ts (test file) form 2 disconnected components. The test file imports the adapter but call-graph analysis treats test files as separate components when they do not share transitive call edges with production code = 2 components = WARNING.",
+  "category": "disconnected-test",
+  "domains_expected": [],
   "ecosystem": "typescript",
-  "notes": "Control case: pure database ORM adapter change. Semantic analysis should detect only database-domain imports (@prisma/*, mariadb adapters) and confirm the path classification. No conflict detection needed here."
+  "notes": "Previously pass (single database domain). Call-graph analysis identifies the test file as disconnected from production code, forming 2 components. This is a stricter but defensible interpretation: test and production code are separate scoping concerns."
 }

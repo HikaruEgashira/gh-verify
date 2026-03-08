@@ -3,10 +3,10 @@
   "description": "Prisma platform status command - UI components + database client code",
   "repo": "prisma/prisma",
   "pr_number": 29207,
-  "expected": "warning",
-  "rationale": "CLI output rendering with view/page semantics → ui (254 lines). Management API client code → database (153 lines, semantic analysis detects prisma imports). 2 domains = WARNING.",
-  "category": "multi-domain-warn",
-  "domains_expected": ["ui", "database"],
+  "expected": "error",
+  "rationale": "Call-graph analysis: CLI output rendering files, management API client code, and supporting utilities form 3+ disconnected components with no shared call-graph edges. No single function call chain connects all changed files = ERROR.",
+  "category": "multi-component",
+  "domains_expected": [],
   "ecosystem": "typescript",
-  "notes": "Interesting case: CLI rendering classified as ui, API client as database. The domains overlap but ghlint flags it."
+  "notes": "Previously warning (ui+database = 2 domains). Call-graph connectivity reveals 3+ independent clusters of files, escalating from warning to error."
 }

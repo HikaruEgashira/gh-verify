@@ -68,8 +68,10 @@ pub fn run(alloc: std.mem.Allocator, cfg: Config, args: []const []const u8) !voi
 
     // Run rules
     const ctx = rule.RuleContext{
-        .pr_files = pr_files,
-        .pr_metadata = pr_meta,
+        .payload = .{ .pr = .{
+            .pr_files = pr_files,
+            .pr_metadata = pr_meta,
+        } },
     };
     const results = try engine.runAll(alloc, ctx);
 

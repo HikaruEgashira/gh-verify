@@ -4,9 +4,9 @@
   "repo": "supabase/supabase",
   "pr_number": 43286,
   "expected": "error",
-  "rationale": "apps/docs/content/guides/self-hosting/ contains 'auth' in oauth path = auth domain (458 lines). NavigationMenu.constants.ts imports React = ui domain via semantic analysis (10 lines). docker-compose.yml = config domain (43 lines). 3 unrelated domains = ERROR.",
-  "category": "multi-domain-error",
-  "domains_expected": ["auth", "ui", "config"],
+  "rationale": "Call-graph analysis: self-hosting guide docs, NavigationMenu.constants.ts, and docker-compose.yml form multiple disconnected components. Documentation files, UI constants, and Docker config have no shared function call relationships = 3+ components = ERROR.",
+  "category": "multi-component",
+  "domains_expected": [],
   "ecosystem": "typescript",
-  "notes": "Previously warning (auth+config=2 domains). Semantic analysis now correctly identifies NavigationMenu.constants.ts as UI via React import detection, adding a third domain."
+  "notes": "Previously error under domain-based classification (auth+ui+config = 3 domains). Still error under call-graph analysis but for a different reason: multiple disconnected components with no import/call edges between them."
 }

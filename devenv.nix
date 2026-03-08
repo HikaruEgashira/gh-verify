@@ -5,6 +5,7 @@
     pkgs.zig_0_15
     pkgs.gh
     pkgs.jq
+    pkgs.python3
   ];
 
   tasks = {
@@ -42,99 +43,37 @@
       '';
     };
 
-    "ghlint:classify" = {
-      description = "Show domain classification table";
+    "ghlint:bench:run" = {
+      description = "Run ghlint against all benchmark cases and collect raw results";
+      after = [ "ghlint:build" ];
       exec = ''
         set -euo pipefail
-        declare -A CASES=(
-          ["src/auth/login.zig"]="auth"   ["src/auth/token.zig"]="auth"
-          ["src/ui/LoginForm.tsx"]="ui"   ["src/db/schema.sql"]="database"
-          ["docs/guide.md"]="docs"        [".github/workflows/ci.yml"]="ci"
-          ["src/api/handler.zig"]="api"   ["src/config/settings.toml"]="config"
-          ["test/foo_test.zig"]="test"    ["src/random.zig"]="unknown"
-        )
-        COUNT=0
-        for path in "''${!CASES[@]}"; do
-          echo "  $path → ''${CASES[$path]}"; COUNT=$((COUNT+1))
-        done
-        echo ""; echo "classification table: $COUNT entries"
+        GHLINT="$DEVENV_ROOT/zig-out/bin/gh-lint"
+        TIMESTAMP="$(date -u +%Y%m%dT%H%M%SZ)"
+        RAW_FILE="$DEVENV_ROOT/benchmarks/results/raw_''${TIMESTAMP}.jsonl"
+        echo ""; echo "ghlint benchmark"; echo "================"; echo ""
+        python3 "$DEVENV_ROOT/benchmarks/collect.py" "$GHLINT" "$RAW_FILE"
+      '';
+    };
+
+    "ghlint:bench:report" = {
+      description = "Compute Accuracy, Precision, Recall, F1 from raw benchmark results";
+      exec = ''
+        set -euo pipefail
+        RESULTS_DIR="$DEVENV_ROOT/benchmarks/results"
+        RAW_FILE=$(ls -t "$RESULTS_DIR"/raw_*.jsonl 2>/dev/null | head -1)
+        if [[ -z "$RAW_FILE" ]]; then echo "No raw results found. Run ghlint:bench:run first."; exit 1; fi
+        TIMESTAMP=$(basename "$RAW_FILE" .jsonl | sed 's/raw_//')
+        OUTPUT_FILE="$RESULTS_DIR/run_''${TIMESTAMP}.json"
+
+        python3 "$DEVENV_ROOT/benchmarks/report.py" "$RAW_FILE" "$OUTPUT_FILE"
       '';
     };
 
     "ghlint:bench" = {
-      description = "Benchmark against real PRs (requires GitHub token)";
-      after = [ "ghlint:build" ];
-      exec = ''
-        set -uo pipefail
-        CASES_DIR="$DEVENV_ROOT/benchmarks/cases"
-        RESULTS_DIR="$DEVENV_ROOT/benchmarks/results"
-        GHLINT="$DEVENV_ROOT/zig-out/bin/gh-lint"
-        TIMESTAMP="$(date -u +%Y%m%dT%H%M%SZ)"
-        OUTPUT_FILE="$RESULTS_DIR/run_''${TIMESTAMP}.json"
-
-        GREEN="\033[32m" RED="\033[31m" YELLOW="\033[33m" RESET="\033[0m"
-        mkdir -p "$RESULTS_DIR"
-        pass_count=0; fail_count=0; results_json="["; first=true
-
-        run_case() {
-          local case_file="$1"
-          local id repo pr_number expected category description rationale notes
-          id=$(jq -r '.id' "$case_file"); repo=$(jq -r '.repo' "$case_file")
-          pr_number=$(jq -r '.pr_number' "$case_file"); expected=$(jq -r '.expected' "$case_file")
-          category=$(jq -r '.category' "$case_file"); description=$(jq -r '.description' "$case_file")
-          rationale=$(jq -r '.rationale' "$case_file"); notes=$(jq -r '.notes // ""' "$case_file")
-
-          local actual_json actual_severity
-          actual_json=$(GH_TOKEN="''${GH_TOKEN:-$(gh auth token 2>/dev/null || echo "")}" \
-            "$GHLINT" pr "$pr_number" --repo "$repo" --format json 2>/dev/null; true)
-          if ! echo "$actual_json" | jq empty 2>/dev/null; then actual_json="[]"; fi
-          actual_severity=$(echo "$actual_json" | jq -r '.[0].severity // "fetch_error"')
-
-          local outcome
-          if [[ "$actual_severity" == "$expected" ]]; then
-            outcome="PASS"; pass_count=$((pass_count+1))
-            printf "''${GREEN}[PASS]''${RESET} %s | %s#%s | expected=%s\n" "$id" "$repo" "$pr_number" "$expected"
-          else
-            outcome="FAIL"; fail_count=$((fail_count+1))
-            printf "''${RED}[FAIL]''${RESET} %s | %s#%s | expected=%s actual=%s\n" "$id" "$repo" "$pr_number" "$expected" "$actual_severity"
-            [[ -n "$notes" ]] && printf "       ''${YELLOW}note: %s''${RESET}\n" "$notes"
-          fi
-
-          local entry
-          entry=$(jq -n \
-            --arg id "$id" --arg repo "$repo" --argjson pr "$pr_number" \
-            --arg expected "$expected" --arg actual "$actual_severity" \
-            --arg outcome "$outcome" --arg category "$category" \
-            --arg description "$description" --arg rationale "$rationale" \
-            --arg notes "$notes" --argjson raw_output "$actual_json" \
-            '{id:$id,repo:$repo,pr_number:$pr,expected:$expected,actual:$actual,
-              outcome:$outcome,category:$category,description:$description,
-              rationale:$rationale,notes:$notes,raw_output:$raw_output}')
-          if [[ "$first" == "true" ]]; then results_json+="$entry"; first=false
-          else results_json+=",$entry"; fi
-        }
-
-        echo ""; echo "ghlint benchmark"; echo "================"; echo ""
-        for case_file in "$CASES_DIR"/*.json; do
-          [[ -f "$case_file" ]] && run_case "$case_file"
-        done
-        results_json+="]"
-        total=$((pass_count+fail_count))
-        echo ""; echo "========================="
-        if [[ "$fail_count" -eq 0 ]]; then printf "''${GREEN}All %d cases passed''${RESET}\n" "$total"
-        else printf "''${RED}%d/%d cases failed''${RESET}\n" "$fail_count" "$total"; fi
-
-        jq -n \
-          --arg timestamp "$TIMESTAMP" --arg ghlint_bin "$GHLINT" \
-          --argjson pass_count "$pass_count" --argjson fail_count "$fail_count" \
-          --argjson total "$total" --argjson results "$results_json" \
-          '{timestamp:$timestamp,ghlint_bin:$ghlint_bin,
-            summary:{total:$total,pass:$pass_count,fail:$fail_count,
-              pass_rate_pct:(if $total>0 then ($pass_count*100/$total|floor) else 0 end)},
-            results:$results}' > "$OUTPUT_FILE"
-        echo "Report: $OUTPUT_FILE"
-        exit "$fail_count"
-      '';
+      description = "Run benchmarks and generate report";
+      after = [ "ghlint:bench:run" "ghlint:bench:report" ];
+      exec = "echo 'Benchmark complete.'";
     };
 
     "ghlint:dist" = {

@@ -3,10 +3,10 @@
   "description": "shadcn-ui sidebar tooltip fix - .tsx components (ui) + .json style configs (config)",
   "repo": "shadcn-ui/ui",
   "pr_number": 9758,
-  "expected": "warning",
-  "rationale": "sidebar.tsx under ui/ = ui (6 lines, above threshold). sidebar.json files under public/r/styles/ = config (10 lines, .json extension). 2 domains (ui + config) = WARNING.",
-  "category": "multi-domain-warn",
-  "domains_expected": ["ui", "config"],
+  "expected": "error",
+  "rationale": "Call-graph analysis: sidebar.tsx component and .json style definition files have no function call relationships. TSX files do not import JSON style files via call-graph edges. Multiple disconnected components = ERROR.",
+  "category": "multi-component",
+  "domains_expected": [],
   "ecosystem": "typescript",
-  "notes": "Reveals a classification gap: .json style/registry files are classified as config, but they're actually UI-related (component style definitions). This is a known limitation of extension-based classification."
+  "notes": "Previously warning (ui+config = 2 domains). The .json style/registry files are logically related to the UI component but have no call-graph connectivity, making them separate components under the new analysis."
 }

@@ -31,8 +31,8 @@ runs:
     - name: Install gh-lint
       shell: bash
       run: |
-        gh extension install HikaruEgashira/ghlint 2>/dev/null || \
-          gh extension upgrade ghlint 2>/dev/null || true
+        gh extension install HikaruEgashira/gh-lint 2>/dev/null || \
+          gh extension upgrade gh-lint 2>/dev/null || true
 
     - name: Run gh-lint
       id: lint

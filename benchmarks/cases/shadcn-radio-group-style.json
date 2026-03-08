@@ -3,10 +3,10 @@
   "description": "shadcn-ui radio group style update - components (ui) + config",
   "repo": "shadcn-ui/ui",
   "pr_number": 9676,
-  "expected": "warning",
-  "rationale": "Component .tsx files = ui (78 lines). Package config = config (20 lines). 2 domains = WARNING.",
-  "category": "multi-domain-warn",
-  "domains_expected": ["ui", "config"],
+  "expected": "error",
+  "rationale": "Call-graph analysis: radio group component .tsx files and package.json have no function call relationships. Components do not import or call into package manifests. Disconnected components = ERROR.",
+  "category": "multi-component",
+  "domains_expected": [],
   "ecosystem": "typescript",
-  "notes": "Common pattern: component change + package.json update. Arguably should be pass (docs-plus-feature equivalent for ui+config)."
+  "notes": "Previously warning (ui+config = 2 domains). Call-graph analysis treats .tsx components and package.json as disconnected since there are no import/call edges between them."
 }

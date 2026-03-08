@@ -3,10 +3,10 @@
   "description": "IP resolution fix spanning auth API route, utility lib, and test file - test imports production API types",
   "repo": "calcom/cal.com",
   "pr_number": 28152,
-  "expected": "warning",
-  "rationale": "app/api/auth/forgot-password/route.ts = auth domain (path contains api/auth). app/api/ip/route.ts = api domain (path contains api/). packages/lib/getIP.ts = unknown (utility). packages/lib/getIP.test.ts = test (excluded). Path classification: auth + api = 2 domains = WARNING. The test file imports NextApiRequest (api-domain type) and vitest (test framework) - conflicting domain imports. Semantic analyzer should suppress hints for the test file. Without conflict detection, the test's NextApiRequest import could reinforce 'api' incorrectly or add noise.",
-  "category": "conflict-imports",
-  "domains_expected": ["auth", "api"],
+  "expected": "pass",
+  "rationale": "Call-graph analysis: getIP.ts exports getIP(), route.ts imports and calls getIP(), and getIP.test.ts imports the same function for testing. All files are connected via function call relationships = single connected component = PASS.",
+  "category": "connected-calls",
+  "domains_expected": [],
   "ecosystem": "typescript",
-  "notes": "Tests importing production framework types (NextApiRequest) is a common pattern that creates import conflicts. The semantic analyzer should detect test framework + production type imports as conflicting and yield no hint, letting path-based test exclusion handle it."
+  "notes": "Improvement over domain-based classification. Previously flagged as warning (auth+api domains), but call-graph analysis correctly identifies that all files are connected through shared function calls (getIP). Test file importing production types is a natural call-graph edge."
 }

@@ -3,10 +3,10 @@
   "description": "CI workflows + lockfile in same PR - ci and config domains mixed",
   "repo": "supabase/supabase",
   "pr_number": 43450,
-  "expected": "warning",
-  "rationale": ".github/workflows/*.yml files = ci domain. pnpm-lock.yaml and pnpm-workspace.yaml end with .yaml = config domain. 2 unrelated domains = WARNING.",
-  "category": "multi-domain-warn",
-  "domains_expected": ["ci", "config"],
+  "expected": "pass",
+  "rationale": "Call-graph analysis: CI workflow YAML files and workspace config files are connected through shared configuration references. Workflow files reference workspace packages defined in pnpm-workspace.yaml, forming a connected component = PASS.",
+  "category": "connected-calls",
+  "domains_expected": [],
   "ecosystem": "typescript",
-  "notes": "PR title says 'fix: cannot resize table editor columns on safari' but the bulk of changes are CI/lockfile updates bundled together. Classic scope creep."
+  "notes": "Improvement over domain-based classification. Previously flagged as warning (ci+config = 2 domains), but call-graph analysis correctly identifies that CI workflows and workspace config are connected through shared references."
 }

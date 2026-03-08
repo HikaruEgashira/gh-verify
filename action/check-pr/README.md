@@ -16,7 +16,7 @@ jobs:
       contents: read
       pull-requests: read
     steps:
-      - uses: HikaruEgashira/ghlint/action/check-pr@main
+      - uses: HikaruEgashira/gh-lint/action/check-pr@main
         with:
           pr-number: ${{ github.event.pull_request.number }}
 ```

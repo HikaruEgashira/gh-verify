@@ -30,11 +30,18 @@
     },
     "rationale": {
       "type": "string",
-      "description": "Rationale for expected value (which files map to which domains)"
+      "description": "Rationale for expected value (call-graph connectivity analysis)"
     },
     "category": {
       "type": "string",
       "enum": [
+        "single-file",
+        "connected-calls",
+        "connected-imports",
+        "disconnected-test",
+        "disconnected-components",
+        "multi-component",
+        "non-code-only",
         "single-domain",
         "ci-only",
         "test-only",
@@ -50,10 +57,9 @@
     "domains_expected": {
       "type": "array",
       "items": {
-        "type": "string",
-        "enum": ["auth", "ui", "database", "docs", "ci", "config", "api"]
+        "type": "string"
       },
-      "description": "Active domains ghlint should detect (test/unknown excluded)"
+      "description": "Legacy field. Set to [] for call-graph based cases."
     },
     "ecosystem": {
       "type": "string",
