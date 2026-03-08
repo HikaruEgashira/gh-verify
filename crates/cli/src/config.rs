@@ -33,11 +33,20 @@ fn validate_host(host: &str) -> Result<()> {
     Ok(())
 }
 
+fn normalize_secret(value: &str) -> Option<String> {
+    let trimmed = value.trim();
+    (!trimmed.is_empty()).then(|| trimmed.to_string())
+}
+
+fn non_empty_env_var(name: &str) -> Option<String> {
+    std::env::var(name).ok().and_then(|value| normalize_secret(&value))
+}
+
 fn resolve_token() -> Result<String> {
-    if let Ok(token) = std::env::var("GH_TOKEN") {
+    if let Some(token) = non_empty_env_var("GH_TOKEN") {
         return Ok(token);
     }
-    if let Ok(token) = std::env::var("GH_ENTERPRISE_TOKEN") {
+    if let Some(token) = non_empty_env_var("GH_ENTERPRISE_TOKEN") {
         return Ok(token);
     }
     // Fallback: run `gh auth token`
@@ -53,4 +62,26 @@ fn resolve_token() -> Result<String> {
         bail!("no GitHub token found. Set GH_TOKEN or run `gh auth login`");
     }
     Ok(token)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{non_empty_env_var, normalize_secret};
+
+    #[test]
+    fn normalize_secret_rejects_empty_and_whitespace() {
+        assert_eq!(normalize_secret(""), None);
+        assert_eq!(normalize_secret("   \n\t "), None);
+    }
+
+    #[test]
+    fn normalize_secret_trims_valid_token() {
+        assert_eq!(normalize_secret("  gho_test  "), Some("gho_test".to_string()));
+    }
+
+    #[test]
+    fn non_empty_env_var_returns_none_when_not_set() {
+        // Use a randomized name to avoid mutating process-global environment in tests.
+        assert!(non_empty_env_var("GH_VERIFY_TEST_TOKEN__NOT_SET").is_none());
+    }
 }

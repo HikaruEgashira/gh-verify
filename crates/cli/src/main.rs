@@ -1,18 +1,15 @@
-mod config;
-mod github;
-mod output;
-mod rules;
-mod util;
-
 use std::collections::HashSet;
 use std::process;
 
 use anyhow::{Context, Result, bail};
 use clap::{Parser, Subcommand};
 
-use config::Config;
-use github::client::GitHubClient;
-use rules::engine;
+use gh_verify::config::Config;
+use gh_verify::github;
+use gh_verify::github::client::GitHubClient;
+use gh_verify::output;
+use gh_verify::rules;
+use gh_verify::rules::engine;
 
 const VERSION: &str = "0.2.0";
 

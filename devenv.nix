@@ -4,13 +4,9 @@
   packages = [
     pkgs.gh
     pkgs.jq
-    pkgs.python3
   ];
 
-  languages.rust = {
-    enable = true;
-    channel = "stable";
-  };
+  languages.rust.enable = true;
 
   tasks = {
     "ghverify:build" = {
@@ -55,37 +51,13 @@
       '';
     };
 
-    "ghverify:bench:run" = {
-      description = "Run ghverify against all benchmark cases and collect raw results";
-      after = [ "ghverify:build" ];
-      exec = ''
-        set -euo pipefail
-        GHVERIFY="$DEVENV_ROOT/target/release/gh-verify"
-        TIMESTAMP="$(date -u +%Y%m%dT%H%M%SZ)"
-        RAW_FILE="$DEVENV_ROOT/benchmarks/results/raw_''${TIMESTAMP}.jsonl"
-        echo ""; echo "ghverify benchmark"; echo "================"; echo ""
-        python3 "$DEVENV_ROOT/benchmarks/collect.py" "$GHVERIFY" "$RAW_FILE"
-      '';
-    };
-
-    "ghverify:bench:report" = {
-      description = "Compute Accuracy, Precision, Recall, F1 from raw benchmark results";
-      exec = ''
-        set -euo pipefail
-        RESULTS_DIR="$DEVENV_ROOT/benchmarks/results"
-        RAW_FILE=$(ls -t "$RESULTS_DIR"/raw_*.jsonl 2>/dev/null | head -1)
-        if [[ -z "$RAW_FILE" ]]; then echo "No raw results found. Run ghverify:bench:run first."; exit 1; fi
-        TIMESTAMP=$(basename "$RAW_FILE" .jsonl | sed 's/raw_//')
-        OUTPUT_FILE="$RESULTS_DIR/run_''${TIMESTAMP}.json"
-
-        python3 "$DEVENV_ROOT/benchmarks/report.py" "$RAW_FILE" "$OUTPUT_FILE"
-      '';
-    };
-
     "ghverify:bench" = {
       description = "Run benchmarks and generate report";
-      after = [ "ghverify:bench:run" "ghverify:bench:report" ];
-      exec = "echo 'Benchmark complete.'";
+      exec = ''
+        set -euo pipefail
+        cargo build --release --bin gh-verify-bench -p gh-verify
+        "$DEVENV_ROOT/target/release/gh-verify-bench"
+      '';
     };
 
     "ghverify:dist" = {
