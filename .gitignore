@@ -1,7 +1,6 @@
-.zig-cache/
-zig-out/
+# Rust
+target/
 dist/
-zig-*/
 
 # Nix
 result
@@ -15,4 +14,3 @@ benchmarks/results/*.json
 # devenv runtime
 .devenv/
 .devenv.flake.nix
-target/

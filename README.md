@@ -11,8 +11,8 @@
 ---
 
 **ghverify** checks whether a pull request follows healthy software development
-lifecycle practices. It runs as a `gh` CLI extension and ships as a single
-static binary built with Zig.
+lifecycle practices. It runs as a `gh` CLI extension, built in Rust with
+core verification logic formally specified via [Creusot](https://github.com/creusot-rs/creusot).
 
 The tool analyzes PR diffs and metadata to detect anti-patterns — such as
 changes that span too many unrelated domains — and reports them as
@@ -35,7 +35,8 @@ without relying solely on human judgement.
 
 | Rule | Severity | Description |
 |---|---|---|
-| `detect-unscoped-change` | warning / error | Flags PRs that touch multiple unrelated domains (auth, database, UI, etc.) |
+| `detect-unscoped-change` | warning / error | Flags PRs that touch multiple unrelated domains |
+| `verify-release-integrity` | error | Checks commit signatures, mutual approval, PR coverage |
 
 Run `gh verify pr list-rules` to see all registered rules.
 
@@ -52,6 +53,10 @@ gh verify pr 123 --repo owner/repo --format json
 
 # List available rules
 gh verify pr list-rules
+
+# Verify a release
+gh verify release v1.0.0 --repo owner/repo
+gh verify release v0.9.0..v1.0.0 --repo owner/repo
 ```
 
 ### GitHub Action
@@ -84,15 +89,17 @@ See [action/check-pr](action/check-pr/README.md) for full input/output details.
 
 ## Architecture
 
-ghverify follows the Open/Closed Principle. Extending the tool requires
-adding a new file and one line of registration — no changes to existing logic.
+Two-crate Rust workspace:
+
+- **gh-verify-core** — Pure verification logic with Creusot formal specifications. No I/O, no unsafe.
+- **gh-verify** — CLI binary with GitHub API integration, tree-sitter analysis, and output formatting.
 
 | Extension | Create | Register |
 |---|---|---|
-| New rule | `src/rules/<name>.zig` | 1 line in `engine.zig` `rules` array |
-| New subcommand | `src/cli/<name>.zig` | 1 line in `main.zig` `dispatch_table` |
-| New output format | `src/output/<name>.zig` | 1 case in `formatter.zig` switch |
-| New API endpoint | `src/github/<name>.zig` | None |
+| New rule | `crates/cli/src/rules/<name>.rs` | Add to `engine.rs` |
+| New subcommand | Add variant to `Commands` in `main.rs` | clap handles dispatch |
+| New output format | `crates/cli/src/output/<name>.rs` | Add case in `output/mod.rs` |
+| New API endpoint | `crates/cli/src/github/<name>.rs` | None |
 
 ## License
 
