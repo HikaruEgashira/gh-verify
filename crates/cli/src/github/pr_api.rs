@@ -1,0 +1,43 @@
+use anyhow::{Context, Result};
+
+use super::client::GitHubClient;
+use super::types::{PrFile, PrMetadata};
+
+const MAX_PAGES: usize = 10;
+
+/// Fetch the list of changed files for a PR.
+pub fn get_pr_files(
+    client: &GitHubClient,
+    owner: &str,
+    repo: &str,
+    pr_number: u32,
+) -> Result<Vec<PrFile>> {
+    let mut all_files: Vec<PrFile> = Vec::new();
+    let mut current_path = format!("/repos/{owner}/{repo}/pulls/{pr_number}/files?per_page=100");
+
+    for _ in 0..MAX_PAGES {
+        let (body, next_path) = client.get_with_link(&current_path)?;
+        let files: Vec<PrFile> =
+            serde_json::from_str(&body).context("failed to parse PR files")?;
+        all_files.extend(files);
+
+        match next_path {
+            Some(next) => current_path = next,
+            None => break,
+        }
+    }
+
+    Ok(all_files)
+}
+
+/// Fetch PR metadata.
+pub fn get_pr_metadata(
+    client: &GitHubClient,
+    owner: &str,
+    repo: &str,
+    pr_number: u32,
+) -> Result<PrMetadata> {
+    let path = format!("/repos/{owner}/{repo}/pulls/{pr_number}");
+    let body = client.get(&path)?;
+    serde_json::from_str(&body).context("failed to parse PR metadata")
+}

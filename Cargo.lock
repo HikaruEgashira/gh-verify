@@ -390,6 +390,7 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_json",
+ "streaming-iterator",
  "tree-sitter",
  "tree-sitter-go",
  "tree-sitter-python",
