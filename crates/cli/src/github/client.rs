@@ -1,6 +1,6 @@
 use anyhow::{Context, Result, bail};
 use reqwest::blocking::Client;
-use reqwest::header::{ACCEPT, AUTHORIZATION, HeaderMap, HeaderValue};
+use reqwest::header::{ACCEPT, AUTHORIZATION, HeaderMap, HeaderValue, USER_AGENT};
 
 use crate::config::Config;
 
@@ -26,6 +26,10 @@ impl GitHubClient {
         headers.insert(
             "X-GitHub-Api-Version",
             HeaderValue::from_static("2022-11-28"),
+        );
+        headers.insert(
+            USER_AGENT,
+            HeaderValue::from_static("gh-verify/0.2.0"),
         );
 
         let client = Client::builder()
