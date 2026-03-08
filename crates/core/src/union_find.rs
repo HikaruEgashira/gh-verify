@@ -13,10 +13,9 @@
 //! - `merge` establishes equivalence: after `merge(x, y)`, `find(x) == find(y)`
 //! - `component_count` returns the number of distinct roots among file-kind nodes
 
-// Creusot macros for future formal verification of invariants.
-// Struct-level #[invariant] requires Creusot nightly compiler.
-#[allow(unused_imports)]
-use creusot_std::macros::ensures;
+// Creusot struct-level #[invariant] requires Creusot nightly compiler.
+// The structural invariants are documented and tested but not yet machine-proved.
+// See doc comments on UnionFind for the intended invariants.
 
 /// The kind of node in the call graph.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

@@ -4,6 +4,7 @@ use anyhow::Result;
 use streaming_iterator::StreamingIterator;
 use tree_sitter::{Language, Parser, Query, QueryCursor};
 
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct FileSymbols {
     pub filename: String,

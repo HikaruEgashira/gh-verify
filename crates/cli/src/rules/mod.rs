@@ -8,6 +8,7 @@ use gh_verify_core::verdict::RuleResult;
 use crate::github::types::{CompareCommit, PrFile, PrMetadata, PullRequestSummary, Review};
 
 /// Context payload for rule execution.
+#[allow(dead_code)]
 pub enum RuleContext {
     Pr {
         pr_files: Vec<PrFile>,

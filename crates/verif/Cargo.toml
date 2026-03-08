@@ -1,0 +1,9 @@
+[package]
+name = "gh-verify-verif"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Creusot verification targets for gh-verify core predicates"
+
+[dependencies]
+creusot-std = { workspace = true }

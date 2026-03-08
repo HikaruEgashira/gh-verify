@@ -1,6 +1,7 @@
 use serde::Deserialize;
 
 /// GitHub API response type for PR changed files.
+#[allow(dead_code)]
 #[derive(Debug, Clone, Deserialize)]
 pub struct PrFile {
     pub filename: String,
@@ -12,6 +13,7 @@ pub struct PrFile {
 }
 
 /// GitHub API response type for PR metadata.
+#[allow(dead_code)]
 #[derive(Debug, Clone, Deserialize)]
 pub struct PrMetadata {
     pub number: u32,
@@ -20,18 +22,21 @@ pub struct PrMetadata {
 }
 
 /// GitHub API response type for a tag.
+#[allow(dead_code)]
 #[derive(Debug, Clone, Deserialize)]
 pub struct Tag {
     pub name: String,
     pub commit: TagCommit,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, Deserialize)]
 pub struct TagCommit {
     pub sha: String,
 }
 
 /// Commit verification info from GitHub API.
+#[allow(dead_code)]
 #[derive(Debug, Clone, Deserialize)]
 pub struct CommitVerification {
     pub verified: bool,
@@ -60,6 +65,7 @@ pub struct CompareCommit {
 }
 
 /// Response from the compare API.
+#[allow(dead_code)]
 #[derive(Debug, Clone, Deserialize)]
 pub struct CompareResponse {
     pub commits: Vec<CompareCommit>,
@@ -67,6 +73,7 @@ pub struct CompareResponse {
 }
 
 /// A pull request summary (from commits/{sha}/pulls).
+#[allow(dead_code)]
 #[derive(Debug, Clone, Deserialize)]
 pub struct PullRequestSummary {
     pub number: u32,

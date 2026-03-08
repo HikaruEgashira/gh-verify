@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/core", "crates/cli"]
+members = ["crates/core", "crates/cli", "crates/verif"]
 resolver = "2"
 
 [workspace.package]
@@ -22,7 +22,7 @@ tree-sitter-python = "0.23"
 tree-sitter-go = "0.23"
 colored = "3"
 regex = "1"
-creusot-std = "0.10"
+creusot-std = { git = "https://github.com/creusot-rs/creusot", package = "creusot-std" }
 
 [profile.release]
 lto = true

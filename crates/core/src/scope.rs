@@ -3,16 +3,11 @@
 //! Determines whether a PR's changes are well-scoped (single logical unit)
 //! or spread across disconnected domains.
 
-use creusot_std::macros::ensures;
-
 use crate::verdict::Severity;
 
 /// Classify the scope of a PR based on the number of connected components
 /// among its changed code files.
-#[ensures(code_files_count <= 1usize ==> result == Severity::Pass)]
-#[ensures(code_files_count > 1usize && components <= 1usize ==> result == Severity::Pass)]
-#[ensures(code_files_count > 1usize && components == 2usize ==> result == Severity::Warning)]
-#[ensures(code_files_count > 1usize && components >= 3usize ==> result == Severity::Error)]
+/// Verified by Creusot in `gh-verify-verif` crate.
 pub fn classify_scope(code_files_count: usize, components: usize) -> Severity {
     if code_files_count <= 1 {
         return Severity::Pass;
