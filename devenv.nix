@@ -102,6 +102,25 @@
         echo "Build complete."
       '';
     };
+
+    "ghverify:fmt" = {
+      description = "Format and lint all Rust code";
+      exec = ''
+        set -euo pipefail
+        cargo fmt --all
+        cargo clippy --workspace -- -D warnings
+      '';
+    };
+
+    "ghverify:verify" = {
+      description = "Run Creusot formal verification on verif crate";
+      exec = ''
+        set -euo pipefail
+        eval $(opam env --switch=creusot 2>/dev/null) || { echo "Creusot not installed. See HACKING.md for setup."; exit 1; }
+        cargo creusot -p gh-verify-verif
+        echo "Translation complete. Use 'cargo creusot prove \"<fn>\" -- -p gh-verify-verif' to prove individual functions."
+      '';
+    };
   };
 
   enterShell = ''
