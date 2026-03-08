@@ -5,14 +5,14 @@ const engine = @import("../rules/engine.zig");
 const rule = @import("../rules/rule.zig");
 const formatter = @import("../output/formatter.zig");
 
-/// Entry point for the `gh lint release` subcommand.
+/// Entry point for the `gh verify release` subcommand.
 pub fn run(alloc: std.mem.Allocator, cfg: Config, args: []const []const u8) !void {
     const stderr = std.fs.File.stderr().deprecatedWriter();
 
     if (args.len == 0) {
         try stderr.print(
-            \\Usage: gh lint release <tag> [--repo OWNER/REPO] [--format human|json]
-            \\       gh lint release <base>..<head> [--repo OWNER/REPO] [--format human|json]
+            \\Usage: gh verify release <tag> [--repo OWNER/REPO] [--format human|json]
+            \\       gh verify release <base>..<head> [--repo OWNER/REPO] [--format human|json]
             \\
         , .{});
         std.process.exit(1);

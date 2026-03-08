@@ -1,4 +1,4 @@
-# Hacking on ghlint
+# Hacking on ghverify
 
 ## Setup
 
@@ -12,11 +12,11 @@ direnv allow   # or: devenv shell
 All development tasks are managed via devenv. Run with `devenv tasks run <task>`.
 
 ```bash
-devenv tasks run ghlint:build      # Release build
-devenv tasks run ghlint:test       # Unit tests (no network required)
-devenv tasks run ghlint:classify   # Display domain classification table
-devenv tasks run ghlint:bench      # Benchmarks (uses GitHub API)
-devenv tasks run ghlint:dist       # Cross-compile for all platforms
+devenv tasks run ghverify:build      # Release build
+devenv tasks run ghverify:test       # Unit tests (no network required)
+devenv tasks run ghverify:classify   # Display domain classification table
+devenv tasks run ghverify:bench      # Benchmarks (uses GitHub API)
+devenv tasks run ghverify:dist       # Cross-compile for all platforms
 ```
 
 ## Adding a Rule

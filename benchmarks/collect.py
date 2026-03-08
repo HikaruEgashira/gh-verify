@@ -1,4 +1,4 @@
-"""Run ghlint against all benchmark cases and collect raw results."""
+"""Run ghverify against all benchmark cases and collect raw results."""
 
 import json
 import subprocess
@@ -12,10 +12,10 @@ RESET = "\033[0m"
 
 def main():
     if len(sys.argv) < 3:
-        print("Usage: collect.py <ghlint_bin> <output.jsonl>")
+        print("Usage: collect.py <ghverify_bin> <output.jsonl>")
         sys.exit(1)
 
-    ghlint = sys.argv[1]
+    ghverify = sys.argv[1]
     output_path = Path(sys.argv[2])
     cases_dir = Path(__file__).parent / "cases"
 
@@ -31,7 +31,7 @@ def main():
 
         try:
             result = subprocess.run(
-                [ghlint, "pr", str(pr_number), "--repo", repo, "--format", "json"],
+                [ghverify, "pr", str(pr_number), "--repo", repo, "--format", "json"],
                 capture_output=True, text=True, timeout=30,
             )
             raw_output = json.loads(result.stdout) if result.stdout.strip() else []

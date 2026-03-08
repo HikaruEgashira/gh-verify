@@ -1,4 +1,4 @@
-# ghlint - GitHub SDLC Linter
+# ghverify - GitHub SDLC Verifier
 
 SLSA-based GitHub SDLC health checker. Runs as a `gh` CLI extension, built in Zig.
 
@@ -7,9 +7,9 @@ SLSA-based GitHub SDLC health checker. Runs as a `gh` CLI extension, built in Zi
 ```bash
 zig build                                    # Debug build
 zig build -Doptimize=ReleaseSafe             # Release build
-./zig-out/bin/gh-lint pr 123 --repo o/r      # PR lint
-./zig-out/bin/gh-lint pr 123 --format json   # JSON output
-./zig-out/bin/gh-lint pr list-rules          # List rules
+./zig-out/bin/gh-verify pr 123 --repo o/r    # PR verify
+./zig-out/bin/gh-verify pr 123 --format json # JSON output
+./zig-out/bin/gh-verify pr list-rules        # List rules
 ```
 
 ## Architecture (Open/Closed Principle)

@@ -1,11 +1,11 @@
-# ghlint Benchmarks
+# ghverify Benchmarks
 
-Benchmark suite for validating ghlint's `detect-unscoped-change` rule against real-world GitHub PRs.
+Benchmark suite for validating ghverify's `detect-unscoped-change` rule against real-world GitHub PRs.
 
 ## Running
 
 ```bash
-devenv tasks run ghlint:bench
+devenv tasks run ghverify:bench
 ```
 
 Results are saved to `results/run_<timestamp>.json`.
@@ -54,6 +54,6 @@ All benchmark cases are stored as flat JSON files in `cases/`.
 ## Case Selection Criteria
 
 1. **Executable**: Only merged PRs from public repositories
-2. **Verified**: Each case tested with `ghlint pr <num> --repo <owner>/<repo> --format json`
+2. **Verified**: Each case tested with `gh verify pr <num> --repo <owner>/<repo> --format json`
 3. **Diverse**: Multiple ecosystems (TypeScript, Python, Go, Rust)
 4. **Educational**: Includes cases showing call-graph vs domain-based differences

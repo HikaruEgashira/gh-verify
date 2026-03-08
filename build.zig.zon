@@ -1,6 +1,6 @@
 .{
-    .name = .ghlint,
-    .fingerprint = 0x9791e9d5f1c0c32a,
+    .name = .ghverify,
+    .fingerprint = 0x17b2ffa9a43fc920,
     .version = "0.1.0",
     .minimum_zig_version = "0.14.0",
     .paths = .{"."},

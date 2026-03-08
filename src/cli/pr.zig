@@ -5,13 +5,13 @@ const engine = @import("../rules/engine.zig");
 const rule = @import("../rules/rule.zig");
 const formatter = @import("../output/formatter.zig");
 
-/// Entry point for the `gh lint pr` subcommand.
+/// Entry point for the `gh verify pr` subcommand.
 /// Contains no rule logic; delegates to each layer.
 pub fn run(alloc: std.mem.Allocator, cfg: Config, args: []const []const u8) !void {
     const stderr = std.fs.File.stderr().deprecatedWriter();
 
     if (args.len == 0) {
-        try stderr.print("Usage: gh lint pr <PR_NUMBER> [--repo OWNER/REPO] [--format human|json]\n", .{});
+        try stderr.print("Usage: gh verify pr <PR_NUMBER> [--repo OWNER/REPO] [--format human|json]\n", .{});
         std.process.exit(1);
     }
 

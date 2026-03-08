@@ -40,7 +40,7 @@ pub fn main() !void {
     const subcmd = args[1];
 
     if (std.mem.eql(u8, subcmd, "version") or std.mem.eql(u8, subcmd, "--version")) {
-        try std.fs.File.stdout().deprecatedWriter().print("gh-lint v0.1.0\n", .{});
+        try std.fs.File.stdout().deprecatedWriter().print("gh-verify v0.1.0\n", .{});
         return;
     }
 
@@ -106,10 +106,10 @@ fn resolveToken(alloc: std.mem.Allocator) ![]const u8 {
 
 fn printUsage() void {
     const usage =
-        \\Usage: gh lint <subcommand> [flags]
+        \\Usage: gh verify <subcommand> [flags]
         \\
         \\Subcommands:
-        \\  pr <PR_NUMBER>           Lint a pull request
+        \\  pr <PR_NUMBER>           Verify a pull request
         \\  release <TAG|BASE..HEAD> Verify release integrity
         \\  version                  Show version
         \\  help                     Show this help

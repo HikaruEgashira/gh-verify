@@ -1,11 +1,11 @@
-name: "ghlint: check-pr"
+name: "ghverify: check-pr"
 description: >
-  Run gh-lint SDLC checks on a pull request and report results.
+  Run gh-verify SDLC checks on a pull request and report results.
   Fails if any rule returns an error-level finding.
 
 inputs:
   pr-number:
-    description: "Pull request number to lint"
+    description: "Pull request number to verify"
     required: true
   repo:
     description: "Repository in OWNER/REPO format (defaults to current repo)"
@@ -23,19 +23,19 @@ inputs:
 outputs:
   result:
     description: "Overall result: pass, warning, or error"
-    value: ${{ steps.lint.outputs.result }}
+    value: ${{ steps.verify.outputs.result }}
 
 runs:
   using: "composite"
   steps:
-    - name: Install gh-lint
+    - name: Install gh-verify
       shell: bash
       run: |
-        gh extension install HikaruEgashira/gh-lint 2>/dev/null || \
-          gh extension upgrade gh-lint 2>/dev/null || true
+        gh extension install HikaruEgashira/gh-verify 2>/dev/null || \
+          gh extension upgrade gh-verify 2>/dev/null || true
 
-    - name: Run gh-lint
-      id: lint
+    - name: Run gh-verify
+      id: verify
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
@@ -50,7 +50,7 @@ runs:
         fi
 
         set +e
-        OUTPUT=$(gh lint pr $ARGS 2>&1)
+        OUTPUT=$(gh verify pr $ARGS 2>&1)
         EXIT_CODE=$?
         set -e
 

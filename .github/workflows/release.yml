@@ -19,7 +19,7 @@ jobs:
       - uses: cachix/devenv-install-action@6b11d2f44dc6b1109fef47c25f0b37b7f5091eea # v0
 
       - name: Build cross-platform binaries
-        run: devenv tasks run ghlint:dist ${{ github.ref_name }}
+        run: devenv tasks run ghverify:dist ${{ github.ref_name }}
 
       - uses: softprops/action-gh-release@c95fe1489396fe8a6f36d0f87a8b4e7df4bb07a2 # v2
         with:

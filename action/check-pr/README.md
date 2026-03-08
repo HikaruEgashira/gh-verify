@@ -1,6 +1,6 @@
 # action/check-pr
 
-GitHub Action that runs `gh-lint` SDLC checks on a pull request.
+GitHub Action that runs `gh-verify` SDLC checks on a pull request.
 
 ## Usage
 
@@ -10,13 +10,13 @@ on:
     types: [opened, synchronize]
 
 jobs:
-  lint:
+  verify:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: read
     steps:
-      - uses: HikaruEgashira/gh-lint/action/check-pr@main
+      - uses: HikaruEgashira/gh-verify/action/check-pr@main
         with:
           pr-number: ${{ github.event.pull_request.number }}
 ```
@@ -25,7 +25,7 @@ jobs:
 
 | Input | Required | Default | Description |
 |---|---|---|---|
-| `pr-number` | yes | — | PR number to lint |
+| `pr-number` | yes | — | PR number to verify |
 | `repo` | no | current repo | `OWNER/REPO` format |
 | `format` | no | `human` | `human` or `json` |
 | `rule` | no | (all) | Run only a specific rule ID |
