@@ -68,6 +68,34 @@
     "notes": {
       "type": "string",
       "description": "Known classification quirks, false positives/negatives, and other notes"
+    },
+    "source": {
+      "type": "object",
+      "description": "Optional provenance for cases curated from external datasets such as OSS Insight.",
+      "required": ["provider"],
+      "properties": {
+        "provider": {
+          "type": "string",
+          "description": "Source provider name, e.g. ossinsight"
+        },
+        "collection_id": {
+          "type": "integer",
+          "description": "OSS Insight collection ID used during discovery"
+        },
+        "collection_name": {
+          "type": "string",
+          "description": "Human-readable collection name"
+        },
+        "selection": {
+          "type": "string",
+          "description": "How this PR was selected into the benchmark set"
+        },
+        "discovered_at": {
+          "type": "string",
+          "description": "UTC timestamp when the source record was discovered"
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": false

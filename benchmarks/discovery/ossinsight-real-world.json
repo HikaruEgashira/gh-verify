@@ -1,0 +1,482 @@
+{
+  "generated_at": "2026-03-09T01:46:59Z",
+  "collection_id": 10005,
+  "period": "past_28_days",
+  "repos": [
+    {
+      "repo": "angular/angular",
+      "current_period_rank": "1",
+      "current_period_growth": "92",
+      "total_prs": "33756",
+      "top_pr_creators": [
+        {
+          "id": "8604205",
+          "login": "gkalpak",
+          "name": "George Kalpakas",
+          "prs": "1242",
+          "first_pr_opened_at": "2015-09-11 17:45:21",
+          "first_pr_merged_at": "2016-10-18 05:51:48"
+        },
+        {
+          "id": "479713",
+          "login": "atscott",
+          "name": "Andrew Scott",
+          "prs": "1069",
+          "first_pr_opened_at": "2019-07-16 16:40:40",
+          "first_pr_merged_at": "2021-01-07 20:29:21"
+        },
+        {
+          "id": "1300985",
+          "login": "JeanMeche",
+          "name": "Matthieu Riegler",
+          "prs": "1069",
+          "first_pr_opened_at": "2022-11-02 13:22:07",
+          "first_pr_merged_at": "2024-10-16 15:43:25"
+        },
+        {
+          "id": "43554145",
+          "login": "AndrewKushnir",
+          "name": "Andrew Kushnir",
+          "prs": "928",
+          "first_pr_opened_at": "2018-09-26 20:46:59",
+          "first_pr_merged_at": "2018-09-27 18:52:08"
+        },
+        {
+          "id": "4450522",
+          "login": "crisbeto",
+          "name": "Kristiyan Kostadinov",
+          "prs": "927",
+          "first_pr_opened_at": "2016-12-14 21:41:37",
+          "first_pr_merged_at": "2020-06-12 22:41:25"
+        }
+      ],
+      "prs": [
+        {
+          "number": 66772,
+          "title": "docs(docs-infra): Signal forms custom validator with 'fieldTree' fiel…",
+          "merged_at": "2026-02-06T23:11:00Z",
+          "changed_files": 1,
+          "code_files": 0,
+          "observed": "pass",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-09T01:46:26Z"
+          }
+        },
+        {
+          "number": 66948,
+          "title": "Revert \"fix(compiler-cli): update diagnostic to flag no-op arrow functions in listeners\"",
+          "merged_at": "2026-02-06T19:13:03Z",
+          "changed_files": 2,
+          "code_files": 2,
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-09T01:46:28Z"
+          }
+        },
+        {
+          "number": 66947,
+          "title": "docs: remove non-existant method",
+          "merged_at": "2026-02-06T18:20:32Z",
+          "changed_files": 1,
+          "code_files": 0,
+          "observed": "pass",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-09T01:46:29Z"
+          }
+        }
+      ]
+    },
+    {
+      "repo": "facebook/react",
+      "current_period_rank": "2",
+      "current_period_growth": "47",
+      "total_prs": "18609",
+      "top_pr_creators": [
+        {
+          "id": "63648",
+          "login": "sebmarkbage",
+          "name": "Sebastian Markbåge",
+          "prs": "1497",
+          "first_pr_opened_at": "2015-01-05 07:32:10",
+          "first_pr_merged_at": "2014-10-03 17:49:31"
+        },
+        {
+          "id": "810438",
+          "login": "gaearon",
+          "name": "dan",
+          "prs": "1148",
+          "first_pr_opened_at": "2015-04-07 16:44:51",
+          "first_pr_merged_at": "2014-08-11 17:52:32"
+        },
+        {
+          "id": "3624098",
+          "login": "acdlite",
+          "name": "Andrew Clark",
+          "prs": "1143",
+          "first_pr_opened_at": "2015-10-30 23:21:07",
+          "first_pr_merged_at": "2015-11-12 00:45:13"
+        },
+        {
+          "id": "29597",
+          "login": "bvaughn",
+          "name": "Brian Vaughn",
+          "prs": "808",
+          "first_pr_opened_at": "2016-12-07 20:07:48",
+          "first_pr_merged_at": "2016-12-07 23:35:17"
+        },
+        {
+          "id": "6820",
+          "login": "sophiebits",
+          "name": "Sophie Alpert",
+          "prs": "676",
+          "first_pr_opened_at": "2015-01-22 22:44:14",
+          "first_pr_merged_at": "2013-05-31 05:20:01"
+        }
+      ],
+      "prs": [
+        {
+          "number": 35632,
+          "title": "[Flight] Add more DoS mitigations to Flight Reply, and harden Flight",
+          "merged_at": "2026-01-26T19:24:58Z",
+          "changed_files": 18,
+          "code_files": 17,
+          "observed": "error",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-09T01:46:35Z"
+          }
+        },
+        {
+          "number": 35929,
+          "title": "[DevTools] Fix null ref crash in ContextMenu when items list is empty",
+          "merged_at": "2026-03-05T15:52:24Z",
+          "changed_files": 2,
+          "code_files": 2,
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-09T01:46:36Z"
+          }
+        },
+        {
+          "number": 35790,
+          "title": "[errors] s/form state/action state",
+          "merged_at": "2026-03-04T19:20:04Z",
+          "changed_files": 3,
+          "code_files": 2,
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-09T01:46:38Z"
+          }
+        }
+      ]
+    },
+    {
+      "repo": "sveltejs/svelte",
+      "current_period_rank": "3",
+      "current_period_growth": "32",
+      "total_prs": "7537",
+      "top_pr_creators": [
+        {
+          "id": "1162160",
+          "login": "Rich-Harris",
+          "name": "Rich Harris",
+          "prs": "1709",
+          "first_pr_opened_at": "2016-11-30 21:01:59",
+          "first_pr_merged_at": "2016-11-30 21:20:19"
+        },
+        {
+          "id": "5968653",
+          "login": "dummdidumm",
+          "name": "Simon H",
+          "prs": "606",
+          "first_pr_opened_at": "2020-08-12 09:30:47",
+          "first_pr_merged_at": "2020-08-12 21:05:50"
+        },
+        {
+          "id": "1519870",
+          "login": "trueadm",
+          "name": "Dominic Gannaway",
+          "prs": "560",
+          "first_pr_opened_at": "2023-11-13 11:20:04",
+          "first_pr_merged_at": "2023-11-13 17:53:57"
+        },
+        {
+          "id": "2338632",
+          "login": "tanhauhau",
+          "name": "Tan Li Hau",
+          "prs": "297",
+          "first_pr_opened_at": "2019-10-06 03:05:51",
+          "first_pr_merged_at": "2019-10-09 16:38:26"
+        },
+        {
+          "id": "16696352",
+          "login": "Conduitry",
+          "name": "",
+          "prs": "265",
+          "first_pr_opened_at": "2016-12-16 12:53:10",
+          "first_pr_merged_at": "2016-12-17 17:06:30"
+        }
+      ],
+      "prs": [
+        {
+          "number": 17805,
+          "title": "chore: refactor scheduling",
+          "merged_at": "2026-03-08T11:39:07Z",
+          "changed_files": 12,
+          "code_files": 11,
+          "observed": "error",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-09T01:46:42Z"
+          }
+        },
+        {
+          "number": 17873,
+          "title": "fix: handle asnyc updates within pending boundary",
+          "merged_at": "2026-03-07T00:59:59Z",
+          "changed_files": 4,
+          "code_files": 3,
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-09T01:46:43Z"
+          }
+        },
+        {
+          "number": 17853,
+          "title": "fix: clean up externally-added DOM nodes in {@html} on re-render",
+          "merged_at": "2026-03-07T00:11:16Z",
+          "changed_files": 7,
+          "code_files": 6,
+          "observed": "error",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-09T01:46:45Z"
+          }
+        }
+      ]
+    },
+    {
+      "repo": "emberjs/ember.js",
+      "current_period_rank": "4",
+      "current_period_growth": "31",
+      "total_prs": "10237",
+      "top_pr_creators": [
+        {
+          "id": "12637",
+          "login": "rwjblue",
+          "name": "Robert Jackson",
+          "prs": "1370",
+          "first_pr_opened_at": "2015-01-01 03:17:41",
+          "first_pr_merged_at": "2013-08-14 15:30:29"
+        },
+        {
+          "id": "1377",
+          "login": "stefanpenner",
+          "name": "Stefan Penner",
+          "prs": "385",
+          "first_pr_opened_at": "2011-10-01 04:29:52",
+          "first_pr_merged_at": "2012-12-24 23:08:44"
+        },
+        {
+          "id": "1131614",
+          "login": "bekzod",
+          "name": "",
+          "prs": "374",
+          "first_pr_opened_at": "2015-12-03 09:20:53",
+          "first_pr_merged_at": "2015-12-06 03:33:24"
+        },
+        {
+          "id": "55829",
+          "login": "chancancode",
+          "name": "Godfrey Chan",
+          "prs": "263",
+          "first_pr_opened_at": "2015-05-13 08:35:35",
+          "first_pr_merged_at": "2013-04-25 21:10:52"
+        },
+        {
+          "id": "183799",
+          "login": "chadhietala",
+          "name": "Chad Hietala",
+          "prs": "228",
+          "first_pr_opened_at": "2015-01-12 17:16:43",
+          "first_pr_merged_at": "2014-06-12 03:43:59"
+        }
+      ],
+      "prs": [
+        {
+          "number": 21205,
+          "title": "Adjust PR title lint to use pull_request_target to get appropriate token",
+          "merged_at": "2026-03-08T16:17:14Z",
+          "changed_files": 1,
+          "code_files": 0,
+          "observed": "pass",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-09T01:46:49Z"
+          }
+        },
+        {
+          "number": 21202,
+          "title": " [BUGFIX] `current-when` with nested routes containing dynamic dynamic segments",
+          "merged_at": "2026-03-08T05:24:46Z",
+          "changed_files": 3,
+          "code_files": 3,
+          "observed": "error",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-09T01:46:51Z"
+          }
+        },
+        {
+          "number": 21124,
+          "title": "[BUGFIX] Fix {{#each}} runtime crash when array contains null/undefined items with key #20786",
+          "merged_at": "2026-03-03T17:48:37Z",
+          "changed_files": 2,
+          "code_files": 2,
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-09T01:46:52Z"
+          }
+        }
+      ]
+    },
+    {
+      "repo": "vuejs/core",
+      "current_period_rank": "5",
+      "current_period_growth": "17",
+      "total_prs": "5679",
+      "top_pr_creators": [
+        {
+          "id": "3705199",
+          "login": "edison1105",
+          "name": "edison",
+          "prs": "553",
+          "first_pr_opened_at": "2019-10-09 01:55:46",
+          "first_pr_merged_at": "2019-10-15 15:59:42"
+        },
+        {
+          "id": "14146560",
+          "login": "HcySunYang",
+          "name": "Chunyang Huo",
+          "prs": "161",
+          "first_pr_opened_at": "2019-10-11 12:07:48",
+          "first_pr_merged_at": "2019-10-12 14:30:40"
+        },
+        {
+          "id": "14008915",
+          "login": "underfin",
+          "name": "",
+          "prs": "127",
+          "first_pr_opened_at": "2019-10-11 13:15:15",
+          "first_pr_merged_at": "2019-10-12 23:49:24"
+        },
+        {
+          "id": "4620458",
+          "login": "pikax",
+          "name": "Carlos Rodrigues",
+          "prs": "116",
+          "first_pr_opened_at": "2019-10-05 07:54:29",
+          "first_pr_merged_at": "2019-10-05 14:35:20"
+        },
+        {
+          "id": "6481596",
+          "login": "sxzz",
+          "name": "三咲智子 Kevin Deng",
+          "prs": "115",
+          "first_pr_opened_at": "2021-11-30 22:13:58",
+          "first_pr_merged_at": "2021-12-06 04:18:22"
+        }
+      ],
+      "prs": [
+        {
+          "number": 14540,
+          "title": "fix(transition): handle rapid in-out transition toggles",
+          "merged_at": "2026-03-09T01:07:24Z",
+          "changed_files": 3,
+          "code_files": 3,
+          "observed": "error",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-09T01:46:56Z"
+          }
+        },
+        {
+          "number": 14538,
+          "title": "fix(runtime-vapor): handle out-in transition with empty leaving branch",
+          "merged_at": "2026-03-07T04:43:26Z",
+          "changed_files": 3,
+          "code_files": 3,
+          "observed": "error",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-09T01:46:57Z"
+          }
+        },
+        {
+          "number": 14535,
+          "title": "fix(runtime-vapor): handle transition in-out leave without incoming branch",
+          "merged_at": "2026-03-06T13:13:02Z",
+          "changed_files": 4,
+          "code_files": 4,
+          "observed": "error",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-09T01:46:59Z"
+          }
+        }
+      ]
+    }
+  ]
+}

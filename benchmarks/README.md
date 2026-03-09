@@ -10,6 +10,26 @@ devenv tasks run ghverify:bench
 
 Results are saved to `results/run_<timestamp>.json`.
 
+## Expanding With OSS Insight
+
+Use OSS Insight to discover active repositories, then fetch recent merged PRs from GitHub:
+
+```bash
+cargo run --bin gh-verify-bench -- collect-real-world \
+  --collection-id 10005 \
+  --repo-limit 3 \
+  --prs-per-repo 2 \
+  --output benchmarks/discovery/ossinsight-real-world.json
+```
+
+The manifest records:
+
+- OSS Insight ranking metadata for the selected collection
+- top PR creators per repository
+- recent merged PRs with observed ghverify severity
+
+Curated benchmark cases should copy the relevant PRs into `cases/` with a `source` block so the provenance remains explicit.
+
 ## Detection Method: Call-Graph Connectivity
 
 The rule extracts function definitions, function calls, and imports from each changed file's patch using tree-sitter AST analysis (with lexical fallback for unsupported languages). It builds a graph and checks connectivity using Union-Find:
@@ -57,3 +77,4 @@ All benchmark cases are stored as flat JSON files in `cases/`.
 2. **Verified**: Each case tested with `gh verify pr <num> --repo <owner>/<repo> --format json`
 3. **Diverse**: Multiple ecosystems (TypeScript, Python, Go, Rust)
 4. **Educational**: Includes cases showing call-graph vs domain-based differences
+5. **Traceable**: Real-world cases should retain discovery provenance (`source.provider`, collection, selection rule)

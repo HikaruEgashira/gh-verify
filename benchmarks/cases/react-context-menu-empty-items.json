@@ -1,0 +1,19 @@
+{
+  "id": "pass-018",
+  "description": "React DevTools empty-items bugfix edits two colocated ContextMenu files",
+  "repo": "facebook/react",
+  "pr_number": 35929,
+  "expected": "pass",
+  "rationale": "Both changed files live in the same ContextMenu feature folder and implement the same bugfix. This is a semantically scoped PR despite lacking an import edge in the patch.",
+  "category": "connected-imports",
+  "domains_expected": [],
+  "ecosystem": "javascript",
+  "notes": "Current engine returns warning because call-graph extraction does not connect sibling files that collaborate through runtime composition rather than explicit diff-visible imports.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 10005,
+    "collection_name": "Javascript Framework",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-03-09T00:00:00Z"
+  }
+}

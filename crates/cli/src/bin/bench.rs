@@ -1,21 +1,26 @@
 use std::collections::HashMap;
 use std::io::{self, Write};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::process;
 use std::time::Instant;
 
-use anyhow::{Context, Result};
-use clap::Parser;
-use gh_verify_core::verdict::Severity;
-use serde::{Deserialize, Serialize};
-
+use anyhow::Result;
+use clap::{Args, Parser, Subcommand};
+use gh_verify::bench::{self, BenchCase, BenchCaseSource};
 use gh_verify::config::Config;
 use gh_verify::github::client::GitHubClient;
 use gh_verify::github::pr_api;
+use gh_verify::ossinsight::{CollectionRepoRank, OssInsightClient, PullRequestCreator};
 use gh_verify::rules::{self, RuleContext};
+use gh_verify_core::scope::is_non_code_file;
+use gh_verify_core::verdict::Severity;
+use serde::Serialize;
 
 #[derive(Parser)]
-#[command(name = "gh-verify-bench", about = "Run gh-verify benchmark suite")]
+#[command(
+    name = "gh-verify-bench",
+    about = "Run or extend the gh-verify benchmark suite"
+)]
 struct Cli {
     /// Directory containing case JSON files
     #[arg(long, default_value = "benchmarks/cases")]
@@ -23,26 +28,39 @@ struct Cli {
     /// Output format (human or json)
     #[arg(long, default_value = "human")]
     format: String,
+    #[command(subcommand)]
+    command: Option<Command>,
 }
 
-fn main() {
-    if let Err(e) = run() {
-        eprintln!("Error: {e:#}");
-        process::exit(1);
-    }
+#[derive(Subcommand)]
+enum Command {
+    /// Discover real-world benchmark candidates via OSS Insight and GitHub
+    CollectRealWorld(CollectRealWorldArgs),
 }
 
-/// A benchmark case read from JSON.
-#[derive(Debug, Deserialize)]
-#[allow(dead_code)]
-struct BenchCase {
-    id: String,
-    description: String,
-    repo: String,
-    pr_number: u32,
-    expected: Severity,
-    category: String,
-    ecosystem: String,
+#[derive(Args)]
+struct CollectRealWorldArgs {
+    /// OSS Insight collection ID
+    #[arg(long, default_value_t = 10005)]
+    collection_id: u64,
+    /// OSS Insight ranking period
+    #[arg(long, default_value = "past_28_days")]
+    period: String,
+    /// Number of ranked repositories to inspect
+    #[arg(long, default_value_t = 3)]
+    repo_limit: usize,
+    /// Number of merged PRs to keep for each repository
+    #[arg(long, default_value_t = 2)]
+    prs_per_repo: usize,
+    /// Number of top PR creators to record for each repository
+    #[arg(long, default_value_t = 5)]
+    creators_per_repo: u32,
+    /// Output manifest path
+    #[arg(
+        long,
+        default_value = "benchmarks/discovery/ossinsight-real-world.json"
+    )]
+    output: String,
 }
 
 #[derive(Debug, Serialize)]
@@ -53,7 +71,7 @@ struct CaseResult {
     pass: bool,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "lowercase")]
 enum ActualResult {
     Pass,
@@ -118,11 +136,53 @@ struct Report {
     results: Vec<CaseResult>,
 }
 
+#[derive(Debug, Serialize)]
+struct DiscoveryManifest {
+    generated_at: String,
+    collection_id: u64,
+    period: String,
+    repos: Vec<DiscoveryRepo>,
+}
+
+#[derive(Debug, Serialize)]
+struct DiscoveryRepo {
+    repo: String,
+    current_period_rank: String,
+    current_period_growth: String,
+    total_prs: String,
+    top_pr_creators: Vec<PullRequestCreator>,
+    prs: Vec<DiscoveryPr>,
+}
+
+#[derive(Debug, Serialize)]
+struct DiscoveryPr {
+    number: u32,
+    title: String,
+    merged_at: String,
+    changed_files: usize,
+    code_files: usize,
+    observed: ActualResult,
+    source: BenchCaseSource,
+}
+
+fn main() {
+    if let Err(e) = run() {
+        eprintln!("Error: {e:#}");
+        process::exit(1);
+    }
+}
+
 fn run() -> Result<()> {
     let cli = Cli::parse();
-    let dir = PathBuf::from(&cli.cases_dir);
+    match cli.command {
+        Some(Command::CollectRealWorld(args)) => collect_real_world(args),
+        None => run_benchmarks(&cli),
+    }
+}
 
-    let cases = load_cases(&dir)?;
+fn run_benchmarks(cli: &Cli) -> Result<()> {
+    let dir = PathBuf::from(&cli.cases_dir);
+    let cases = bench::load_cases(&dir)?;
     if cases.is_empty() {
         anyhow::bail!("no benchmark cases found in {}", dir.display());
     }
@@ -153,8 +213,7 @@ fn run() -> Result<()> {
         let case_started = Instant::now();
         let actual = run_case(&client, case);
         let pass = actual.matches(&case.expected);
-        let case_elapsed = case_started.elapsed();
-        let case_secs = case_elapsed.as_secs_f32();
+        let case_secs = case_started.elapsed().as_secs_f32();
 
         if pass {
             correct_so_far += 1;
@@ -187,34 +246,24 @@ fn run() -> Result<()> {
         });
     }
 
-    let total = results.len();
-    let correct = results.iter().filter(|r| r.pass).count();
-    let accuracy = if total > 0 {
-        correct as f64 / total as f64
-    } else {
-        0.0
-    };
-
-    let metrics = compute_metrics(&results);
-    let f1_values: Vec<f64> = [Severity::Pass, Severity::Warning, Severity::Error]
-        .iter()
-        .filter_map(|s| metrics.get(s).and_then(|m| m.f1()))
-        .collect();
-    let macro_f1 = if f1_values.is_empty() {
-        None
-    } else {
-        Some(f1_values.iter().sum::<f64>() / f1_values.len() as f64)
-    };
+    let report = build_report(results);
 
     eprintln!();
     eprintln!("Elapsed: {:.2}s", bench_started.elapsed().as_secs_f32());
-    eprintln!("Accuracy: {correct}/{total} ({:.1}%)", accuracy * 100.0);
-    if let Some(f1) = macro_f1 {
+    eprintln!(
+        "Accuracy: {}/{} ({:.1}%)",
+        report.correct,
+        report.total,
+        report.accuracy * 100.0
+    );
+    if let Some(f1) = report.macro_f1 {
         eprintln!("Macro F1: {f1:.4}");
     } else {
         eprintln!("Macro F1: N/A");
     }
     eprintln!();
+
+    let metrics = compute_metrics(&report.results);
     eprintln!(
         "{:<10} {:>4} {:>4} {:>4} {:>10} {:>10} {:>10}",
         "Severity", "TP", "FP", "FN", "Precision", "Recall", "F1"
@@ -251,35 +300,104 @@ fn run() -> Result<()> {
     }
 
     if cli.format == "json" {
-        let report = Report {
-            total,
-            correct,
-            accuracy,
-            macro_f1,
-            results,
-        };
         println!("{}", serde_json::to_string_pretty(&report)?);
     }
 
     Ok(())
 }
 
-fn load_cases(dir: &Path) -> Result<Vec<BenchCase>> {
-    let mut entries: Vec<_> = std::fs::read_dir(dir)
-        .with_context(|| format!("cannot read benchmark cases dir: {}", dir.display()))?
-        .filter_map(|e| e.ok())
-        .filter(|e| e.path().extension().is_some_and(|ext| ext == "json"))
-        .collect();
-    entries.sort_by_key(|e| e.file_name());
+fn collect_real_world(args: CollectRealWorldArgs) -> Result<()> {
+    let cfg = Config::load()?;
+    let github = GitHubClient::new(&cfg)?;
+    let ossinsight = OssInsightClient::new()?;
 
-    let mut cases = Vec::new();
-    for entry in entries {
-        let content = std::fs::read_to_string(entry.path())?;
-        let case: BenchCase = serde_json::from_str(&content)
-            .with_context(|| format!("invalid case: {}", entry.path().display()))?;
-        cases.push(case);
+    let ranked_repos = ossinsight.ranking_by_prs(args.collection_id, &args.period)?;
+    if ranked_repos.is_empty() {
+        anyhow::bail!("OSS Insight returned no ranked repositories");
     }
-    Ok(cases)
+
+    let mut repos = Vec::new();
+    for rank in ranked_repos.into_iter().take(args.repo_limit) {
+        repos.push(discover_repo(
+            &github,
+            &ossinsight,
+            &rank,
+            args.collection_id,
+            &args.period,
+            args.creators_per_repo,
+            args.prs_per_repo,
+        )?);
+    }
+
+    let manifest = DiscoveryManifest {
+        generated_at: timestamp_now(),
+        collection_id: args.collection_id,
+        period: args.period,
+        repos,
+    };
+
+    bench::write_pretty_json(&args.output, &manifest)?;
+    eprintln!(
+        "saved {} repositories to {}",
+        manifest.repos.len(),
+        args.output
+    );
+    Ok(())
+}
+
+fn discover_repo(
+    github: &GitHubClient,
+    ossinsight: &OssInsightClient,
+    rank: &CollectionRepoRank,
+    collection_id: u64,
+    period: &str,
+    creators_per_repo: u32,
+    prs_per_repo: usize,
+) -> Result<DiscoveryRepo> {
+    let (owner, repo) = rank
+        .repo_name
+        .split_once('/')
+        .ok_or_else(|| anyhow::anyhow!("invalid repo name from OSS Insight: {}", rank.repo_name))?;
+
+    let top_pr_creators = ossinsight.pull_request_creators(owner, repo, creators_per_repo)?;
+    let merged_prs = pr_api::list_recent_merged_prs(github, owner, repo, prs_per_repo)?;
+    let mut prs = Vec::new();
+
+    for pr in merged_prs {
+        let files = pr_api::get_pr_files(github, owner, repo, pr.number)?;
+        let code_files = files
+            .iter()
+            .filter(|file| file.patch.is_some() && !is_non_code_file(&file.filename))
+            .count();
+        let observed = actual_from_rule_results(github, owner, repo, pr.number);
+
+        prs.push(DiscoveryPr {
+            number: pr.number,
+            title: pr.title,
+            merged_at: pr.merged_at.unwrap_or_default(),
+            changed_files: files.len(),
+            code_files,
+            observed,
+            source: BenchCaseSource {
+                provider: "ossinsight".into(),
+                collection_id: Some(collection_id),
+                collection_name: None,
+                selection: Some(format!(
+                    "ranking_by_prs(period={period}) + recent merged PRs"
+                )),
+                discovered_at: Some(timestamp_now()),
+            },
+        });
+    }
+
+    Ok(DiscoveryRepo {
+        repo: rank.repo_name.clone(),
+        current_period_rank: rank.current_period_rank.clone(),
+        current_period_growth: rank.current_period_growth.clone(),
+        total_prs: rank.total.clone(),
+        top_pr_creators,
+        prs,
+    })
 }
 
 fn run_case(client: &GitHubClient, case: &BenchCase) -> ActualResult {
@@ -288,12 +406,21 @@ fn run_case(client: &GitHubClient, case: &BenchCase) -> ActualResult {
         None => return ActualResult::FetchError("invalid repo format".into()),
     };
 
-    let pr_files = match pr_api::get_pr_files(client, owner, repo, case.pr_number) {
+    actual_from_rule_results(client, owner, repo, case.pr_number)
+}
+
+fn actual_from_rule_results(
+    client: &GitHubClient,
+    owner: &str,
+    repo: &str,
+    pr_number: u32,
+) -> ActualResult {
+    let pr_files = match pr_api::get_pr_files(client, owner, repo, pr_number) {
         Ok(f) => f,
         Err(e) => return ActualResult::FetchError(format!("files: {e}")),
     };
 
-    let pr_metadata = match pr_api::get_pr_metadata(client, owner, repo, case.pr_number) {
+    let pr_metadata = match pr_api::get_pr_metadata(client, owner, repo, pr_number) {
         Ok(m) => m,
         Err(e) => return ActualResult::FetchError(format!("metadata: {e}")),
     };
@@ -320,6 +447,35 @@ fn run_case(client: &GitHubClient, case: &BenchCase) -> ActualResult {
             }
         }
         Err(e) => ActualResult::FetchError(format!("engine: {e}")),
+    }
+}
+
+fn build_report(results: Vec<CaseResult>) -> Report {
+    let total = results.len();
+    let correct = results.iter().filter(|r| r.pass).count();
+    let accuracy = if total > 0 {
+        correct as f64 / total as f64
+    } else {
+        0.0
+    };
+
+    let metrics = compute_metrics(&results);
+    let f1_values: Vec<f64> = [Severity::Pass, Severity::Warning, Severity::Error]
+        .iter()
+        .filter_map(|s| metrics.get(s).and_then(|m| m.f1()))
+        .collect();
+    let macro_f1 = if f1_values.is_empty() {
+        None
+    } else {
+        Some(f1_values.iter().sum::<f64>() / f1_values.len() as f64)
+    };
+
+    Report {
+        total,
+        correct,
+        accuracy,
+        macro_f1,
+        results,
     }
 }
 
@@ -356,5 +512,18 @@ fn actual_str(a: &ActualResult) -> String {
         ActualResult::Warning => "warning".into(),
         ActualResult::Error => "error".into(),
         ActualResult::FetchError(e) => format!("fetch_error({e})"),
+    }
+}
+
+fn timestamp_now() -> String {
+    let output = process::Command::new("date")
+        .arg("-u")
+        .arg("+%Y-%m-%dT%H:%M:%SZ")
+        .output();
+    match output {
+        Ok(output) if output.status.success() => {
+            String::from_utf8_lossy(&output.stdout).trim().to_string()
+        }
+        _ => "unknown".into(),
     }
 }
