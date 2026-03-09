@@ -1,0 +1,19 @@
+{
+  "id": "pass-023",
+  "description": "Vue transition rapid-toggle fix touches runtime plus e2e spec and fixture for one behavior",
+  "repo": "vuejs/core",
+  "pr_number": 14540,
+  "expected": "pass",
+  "rationale": "Runtime transition logic, e2e spec, and fixture file all validate the same in-out toggle behavior and should be treated as one semantic unit.",
+  "category": "connected-calls",
+  "domains_expected": [],
+  "ecosystem": "typescript",
+  "notes": "Current engine reports error because fixture/e2e files are disconnected in patch-only call/import analysis.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 10005,
+    "collection_name": "Javascript Framework",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-03-09T01:46:59Z"
+  }
+}
