@@ -1,0 +1,19 @@
+{
+  "id": "pass-023",
+  "description": "Svelte batch reprocessing fix edits scheduler code alongside runtime-runes samples",
+  "repo": "sveltejs/svelte",
+  "pr_number": 17895,
+  "expected": "pass",
+  "rationale": "The PR modifies one batching implementation file and paired runtime-runes sample fixtures/configs that verify the same scheduling behavior. This is one scoped change.",
+  "category": "connected-calls",
+  "domains_expected": [],
+  "ecosystem": "javascript",
+  "notes": "Current engine returns error because sample fixtures and config files are disconnected from implementation at patch-level call-graph extraction.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 10005,
+    "collection_name": "Javascript Framework",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-03-11T01:21:06Z"
+  }
+}

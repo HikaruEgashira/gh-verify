@@ -1,0 +1,19 @@
+{
+  "id": "pass-022",
+  "description": "Vue SSR watch-after-async-setup fix changes runtime internals with a server-renderer regression test",
+  "repo": "vuejs/core",
+  "pr_number": 14547,
+  "expected": "pass",
+  "rationale": "Two runtime-core files and one SSR regression test are edited for the same watch lifecycle bug. Test coverage should be considered semantically connected to the implementation fix.",
+  "category": "connected-calls",
+  "domains_expected": [],
+  "ecosystem": "typescript",
+  "notes": "Current engine returns error because runtime and server-renderer test files are split into separate graph components.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 10005,
+    "collection_name": "Javascript Framework",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-03-11T01:21:06Z"
+  }
+}

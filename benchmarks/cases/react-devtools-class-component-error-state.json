@@ -1,0 +1,19 @@
+{
+  "id": "pass-021",
+  "description": "React DevTools class component error-state crash fix spans runtime and regression test",
+  "repo": "facebook/react",
+  "pr_number": 35985,
+  "expected": "pass",
+  "rationale": "The change updates reconciler behavior and DevTools renderer handling, then validates with a focused regression test. This is one bugfix unit, not independent subsystems.",
+  "category": "connected-calls",
+  "domains_expected": [],
+  "ecosystem": "javascript",
+  "notes": "Current engine returns error because implementation files and test files are treated as disconnected components when no direct patch-visible import edge exists.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 10005,
+    "collection_name": "Javascript Framework",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-03-11T01:21:06Z"
+  }
+}
