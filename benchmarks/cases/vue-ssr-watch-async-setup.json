@@ -1,5 +1,5 @@
 {
-  "id": "pass-022",
+  "id": "pass-025",
   "description": "Vue SSR watch-after-async-setup fix changes runtime internals with a server-renderer regression test",
   "repo": "vuejs/core",
   "pr_number": 14547,

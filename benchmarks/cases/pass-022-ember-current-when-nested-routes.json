@@ -1,0 +1,19 @@
+{
+  "id": "pass-022",
+  "description": "Ember current-when bugfix updates one runtime component with paired integration tests",
+  "repo": "emberjs/ember.js",
+  "pr_number": 21202,
+  "expected": "pass",
+  "rationale": "One production component plus two route-specific tests represent a single bugfix scope despite multiple files.",
+  "category": "connected-calls",
+  "domains_expected": [],
+  "ecosystem": "javascript",
+  "notes": "Current engine reports error due to missing explicit graph edges between implementation and test files.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 10005,
+    "collection_name": "Javascript Framework",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-03-09T01:46:59Z"
+  }
+}
