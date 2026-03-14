@@ -80,6 +80,48 @@ pub fn find_test_pairs(source_path: &str) -> Vec<String> {
     candidates
 }
 
+/// Extensions for languages that support inline tests (`#[cfg(test)]`, `if __name__`).
+const INLINE_TEST_EXTENSIONS: &[&str] = &[".rs", ".py"];
+
+/// Check whether `ext` supports inline tests.
+fn supports_inline_tests(path: &str) -> bool {
+    INLINE_TEST_EXTENSIONS.iter().any(|ext| path.ends_with(ext))
+}
+
+/// Check whether the test file stem starts or ends with the source stem
+/// at a word boundary (delimited by `_`, `-`, or string edge).
+///
+/// This prevents `api` from matching `github_api_test` (embedded match),
+/// while allowing `api` to match `api_test` or `test_api`.
+fn stem_matches_at_word_boundary(test_file_stem: &str, source_stem: &str) -> bool {
+    if source_stem.is_empty() {
+        return false;
+    }
+    // Exact match
+    if test_file_stem == source_stem {
+        return true;
+    }
+    // Prefix match: test stem starts with source_stem followed by separator
+    if let Some(rest) = test_file_stem.strip_prefix(source_stem) {
+        if rest.starts_with('_') || rest.starts_with('-') || rest.starts_with('.') {
+            return true;
+        }
+    }
+    // Suffix match: test stem ends with source_stem preceded by separator
+    if let Some(rest) = test_file_stem.strip_suffix(source_stem) {
+        if rest.ends_with('_') || rest.ends_with('-') || rest.ends_with('.') {
+            return true;
+        }
+    }
+    false
+}
+
+/// Extract the file stem (filename without extension) from a path.
+fn file_stem(path: &str) -> &str {
+    let filename = path.rsplit('/').next().unwrap_or(path);
+    filename.split('.').next().unwrap_or(filename)
+}
+
 /// Check which source files in a changeset lack corresponding test file changes.
 ///
 /// For each file classified as `Source` (and not non-code), checks whether any
@@ -101,23 +143,27 @@ pub fn has_test_coverage(
             continue;
         }
 
+        // Languages with inline test support (Rust #[cfg(test)], Python
+        // if __name__) are self-tested when the source file itself is changed.
+        if supports_inline_tests(src) && all_changed_files.contains(&src) {
+            continue;
+        }
+
         let candidates = find_test_pairs(src);
         let covered = candidates
             .iter()
             .any(|candidate| all_changed_files.iter().any(|&f| f == candidate));
 
         // Also check if any changed test file contains the source stem
-        // (looser heuristic for non-standard layouts)
-        let stem = src
-            .rsplit('/')
-            .next()
-            .unwrap_or(src)
-            .split('.')
-            .next()
-            .unwrap_or(src);
+        // at a word boundary (stricter heuristic for non-standard layouts)
+        let stem = file_stem(src);
 
         let has_related_test = all_changed_files.iter().any(|&f| {
-            classify_file_role(f) == FileRole::Test && f.contains(stem) && stem.len() >= 3
+            if classify_file_role(f) != FileRole::Test || stem.len() < 3 {
+                return false;
+            }
+            let test_stem = file_stem(f);
+            stem_matches_at_word_boundary(test_stem, stem)
         });
 
         if !covered && !has_related_test {
@@ -161,20 +207,20 @@ mod tests {
 
     #[test]
     fn source_without_test_is_uncovered() {
-        let all = &["src/foo.rs"];
-        let sources = &["src/foo.rs"];
+        let all = &["src/foo.ts"];
+        let sources = &["src/foo.ts"];
         let uncovered = has_test_coverage(sources, all);
         assert_eq!(uncovered.len(), 1);
-        assert_eq!(uncovered[0].path, "src/foo.rs");
+        assert_eq!(uncovered[0].path, "src/foo.ts");
     }
 
     #[test]
     fn partial_coverage_reports_uncovered_only() {
-        let all = &["src/foo.rs", "src/bar.rs", "tests/foo_test.rs"];
-        let sources = &["src/foo.rs", "src/bar.rs"];
+        let all = &["src/foo.ts", "src/bar.ts", "src/foo.test.ts"];
+        let sources = &["src/foo.ts", "src/bar.ts"];
         let uncovered = has_test_coverage(sources, all);
         assert_eq!(uncovered.len(), 1);
-        assert_eq!(uncovered[0].path, "src/bar.rs");
+        assert_eq!(uncovered[0].path, "src/bar.ts");
     }
 
     #[test]
@@ -204,10 +250,61 @@ mod tests {
     #[test]
     fn related_test_with_stem_match_counts_as_covered() {
         // A test file that contains the source stem in its path
-        let all = &["src/parser.rs", "src/parser_test.rs"];
-        let sources = &["src/parser.rs"];
-        // "parser" stem appears in "src/parser_test.rs" which is classified as Test
+        let all = &["src/parser.ts", "src/parser_test.ts"];
+        let sources = &["src/parser.ts"];
+        // "parser" stem appears in "src/parser_test.ts" which is classified as Test
         let uncovered = has_test_coverage(sources, all);
         assert!(uncovered.is_empty());
+    }
+
+    #[test]
+    fn rust_inline_test_is_self_covered() {
+        // Rust files with #[cfg(test)] inline tests are self-tested
+        let all = &["src/lib.rs"];
+        let sources = &["src/lib.rs"];
+        let uncovered = has_test_coverage(sources, all);
+        assert!(uncovered.is_empty(), "Rust files should be self-tested");
+    }
+
+    #[test]
+    fn python_inline_test_is_self_covered() {
+        // Python files can have `if __name__` inline tests
+        let all = &["src/main.py"];
+        let sources = &["src/main.py"];
+        let uncovered = has_test_coverage(sources, all);
+        assert!(uncovered.is_empty(), "Python files should be self-tested");
+    }
+
+    #[test]
+    fn substring_stem_match_does_not_false_positive() {
+        // "api" should NOT match "github_api_test" — different semantic scope
+        let all = &["src/api.ts", "tests/github_api_test.ts"];
+        let sources = &["src/api.ts"];
+        let uncovered = has_test_coverage(sources, all);
+        assert_eq!(uncovered.len(), 1, "api should not match github_api_test");
+        assert_eq!(uncovered[0].path, "src/api.ts");
+    }
+
+    #[test]
+    fn exact_stem_boundary_match_works() {
+        // "api" should match "api_test" (word boundary match)
+        let all = &["src/api.ts", "tests/api_test.ts"];
+        let sources = &["src/api.ts"];
+        let uncovered = has_test_coverage(sources, all);
+        assert!(uncovered.is_empty(), "api should match api_test");
+    }
+
+    #[test]
+    fn stem_boundary_function() {
+        // Prefix: source stem at the start of test stem
+        assert!(stem_matches_at_word_boundary("api_test", "api"));
+        // Suffix: source stem at the end of test stem
+        assert!(stem_matches_at_word_boundary("test_api", "api"));
+        // Exact match
+        assert!(stem_matches_at_word_boundary("api", "api"));
+        // Embedded: api in the middle — should NOT match
+        assert!(!stem_matches_at_word_boundary("github_api_test", "api"));
+        // Prefix of compound stem
+        assert!(stem_matches_at_word_boundary("github_api_test", "github_api"));
     }
 }

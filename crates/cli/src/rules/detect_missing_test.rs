@@ -3,6 +3,8 @@ use gh_verify_core::scope::{classify_file_role, is_non_code_file, FileRole};
 use gh_verify_core::test_coverage::has_test_coverage;
 use gh_verify_core::verdict::{RuleResult, Severity};
 
+use crate::github::types::PrFile;
+
 use super::{Rule, RuleContext};
 
 const RULE_ID: &str = "detect-missing-test";
@@ -20,7 +22,13 @@ impl Rule for DetectMissingTest {
             RuleContext::Release { .. } => return Ok(vec![pass_result()]),
         };
 
-        let all_filenames: Vec<&str> = pr_files.iter().map(|f| f.filename.as_str()).collect();
+        // Exclude deleted files — they no longer exist and cannot need tests.
+        let live_files: Vec<&PrFile> = pr_files
+            .iter()
+            .filter(|f| f.status != "removed")
+            .collect();
+
+        let all_filenames: Vec<&str> = live_files.iter().map(|f| f.filename.as_str()).collect();
 
         // Identify source files (code files that are not tests/fixtures/non-code)
         let source_files: Vec<&str> = all_filenames
