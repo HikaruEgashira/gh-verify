@@ -27,8 +27,10 @@ The manifest records:
 - OSS Insight ranking metadata for the selected collection
 - top PR creators per repository
 - recent merged PRs with observed ghverify severity
+- changed file paths and code file paths for each discovered PR, so curation can happen from one manifest
 
 Curated benchmark cases should copy the relevant PRs into `cases/` with a `source` block so the provenance remains explicit.
+New case `id` values should be stable descriptive slugs. Legacy severity-prefixed ids remain for historical continuity, but new ids should not encode the expected verdict.
 
 ## Detection Method: Call-Graph Connectivity
 
@@ -68,6 +70,8 @@ All benchmark cases are stored as flat JSON files in `cases/`.
 | disconnected-test | Test files disconnected from production code |
 | disconnected-components | Multiple unrelated change clusters |
 | multi-component | 3+ disconnected components |
+| semantic-bridge | Implementation + tests/fixtures/snapshots that represent one semantic unit |
+| fork-sync | Parallel build/runtime fork files that must move together |
 | single-file | Single code file change |
 | non-code-only | Only non-code files changed |
 

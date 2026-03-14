@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-14T00:04:16Z",
+  "generated_at": "2026-03-14T09:20:20Z",
   "collection_id": 10005,
   "period": "past_28_days",
   "repos": [
@@ -18,20 +18,20 @@
           "first_pr_merged_at": "2016-10-18 05:51:48"
         },
         {
-          "id": "479713",
-          "login": "atscott",
-          "name": "Andrew Scott",
-          "prs": "1069",
-          "first_pr_opened_at": "2019-07-16 16:40:40",
-          "first_pr_merged_at": "2021-01-07 20:29:21"
-        },
-        {
           "id": "1300985",
           "login": "JeanMeche",
           "name": "Matthieu Riegler",
           "prs": "1069",
           "first_pr_opened_at": "2022-11-02 13:22:07",
           "first_pr_merged_at": "2024-10-16 15:43:25"
+        },
+        {
+          "id": "479713",
+          "login": "atscott",
+          "name": "Andrew Scott",
+          "prs": "1069",
+          "first_pr_opened_at": "2019-07-16 16:40:40",
+          "first_pr_merged_at": "2021-01-07 20:29:21"
         },
         {
           "id": "43554145",
@@ -52,78 +52,180 @@
       ],
       "prs": [
         {
-          "number": 67481,
-          "title": "build: update cross-repo angular dependencies (main)",
-          "merged_at": "2026-03-13T22:26:42Z",
-          "changed_files": 54,
+          "number": 67014,
+          "title": "build: update pnpm to v10.29.2 (21.1.x)",
+          "merged_at": "2026-02-11T23:37:16Z",
+          "changed_files": 27,
           "code_files": 1,
+          "changed_paths": [
+            "MODULE.bazel",
+            "MODULE.bazel.lock",
+            "integration/cli-hello-world-ivy-i18n/package.json",
+            "integration/cli-hello-world-lazy/package.json",
+            "integration/cli-hello-world/package.json",
+            "integration/cli-signal-inputs/package.json",
+            "integration/defer/package.json",
+            "integration/legacy-animations-async/package.json",
+            "integration/legacy-animations/package.json",
+            "integration/legacy-animations/pnpm-lock.yaml",
+            "integration/ng-add-localize/package.json",
+            "integration/ng_elements/package.json",
+            "integration/ng_update/package.json",
+            "integration/no_ts_linker/package.json",
+            "integration/nodenext_resolution/package.json",
+            "integration/platform-server-hydration/package.json",
+            "integration/platform-server-zoneless/package.json",
+            "integration/platform-server/package.json",
+            "integration/service-worker-schema/package.json",
+            "integration/side-effects/package.json",
+            "integration/standalone-bootstrap/package.json",
+            "integration/terser/package.json",
+            "integration/trusted-types/package.json",
+            "integration/typings_test_rxjs7/package.json",
+            "integration/typings_test_ts59/package.json",
+            "package.json",
+            "pnpm-lock.yaml"
+          ],
+          "code_paths": [
+            "MODULE.bazel"
+          ],
           "observed": "pass",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T00:02:53Z"
+            "discovered_at": "2026-03-14T09:18:48Z"
           }
         },
         {
-          "number": 67455,
-          "title": "build: update cross-repo angular dependencies (21.2.x)",
-          "merged_at": "2026-03-13T22:25:45Z",
-          "changed_files": 51,
-          "code_files": 1,
-          "observed": "pass",
-          "source": {
-            "provider": "ossinsight",
-            "collection_id": 10005,
-            "collection_name": null,
-            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T00:02:55Z"
-          }
-        },
-        {
-          "number": 67677,
-          "title": "Rules angular update [patch]",
-          "merged_at": "2026-03-13T19:07:07Z",
-          "changed_files": 3,
-          "code_files": 2,
-          "observed": "warning",
-          "source": {
-            "provider": "ossinsight",
-            "collection_id": 10005,
-            "collection_name": null,
-            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T00:02:57Z"
-          }
-        },
-        {
-          "number": 67681,
-          "title": "Rules angular update",
-          "merged_at": "2026-03-13T19:07:28Z",
+          "number": 67018,
+          "title": "build: add workspace rule for antigravity",
+          "merged_at": "2026-02-11T23:23:05Z",
           "changed_files": 4,
-          "code_files": 3,
+          "code_files": 1,
+          "changed_paths": [
+            ".agent/rules/agents.md",
+            ".prettierignore",
+            ".pullapprove.yml",
+            "AGENTS.md"
+          ],
+          "code_paths": [
+            ".prettierignore"
+          ],
+          "observed": "pass",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-14T09:18:49Z"
+          }
+        },
+        {
+          "number": 67019,
+          "title": "refactor(core): replacing usages of `Default` strategy with `Eager`",
+          "merged_at": "2026-02-11T22:40:49Z",
+          "changed_files": 7,
+          "code_files": 5,
+          "changed_paths": [
+            "adev/src/content/guide/components/advanced-configuration.md",
+            "adev/src/content/guide/zoneless.md",
+            "packages/core/src/change_detection/provide_check_no_changes_config.ts",
+            "packages/core/src/metadata/directives.ts",
+            "packages/core/src/render3/util/discovery_utils.ts",
+            "packages/core/test/acceptance/change_detection_spec.ts",
+            "packages/core/test/acceptance/discover_utils_spec.ts"
+          ],
+          "code_paths": [
+            "packages/core/src/change_detection/provide_check_no_changes_config.ts",
+            "packages/core/src/metadata/directives.ts",
+            "packages/core/src/render3/util/discovery_utils.ts",
+            "packages/core/test/acceptance/change_detection_spec.ts",
+            "packages/core/test/acceptance/discover_utils_spec.ts"
+          ],
           "observed": "error",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T00:02:59Z"
+            "discovered_at": "2026-03-14T09:18:51Z"
           }
         },
         {
-          "number": 67672,
-          "title": "build: update pnpm to v10.32.1 (main)",
-          "merged_at": "2026-03-13T19:09:26Z",
-          "changed_files": 26,
-          "code_files": 1,
+          "number": 67028,
+          "title": "build: update cross-repo angular dependencies to v21.1.4 (21.1.x)",
+          "merged_at": "2026-02-11T22:43:26Z",
+          "changed_files": 32,
+          "code_files": 0,
+          "changed_paths": [
+            "adev/package.json",
+            "dev-app/package.json",
+            "integration/cli-hello-world-ivy-i18n/package.json",
+            "integration/cli-hello-world-ivy-i18n/pnpm-lock.yaml",
+            "integration/cli-hello-world-lazy/package.json",
+            "integration/cli-hello-world-lazy/pnpm-lock.yaml",
+            "integration/cli-hello-world/package.json",
+            "integration/cli-hello-world/pnpm-lock.yaml",
+            "integration/cli-signal-inputs/package.json",
+            "integration/cli-signal-inputs/pnpm-lock.yaml",
+            "integration/defer/package.json",
+            "integration/defer/pnpm-lock.yaml",
+            "integration/legacy-animations-async/package.json",
+            "integration/legacy-animations-async/pnpm-lock.yaml",
+            "integration/legacy-animations/package.json",
+            "integration/legacy-animations/pnpm-lock.yaml",
+            "integration/ng-add-localize/package.json",
+            "integration/ng-add-localize/pnpm-lock.yaml",
+            "integration/platform-server-hydration/package.json",
+            "integration/platform-server-hydration/pnpm-lock.yaml",
+            "integration/platform-server-zoneless/package.json",
+            "integration/platform-server-zoneless/pnpm-lock.yaml",
+            "integration/platform-server/package.json",
+            "integration/platform-server/pnpm-lock.yaml",
+            "integration/standalone-bootstrap/package.json",
+            "integration/standalone-bootstrap/pnpm-lock.yaml",
+            "integration/trusted-types/package.json",
+            "integration/trusted-types/pnpm-lock.yaml",
+            "modules/package.json",
+            "package.json",
+            "packages/core/test/bundling/package.json",
+            "pnpm-lock.yaml"
+          ],
+          "code_paths": [],
           "observed": "pass",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T00:03:00Z"
+            "discovered_at": "2026-03-14T09:18:53Z"
+          }
+        },
+        {
+          "number": 66990,
+          "title": "fix(forms): warn when showing hidden field state",
+          "merged_at": "2026-02-11T22:46:44Z",
+          "changed_files": 3,
+          "code_files": 3,
+          "changed_paths": [
+            "packages/forms/signals/src/directive/form_field_directive.ts",
+            "packages/forms/signals/src/errors.ts",
+            "packages/forms/signals/test/web/form_field_directive.spec.ts"
+          ],
+          "code_paths": [
+            "packages/forms/signals/src/directive/form_field_directive.ts",
+            "packages/forms/signals/src/errors.ts",
+            "packages/forms/signals/test/web/form_field_directive.spec.ts"
+          ],
+          "observed": "error",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-14T09:18:54Z"
           }
         }
       ]
@@ -131,8 +233,8 @@
     {
       "repo": "facebook/react",
       "current_period_rank": "2",
-      "current_period_growth": "49",
-      "total_prs": "18628",
+      "current_period_growth": "50",
+      "total_prs": "18631",
       "top_pr_creators": [
         {
           "id": "63648",
@@ -182,13 +284,21 @@
           "merged_at": "2026-03-12T21:36:28Z",
           "changed_files": 2,
           "code_files": 2,
+          "changed_paths": [
+            "packages/react-dom-bindings/src/client/ReactFiberConfigDOM.js",
+            "packages/react-dom/src/__tests__/ReactDOMFragmentRefs-test.js"
+          ],
+          "code_paths": [
+            "packages/react-dom-bindings/src/client/ReactFiberConfigDOM.js",
+            "packages/react-dom/src/__tests__/ReactDOMFragmentRefs-test.js"
+          ],
           "observed": "warning",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T00:03:04Z"
+            "discovered_at": "2026-03-14T09:18:58Z"
           }
         },
         {
@@ -197,13 +307,19 @@
           "merged_at": "2026-03-12T21:19:21Z",
           "changed_files": 1,
           "code_files": 1,
+          "changed_paths": [
+            "packages/react-devtools-shared/src/devtools/views/Components/InspectedElementSuspendedBy.js"
+          ],
+          "code_paths": [
+            "packages/react-devtools-shared/src/devtools/views/Components/InspectedElementSuspendedBy.js"
+          ],
           "observed": "pass",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T00:03:05Z"
+            "discovered_at": "2026-03-14T09:18:59Z"
           }
         },
         {
@@ -212,13 +328,23 @@
           "merged_at": "2026-03-12T18:17:25Z",
           "changed_files": 3,
           "code_files": 3,
+          "changed_paths": [
+            "packages/react-client/src/ReactFlightClient.js",
+            "packages/react-server-dom-webpack/src/__tests__/ReactFlightDOM-test.js",
+            "packages/react-server/src/ReactFlightReplyServer.js"
+          ],
+          "code_paths": [
+            "packages/react-client/src/ReactFlightClient.js",
+            "packages/react-server-dom-webpack/src/__tests__/ReactFlightDOM-test.js",
+            "packages/react-server/src/ReactFlightReplyServer.js"
+          ],
           "observed": "error",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T00:03:07Z"
+            "discovered_at": "2026-03-14T09:19:00Z"
           }
         },
         {
@@ -227,13 +353,25 @@
           "merged_at": "2026-03-12T17:07:06Z",
           "changed_files": 4,
           "code_files": 4,
+          "changed_paths": [
+            "packages/shared/ReactFeatureFlags.js",
+            "packages/shared/forks/ReactFeatureFlags.native-oss.js",
+            "packages/shared/forks/ReactFeatureFlags.test-renderer.js",
+            "packages/shared/forks/ReactFeatureFlags.test-renderer.www.js"
+          ],
+          "code_paths": [
+            "packages/shared/ReactFeatureFlags.js",
+            "packages/shared/forks/ReactFeatureFlags.native-oss.js",
+            "packages/shared/forks/ReactFeatureFlags.test-renderer.js",
+            "packages/shared/forks/ReactFeatureFlags.test-renderer.www.js"
+          ],
           "observed": "error",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T00:03:08Z"
+            "discovered_at": "2026-03-14T09:19:02Z"
           }
         },
         {
@@ -242,13 +380,17 @@
           "merged_at": "2026-03-12T15:40:37Z",
           "changed_files": 1,
           "code_files": 0,
+          "changed_paths": [
+            "compiler/yarn.lock"
+          ],
+          "code_paths": [],
           "observed": "pass",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T00:03:10Z"
+            "discovered_at": "2026-03-14T09:19:03Z"
           }
         }
       ]
@@ -307,13 +449,64 @@
           "merged_at": "2026-03-10T15:40:25Z",
           "changed_files": 25,
           "code_files": 22,
+          "changed_paths": [
+            "package.json",
+            "packages/@ember/-internals/glimmer/lib/component-managers/curly.ts",
+            "packages/@ember/-internals/glimmer/lib/component-managers/root.ts",
+            "packages/@ember/-internals/glimmer/lib/helper.ts",
+            "packages/@ember/-internals/glimmer/lib/modifiers/internal.ts",
+            "packages/@ember/-internals/glimmer/lib/renderer.ts",
+            "packages/@ember/-internals/glimmer/lib/resolver.ts",
+            "packages/@ember/-internals/glimmer/lib/syntax/utils.ts",
+            "packages/@ember/-internals/glimmer/lib/templates/empty.ts",
+            "packages/@ember/-internals/glimmer/lib/utils/bindings.ts",
+            "packages/@ember/-internals/glimmer/lib/utils/debug-render-message.ts",
+            "packages/@ember/-internals/metal/lib/alias.ts",
+            "packages/@ember/-internals/metal/lib/decorator.ts",
+            "packages/@ember/-internals/metal/lib/dependent_keys.ts",
+            "packages/@ember/-internals/metal/lib/each_proxy_events.ts",
+            "packages/@ember/-internals/metal/lib/observer.ts",
+            "packages/@ember/-internals/views/lib/system/utils.ts",
+            "packages/@ember/template-compiler/lib/public-types.ts",
+            "packages/@ember/template-compiler/type-tests/template.test.ts",
+            "packages/@glimmer/debug/lib/debug.ts",
+            "packages/@glimmer/destroyable/test/destroyables-test.ts",
+            "packages/@glimmer/program/lib/program.ts",
+            "packages/@glimmer/reference/test/iterable-test.ts",
+            "pnpm-lock.yaml",
+            "smoke-tests/node-template/package.json"
+          ],
+          "code_paths": [
+            "packages/@ember/-internals/glimmer/lib/component-managers/curly.ts",
+            "packages/@ember/-internals/glimmer/lib/component-managers/root.ts",
+            "packages/@ember/-internals/glimmer/lib/helper.ts",
+            "packages/@ember/-internals/glimmer/lib/modifiers/internal.ts",
+            "packages/@ember/-internals/glimmer/lib/renderer.ts",
+            "packages/@ember/-internals/glimmer/lib/resolver.ts",
+            "packages/@ember/-internals/glimmer/lib/syntax/utils.ts",
+            "packages/@ember/-internals/glimmer/lib/templates/empty.ts",
+            "packages/@ember/-internals/glimmer/lib/utils/bindings.ts",
+            "packages/@ember/-internals/glimmer/lib/utils/debug-render-message.ts",
+            "packages/@ember/-internals/metal/lib/alias.ts",
+            "packages/@ember/-internals/metal/lib/decorator.ts",
+            "packages/@ember/-internals/metal/lib/dependent_keys.ts",
+            "packages/@ember/-internals/metal/lib/each_proxy_events.ts",
+            "packages/@ember/-internals/metal/lib/observer.ts",
+            "packages/@ember/-internals/views/lib/system/utils.ts",
+            "packages/@ember/template-compiler/lib/public-types.ts",
+            "packages/@ember/template-compiler/type-tests/template.test.ts",
+            "packages/@glimmer/debug/lib/debug.ts",
+            "packages/@glimmer/destroyable/test/destroyables-test.ts",
+            "packages/@glimmer/program/lib/program.ts",
+            "packages/@glimmer/reference/test/iterable-test.ts"
+          ],
           "observed": "error",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T00:03:15Z"
+            "discovered_at": "2026-03-14T09:19:08Z"
           }
         },
         {
@@ -322,13 +515,27 @@
           "merged_at": "2026-03-10T15:33:47Z",
           "changed_files": 11,
           "code_files": 0,
+          "changed_paths": [
+            ".github/actions/setup/action.yml",
+            ".github/workflows/alpha-releases.yml",
+            ".github/workflows/ci-jobs.yml",
+            ".github/workflows/ci.yml",
+            ".github/workflows/cron.yml",
+            ".github/workflows/docs.yml",
+            ".github/workflows/night-ts.yml",
+            ".github/workflows/publish-to-npm.yml",
+            ".github/workflows/size-comment.yml",
+            ".github/workflows/size-main.yml",
+            ".github/workflows/size-pr.yml"
+          ],
+          "code_paths": [],
           "observed": "pass",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T00:03:16Z"
+            "discovered_at": "2026-03-14T09:19:09Z"
           }
         },
         {
@@ -337,13 +544,17 @@
           "merged_at": "2026-03-10T15:33:40Z",
           "changed_files": 1,
           "code_files": 0,
+          "changed_paths": [
+            ".github/workflows/cron.yml"
+          ],
+          "code_paths": [],
           "observed": "pass",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T00:03:18Z"
+            "discovered_at": "2026-03-14T09:19:10Z"
           }
         },
         {
@@ -352,13 +563,17 @@
           "merged_at": "2026-03-10T15:33:31Z",
           "changed_files": 1,
           "code_files": 0,
+          "changed_paths": [
+            ".github/workflows/cron.yml"
+          ],
+          "code_paths": [],
           "observed": "pass",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T00:03:19Z"
+            "discovered_at": "2026-03-14T09:19:12Z"
           }
         },
         {
@@ -367,13 +582,21 @@
           "merged_at": "2026-03-10T04:30:48Z",
           "changed_files": 2,
           "code_files": 2,
+          "changed_paths": [
+            "packages/@glimmer/destroyable/index.ts",
+            "packages/@glimmer/destroyable/test/destroyables-test.ts"
+          ],
+          "code_paths": [
+            "packages/@glimmer/destroyable/index.ts",
+            "packages/@glimmer/destroyable/test/destroyables-test.ts"
+          ],
           "observed": "warning",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T00:03:20Z"
+            "discovered_at": "2026-03-14T09:19:13Z"
           }
         }
       ]
@@ -381,8 +604,8 @@
     {
       "repo": "sveltejs/svelte",
       "current_period_rank": "4",
-      "current_period_growth": "29",
-      "total_prs": "7550",
+      "current_period_growth": "30",
+      "total_prs": "7551",
       "top_pr_creators": [
         {
           "id": "1162160",
@@ -420,25 +643,61 @@
           "id": "16696352",
           "login": "Conduitry",
           "name": "",
-          "prs": "265",
+          "prs": "267",
           "first_pr_opened_at": "2016-12-16 12:53:10",
           "first_pr_merged_at": "2016-12-17 17:06:30"
         }
       ],
       "prs": [
         {
-          "number": 17930,
-          "title": "chore: add \"untracked allows writes\" test",
-          "merged_at": "2026-03-13T21:25:53Z",
-          "changed_files": 2,
-          "code_files": 2,
+          "number": 17919,
+          "title": "Version Packages",
+          "merged_at": "2026-03-14T08:26:40Z",
+          "changed_files": 8,
+          "code_files": 1,
+          "changed_paths": [
+            ".changeset/fix-select-stale-value.md",
+            ".changeset/flat-lemons-joke.md",
+            ".changeset/gold-times-see.md",
+            ".changeset/purple-boats-hear.md",
+            ".changeset/stupid-chefs-rescue.md",
+            "packages/svelte/CHANGELOG.md",
+            "packages/svelte/package.json",
+            "packages/svelte/src/version.js"
+          ],
+          "code_paths": [
+            "packages/svelte/src/version.js"
+          ],
           "observed": "pass",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T00:03:24Z"
+            "discovered_at": "2026-03-14T09:19:16Z"
+          }
+        },
+        {
+          "number": 17930,
+          "title": "chore: add \"untracked allows writes\" test",
+          "merged_at": "2026-03-13T21:25:53Z",
+          "changed_files": 2,
+          "code_files": 2,
+          "changed_paths": [
+            "packages/svelte/tests/runtime-runes/samples/untrack-allows-writes/_config.js",
+            "packages/svelte/tests/runtime-runes/samples/untrack-allows-writes/main.svelte"
+          ],
+          "code_paths": [
+            "packages/svelte/tests/runtime-runes/samples/untrack-allows-writes/_config.js",
+            "packages/svelte/tests/runtime-runes/samples/untrack-allows-writes/main.svelte"
+          ],
+          "observed": "pass",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-14T09:19:18Z"
           }
         },
         {
@@ -447,13 +706,28 @@
           "merged_at": "2026-03-13T21:25:45Z",
           "changed_files": 6,
           "code_files": 5,
+          "changed_paths": [
+            ".changeset/stupid-chefs-rescue.md",
+            "packages/svelte/src/internal/client/dom/blocks/boundary.js",
+            "packages/svelte/src/internal/client/reactivity/batch.js",
+            "packages/svelte/tests/runtime-runes/samples/async-pending-effect/Component.svelte",
+            "packages/svelte/tests/runtime-runes/samples/async-pending-effect/_config.js",
+            "packages/svelte/tests/runtime-runes/samples/async-pending-effect/main.svelte"
+          ],
+          "code_paths": [
+            "packages/svelte/src/internal/client/dom/blocks/boundary.js",
+            "packages/svelte/src/internal/client/reactivity/batch.js",
+            "packages/svelte/tests/runtime-runes/samples/async-pending-effect/Component.svelte",
+            "packages/svelte/tests/runtime-runes/samples/async-pending-effect/_config.js",
+            "packages/svelte/tests/runtime-runes/samples/async-pending-effect/main.svelte"
+          ],
           "observed": "error",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T00:03:25Z"
+            "discovered_at": "2026-03-14T09:19:19Z"
           }
         },
         {
@@ -462,13 +736,28 @@
           "merged_at": "2026-03-13T18:38:36Z",
           "changed_files": 6,
           "code_files": 5,
+          "changed_paths": [
+            ".changeset/purple-boats-hear.md",
+            "packages/svelte/src/compiler/phases/3-transform/client/visitors/AssignmentExpression.js",
+            "packages/svelte/src/internal/client/dev/assign.js",
+            "packages/svelte/src/internal/client/index.js",
+            "packages/svelte/tests/runtime-runes/samples/assignment-value-stale-lazy-rhs-async/_config.js",
+            "packages/svelte/tests/runtime-runes/samples/assignment-value-stale-lazy-rhs-async/main.svelte"
+          ],
+          "code_paths": [
+            "packages/svelte/src/compiler/phases/3-transform/client/visitors/AssignmentExpression.js",
+            "packages/svelte/src/internal/client/dev/assign.js",
+            "packages/svelte/src/internal/client/index.js",
+            "packages/svelte/tests/runtime-runes/samples/assignment-value-stale-lazy-rhs-async/_config.js",
+            "packages/svelte/tests/runtime-runes/samples/assignment-value-stale-lazy-rhs-async/main.svelte"
+          ],
           "observed": "error",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T00:03:27Z"
+            "discovered_at": "2026-03-14T09:19:21Z"
           }
         },
         {
@@ -477,28 +766,24 @@
           "merged_at": "2026-03-13T16:48:13Z",
           "changed_files": 5,
           "code_files": 2,
+          "changed_paths": [
+            ".changeset/flat-lemons-joke.md",
+            "documentation/docs/98-reference/.generated/shared-errors.md",
+            "packages/svelte/messages/shared-errors/errors.md",
+            "packages/svelte/src/internal/shared/dev.js",
+            "packages/svelte/src/internal/shared/errors.js"
+          ],
+          "code_paths": [
+            "packages/svelte/src/internal/shared/dev.js",
+            "packages/svelte/src/internal/shared/errors.js"
+          ],
           "observed": "pass",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T00:03:29Z"
-          }
-        },
-        {
-          "number": 17926,
-          "title": "chore: add sandbox output files to .prettierignore",
-          "merged_at": "2026-03-13T12:56:41Z",
-          "changed_files": 1,
-          "code_files": 1,
-          "observed": "pass",
-          "source": {
-            "provider": "ossinsight",
-            "collection_id": 10005,
-            "collection_name": null,
-            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T00:03:30Z"
+            "discovered_at": "2026-03-14T09:19:22Z"
           }
         }
       ]
@@ -513,7 +798,7 @@
           "id": "3705199",
           "login": "edison1105",
           "name": "edison",
-          "prs": "553",
+          "prs": "554",
           "first_pr_opened_at": "2019-10-09 01:55:46",
           "first_pr_merged_at": "2019-10-15 15:59:42"
         },
@@ -557,13 +842,23 @@
           "merged_at": "2026-03-13T12:45:53Z",
           "changed_files": 3,
           "code_files": 3,
+          "changed_paths": [
+            "packages/compiler-vapor/__tests__/transforms/__snapshots__/expression.spec.ts.snap",
+            "packages/compiler-vapor/__tests__/transforms/expression.spec.ts",
+            "packages/compiler-vapor/src/generators/expression.ts"
+          ],
+          "code_paths": [
+            "packages/compiler-vapor/__tests__/transforms/__snapshots__/expression.spec.ts.snap",
+            "packages/compiler-vapor/__tests__/transforms/expression.spec.ts",
+            "packages/compiler-vapor/src/generators/expression.ts"
+          ],
           "observed": "error",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T00:03:35Z"
+            "discovered_at": "2026-03-14T09:19:26Z"
           }
         },
         {
@@ -572,13 +867,19 @@
           "merged_at": "2026-03-13T12:57:41Z",
           "changed_files": 1,
           "code_files": 1,
+          "changed_paths": [
+            "packages/runtime-core/src/apiSetupHelpers.ts"
+          ],
+          "code_paths": [
+            "packages/runtime-core/src/apiSetupHelpers.ts"
+          ],
           "observed": "pass",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T00:03:36Z"
+            "discovered_at": "2026-03-14T09:19:27Z"
           }
         },
         {
@@ -587,13 +888,23 @@
           "merged_at": "2026-03-13T12:54:47Z",
           "changed_files": 3,
           "code_files": 3,
+          "changed_paths": [
+            "packages/compiler-vapor/__tests__/transforms/__snapshots__/expression.spec.ts.snap",
+            "packages/compiler-vapor/__tests__/transforms/expression.spec.ts",
+            "packages/compiler-vapor/src/generators/expression.ts"
+          ],
+          "code_paths": [
+            "packages/compiler-vapor/__tests__/transforms/__snapshots__/expression.spec.ts.snap",
+            "packages/compiler-vapor/__tests__/transforms/expression.spec.ts",
+            "packages/compiler-vapor/src/generators/expression.ts"
+          ],
           "observed": "error",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T00:03:38Z"
+            "discovered_at": "2026-03-14T09:19:28Z"
           }
         },
         {
@@ -602,13 +913,19 @@
           "merged_at": "2026-03-13T10:01:13Z",
           "changed_files": 1,
           "code_files": 1,
+          "changed_paths": [
+            "packages/runtime-vapor/src/fragment.ts"
+          ],
+          "code_paths": [
+            "packages/runtime-vapor/src/fragment.ts"
+          ],
           "observed": "pass",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T00:03:39Z"
+            "discovered_at": "2026-03-14T09:19:30Z"
           }
         },
         {
@@ -617,145 +934,65 @@
           "merged_at": "2026-03-13T03:09:09Z",
           "changed_files": 29,
           "code_files": 12,
+          "changed_paths": [
+            ".github/contributing.md",
+            ".github/renovate.json5",
+            ".github/workflows/autofix.yml",
+            ".github/workflows/ci.yml",
+            ".github/workflows/release.yml",
+            ".github/workflows/size-data.yml",
+            ".github/workflows/size-report.yml",
+            ".github/workflows/test.yml",
+            ".oxfmtrc.jsonc",
+            ".oxlintrc.json",
+            ".vite-hooks/.gitignore",
+            ".vite-hooks/commit-msg",
+            ".vite-hooks/pre-commit",
+            ".vscode/extensions.json",
+            ".vscode/launch.json",
+            ".vscode/settings.json",
+            "package.json",
+            "packages-private/sfc-playground/package.json",
+            "packages-private/sfc-playground/src/download/template/vite.config.js",
+            "packages-private/sfc-playground/vite.config.ts",
+            "packages-private/vapor-e2e-test/package.json",
+            "packages-private/vapor-e2e-test/vite.config.ts",
+            "packages-private/vite-debug/vite.config.ts",
+            "pnpm-lock.yaml",
+            "pnpm-workspace.yaml",
+            "scripts/release.js",
+            "scripts/verify-treeshaking.js",
+            "vite.config.ts",
+            "vitest.config.ts"
+          ],
+          "code_paths": [
+            ".oxfmtrc.jsonc",
+            ".vite-hooks/.gitignore",
+            ".vite-hooks/commit-msg",
+            ".vite-hooks/pre-commit",
+            "packages-private/sfc-playground/src/download/template/vite.config.js",
+            "packages-private/sfc-playground/vite.config.ts",
+            "packages-private/vapor-e2e-test/vite.config.ts",
+            "packages-private/vite-debug/vite.config.ts",
+            "scripts/release.js",
+            "scripts/verify-treeshaking.js",
+            "vite.config.ts",
+            "vitest.config.ts"
+          ],
           "observed": "error",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T00:03:41Z"
-          }
-        }
-      ]
-    },
-    {
-      "repo": "QwikDev/qwik",
-      "current_period_rank": "6",
-      "current_period_growth": "12",
-      "total_prs": "5366",
-      "top_pr_creators": [
-        {
-          "id": "127379",
-          "login": "manucorporat",
-          "name": "Manu MA",
-          "prs": "883",
-          "first_pr_opened_at": "2021-11-11 15:14:12",
-          "first_pr_merged_at": "2021-11-11 16:36:10"
-        },
-        {
-          "id": "452425",
-          "login": "adamdbradley",
-          "name": "Adam Bradley",
-          "prs": "531",
-          "first_pr_opened_at": "2021-06-11 15:04:35",
-          "first_pr_merged_at": "2021-06-18 01:41:19"
-        },
-        {
-          "id": "54934",
-          "login": "wmertens",
-          "name": "Wout Mertens",
-          "prs": "423",
-          "first_pr_opened_at": "2022-09-29 13:56:10",
-          "first_pr_merged_at": "2022-09-29 14:56:59"
-        },
-        {
-          "id": "111951",
-          "login": "mhevery",
-          "name": "Miško Hevery",
-          "prs": "351",
-          "first_pr_opened_at": "2021-06-01 21:34:48",
-          "first_pr_merged_at": "2021-06-01 22:04:07"
-        },
-        {
-          "id": "78650133",
-          "login": "Varixo",
-          "name": "",
-          "prs": "285",
-          "first_pr_opened_at": "2022-09-27 15:11:50",
-          "first_pr_merged_at": "2022-09-27 15:41:08"
-        }
-      ],
-      "prs": [
-        {
-          "number": 8428,
-          "title": "merge 1.19.2 into v2",
-          "merged_at": "2026-03-13T19:18:28Z",
-          "changed_files": 6,
-          "code_files": 6,
-          "observed": "error",
-          "source": {
-            "provider": "ossinsight",
-            "collection_id": 10005,
-            "collection_name": null,
-            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T00:03:45Z"
-          }
-        },
-        {
-          "number": 8426,
-          "title": "Version Packages",
-          "merged_at": "2026-03-13T13:36:00Z",
-          "changed_files": 11,
-          "code_files": 0,
-          "observed": "pass",
-          "source": {
-            "provider": "ossinsight",
-            "collection_id": 10005,
-            "collection_name": null,
-            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T00:03:46Z"
-          }
-        },
-        {
-          "number": 8422,
-          "title": "refactor(core): split QRLs in lazy ref + captures",
-          "merged_at": "2026-03-13T13:35:17Z",
-          "changed_files": 13,
-          "code_files": 12,
-          "observed": "error",
-          "source": {
-            "provider": "ossinsight",
-            "collection_id": 10005,
-            "collection_name": null,
-            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T00:03:48Z"
-          }
-        },
-        {
-          "number": 8423,
-          "title": "fix(router): make sure css gets found on the correct module graph ",
-          "merged_at": "2026-03-13T13:07:21Z",
-          "changed_files": 2,
-          "code_files": 1,
-          "observed": "pass",
-          "source": {
-            "provider": "ossinsight",
-            "collection_id": 10005,
-            "collection_name": null,
-            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T00:03:50Z"
-          }
-        },
-        {
-          "number": 8412,
-          "title": "docs: \"Show Me\" button state in tutorial is not in sync with code",
-          "merged_at": "2026-03-13T12:45:17Z",
-          "changed_files": 2,
-          "code_files": 2,
-          "observed": "pass",
-          "source": {
-            "provider": "ossinsight",
-            "collection_id": 10005,
-            "collection_name": null,
-            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T00:03:51Z"
+            "discovered_at": "2026-03-14T09:19:32Z"
           }
         }
       ]
     },
     {
       "repo": "refinedev/refine",
-      "current_period_rank": "7",
+      "current_period_rank": "6",
       "current_period_growth": "11",
       "total_prs": "4351",
       "top_pr_creators": [
@@ -807,13 +1044,191 @@
           "merged_at": "2026-03-13T09:37:23Z",
           "changed_files": 175,
           "code_files": 0,
+          "changed_paths": [
+            "documentation/blog/2021-10-4-admin-panel-with-nestjs.md",
+            "documentation/blog/2021-11-12-issue-tracker-refine.md",
+            "documentation/blog/2021-11-29-refine-vs-admin-bro.md",
+            "documentation/blog/2021-12-22-base64-upload.md",
+            "documentation/blog/2021-12-27-multipart-upload.md",
+            "documentation/blog/2022-02-21-build-internal-tools-with-refine.md",
+            "documentation/blog/2022-02-21-top-react-frameworks.md",
+            "documentation/blog/2022-03-22-refine-with-react95.md",
+            "documentation/blog/2022-03-29-react-hook-form-upload.md",
+            "documentation/blog/2022-06-10-weve-raised-dollar1m-seed-funding.md",
+            "documentation/blog/2022-07-21-admin-panel-with-materialui-and-strapi.md",
+            "documentation/blog/2022-08-23-mui-usedatagrid.md",
+            "documentation/blog/2022-08-24-mui-icons.md",
+            "documentation/blog/2022-09-09-react-18.md",
+            "documentation/blog/2022-09-27-react-hook-form-validation.md",
+            "documentation/blog/2022-09-28-docker-build-args.md",
+            "documentation/blog/2022-11-29-mui-tooltip.md",
+            "documentation/blog/2022-12-23-dynamic-hook-form.md",
+            "documentation/blog/2022-12-28-docker-copy.md",
+            "documentation/blog/2023-01-06-hackaton-january.md",
+            "documentation/blog/2023-01-17-airtable-crud-app.md",
+            "documentation/blog/2023-01-23-redwood-vs-refine.md",
+            "documentation/blog/2023-02-14-refine-pixels-1.md",
+            "documentation/blog/2023-02-23-refine-strapi-mantine.md",
+            "documentation/blog/2023-03-03-ra-chakra-tutorial.md",
+            "documentation/blog/2023-03-15-refine-vs-blitzjs.md",
+            "documentation/blog/2023-04-06-finefood-admin-dashboard.md",
+            "documentation/blog/2023-05-10-what-is-refine-new.md",
+            "documentation/blog/2023-06-14-refine-hackathon-2.md",
+            "documentation/blog/2023-06-24-docker-run-command.md",
+            "documentation/blog/2023-07-02-refine-tremor-dashboard.md",
+            "documentation/blog/2023-07-26-refine-primereact-dashboard.md",
+            "documentation/blog/2023-08-18-docker-exec.md",
+            "documentation/blog/2023-09-06-daisy-ui-panel.md",
+            "documentation/blog/2023-09-20-next-ui-panel.md",
+            "documentation/blog/2023-10-02-refine-crm-overview.md",
+            "documentation/blog/2023-11-22-crash-loop-back.md",
+            "documentation/blog/2024-01-11-react-ecosystem-2024.md",
+            "documentation/blog/2024-01-26-docker-vs-kubernetes.md",
+            "documentation/blog/2024-02-20-css-scroll-bar.md",
+            "documentation/blog/2024-03-07-internal-tools-development.md",
+            "documentation/blog/2024-03-19-ts-shadcn.md",
+            "documentation/blog/2024-03-22-useeffect-cleanup.md",
+            "documentation/blog/2024-04-01-ts-keyof.md",
+            "documentation/blog/2024-05-22-mui-grid.md",
+            "documentation/blog/2024-05-23-usestate-mistakes.md",
+            "documentation/blog/2024-05-24-google-lighthouse.md",
+            "documentation/blog/2024-05-27-js-currying-functions.md",
+            "documentation/blog/2024-05-29-next-link.md",
+            "documentation/blog/2024-06-05-using-next-image.md",
+            "documentation/blog/2024-06-10-next-typescript.md",
+            "documentation/blog/2024-06-13-flexbox-vs-grid.md",
+            "documentation/blog/2024-06-14-router-navigate-component.md",
+            "documentation/blog/2024-06-20-framer-motion.md",
+            "documentation/blog/2024-06-21-auth-with-nextauth.md",
+            "documentation/blog/2024-06-21-temporal-api.md",
+            "documentation/blog/2024-06-24-react-content-filtering.md",
+            "documentation/blog/2024-06-24-router-use-navigate.md",
+            "documentation/blog/2024-06-25-next-refine-pwa.md",
+            "documentation/blog/2024-06-26-react-fragments.md",
+            "documentation/blog/2024-07-02-pnpm-post.md",
+            "documentation/blog/2024-07-02-react-dangerouslyInnerhtml.md",
+            "documentation/blog/2024-07-03-mui-autocomplete.md",
+            "documentation/blog/2024-07-03-next-api-routes.md",
+            "documentation/blog/2024-07-05-nvm.md",
+            "documentation/blog/2024-07-05-turborepo.md",
+            "documentation/blog/2024-07-10-react-props.md",
+            "documentation/blog/2024-07-10-react-strict-mode.md",
+            "documentation/blog/2024-07-16-top-hosting.md",
+            "documentation/blog/2024-07-17-conditional-rendering.md",
+            "documentation/blog/2024-07-17-css-grid.md",
+            "documentation/blog/2024-07-18-json-error.md",
+            "documentation/blog/2024-07-19-use-swr.md",
+            "documentation/blog/2024-07-23-compare-form-libraries.md",
+            "documentation/blog/2024-07-29-git-diff.md",
+            "documentation/blog/2024-07-30-next-redirects.md",
+            "documentation/blog/2024-07-30-vite-js.md",
+            "documentation/blog/2024-07-31-zustand.md",
+            "documentation/blog/2024-08-04-react-tooltip.md",
+            "documentation/blog/2024-08-05-react-unit-testing.md",
+            "documentation/blog/2024-08-07-next-js-server-actions.md",
+            "documentation/blog/2024-08-09-react-toastify.md",
+            "documentation/blog/2024-08-09-react-uselayouteffect.md",
+            "documentation/blog/2024-08-12-bun-vs-node.md",
+            "documentation/blog/2024-08-16-react-markdown.md",
+            "documentation/blog/2024-08-19-heroicons.md",
+            "documentation/blog/2024-08-19-tailwind-flex.md",
+            "documentation/blog/2024-08-20-react-hot-toast.md",
+            "documentation/blog/2024-08-21-react-createportal.md",
+            "documentation/blog/2024-09-05-js-splice.md",
+            "documentation/blog/2024-09-05-react-patterns.md",
+            "documentation/blog/2024-09-06-htmx.md",
+            "documentation/blog/2024-09-06-react-table.md",
+            "documentation/blog/2024-09-09-mantine-ui.md",
+            "documentation/blog/2024-09-09-react-error-boundaries.md",
+            "documentation/blog/2024-09-10-js-vs-ts.md",
+            "documentation/blog/2024-09-11-pnpm-guide.md",
+            "documentation/blog/2024-09-11-react-virtual-dom.md",
+            "documentation/blog/2024-09-12-graphql-vs-rest.md",
+            "documentation/blog/2024-09-12-terraform-aws.md",
+            "documentation/blog/2024-09-16-frameworks-2024.md",
+            "documentation/blog/2024-09-16-stylex-post.md",
+            "documentation/blog/2024-09-17-chakra-ui.md",
+            "documentation/blog/2024-09-18-admin-panel-frameworks.md",
+            "documentation/blog/2024-09-18-uri-vs-url.md",
+            "documentation/blog/2024-09-19-react-memo.md",
+            "documentation/blog/2024-09-19-react-use-memo.md",
+            "documentation/blog/2024-09-24-grpc-vs-rest.md",
+            "documentation/blog/2024-09-24-tdd-vs-bdd.md",
+            "documentation/blog/2024-09-26-react-use-callback.md",
+            "documentation/blog/2024-10-07-react-server-components.md",
+            "documentation/blog/2024-10-08-js-ternary.md",
+            "documentation/blog/2024-10-16-react-useref.md",
+            "documentation/blog/2024-10-17-nextjs-vs-react.md",
+            "documentation/blog/2024-10-21-react-suspense.md",
+            "documentation/blog/2024-10-22-astro-js.md",
+            "documentation/blog/2024-10-23-css-rounded-corners.md",
+            "documentation/blog/2024-10-24-async-vs-sync.md",
+            "documentation/blog/2024-10-30-js-try-catch.md",
+            "documentation/blog/2024-10-30-react-context.md",
+            "documentation/blog/2024-11-04-js-slice.md",
+            "documentation/blog/2024-11-04-js-some.md",
+            "documentation/blog/2024-11-05-recharts.md",
+            "documentation/blog/2024-11-05-tailwind-animations.md",
+            "documentation/blog/2024-11-06-radix-ui.md",
+            "documentation/blog/2024-11-06-react-hook-form.md",
+            "documentation/blog/2024-11-07-node-uuid.md",
+            "documentation/blog/2024-11-08-nodemon.md",
+            "documentation/blog/2024-11-08-react-usereducer.md",
+            "documentation/blog/2024-11-11-online-ide.md",
+            "documentation/blog/2024-11-11-ts-dictionary.md",
+            "documentation/blog/2024-11-12-esbuild.md",
+            "documentation/blog/2024-11-12-react-date-picker.md",
+            "documentation/blog/2024-11-26-zsh-and-bash.md",
+            "documentation/blog/2024-11-27-git-delete.md",
+            "documentation/blog/2024-11-27-git-switch.md",
+            "documentation/blog/2024-11-28-em-vs-rem.md",
+            "documentation/blog/2024-11-28-react-query-intro.md",
+            "documentation/blog/2024-12-10-mui-button.md",
+            "documentation/blog/2024-12-10-next-env.md",
+            "documentation/blog/2024-12-12-router-use-params.md",
+            "documentation/blog/2024-12-17-typescript-omit.md",
+            "documentation/blog/2024-12-17-typescript-pick.md",
+            "documentation/blog/2024-12-18-tailwind-grid.md",
+            "documentation/blog/2024-12-18-typescript-partial.md",
+            "documentation/blog/2024-12-20-antd-dynamic-form.md",
+            "documentation/blog/2024-12-20-mui-select.md",
+            "documentation/blog/2024-12-24-react-dnd.md",
+            "documentation/blog/2024-12-25-mui-checkbox.md",
+            "documentation/blog/2024-12-26-mui-card.md",
+            "documentation/blog/2024-12-30-material-ui-modal.md",
+            "documentation/blog/2024-12-31-js-substring.md",
+            "documentation/blog/2025-01-02-react-slick.md",
+            "documentation/blog/2025-01-06-typescript-enums.md",
+            "documentation/blog/2025-01-06-typescript-record.md",
+            "documentation/blog/2025-01-07-react-svg.md",
+            "documentation/blog/2025-01-09-fast-api.md",
+            "documentation/blog/2025-01-09-typescript-decorators.md",
+            "documentation/blog/2025-01-13-ts-classes.md",
+            "documentation/blog/2025-01-14-ts-satisfies.md",
+            "documentation/blog/2025-01-17-js-every.md",
+            "documentation/blog/2025-02-05-bolt-new.md",
+            "documentation/blog/2025-02-12-lovable.md",
+            "documentation/blog/2025-02-17-replit.md",
+            "documentation/blog/2025-03-06-vercel-v0.md",
+            "documentation/blog/2025-05-26-claude4.md",
+            "documentation/blog/2025-06-02-purpose-built-ai-agents.md",
+            "documentation/blog/2025-06-05-shadcn-blog.md",
+            "documentation/blog/2025-06-12-quality-code-generation.md",
+            "documentation/blog/2025-07-09-git-merge.md",
+            "documentation/blog/2025-08-15-comments-in-code.md",
+            "documentation/blog/2025-11-12-admin-panel-in-5-minutes.md",
+            "documentation/blog/2025-11-17-supabase-tutorial.md",
+            "documentation/blog/2025-12-01-tanstack-vs-swr.md",
+            "documentation/blog/2026-01-12-refine-core-introduction.md"
+          ],
+          "code_paths": [],
           "observed": "pass",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T00:03:56Z"
+            "discovered_at": "2026-03-14T09:19:37Z"
           }
         },
         {
@@ -822,13 +1237,17 @@
           "merged_at": "2026-03-13T07:47:15Z",
           "changed_files": 1,
           "code_files": 0,
+          "changed_paths": [
+            "documentation/blog/2026-03-10-admin-panel-vs-dashboard.md"
+          ],
+          "code_paths": [],
           "observed": "pass",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T00:03:58Z"
+            "discovered_at": "2026-03-14T09:19:39Z"
           }
         },
         {
@@ -837,13 +1256,294 @@
           "merged_at": "2026-03-13T07:47:03Z",
           "changed_files": 278,
           "code_files": 0,
+          "changed_paths": [
+            "documentation/blog/2021-10-4-admin-panel-with-nestjs.md",
+            "documentation/blog/2021-11-12-issue-tracker-refine.md",
+            "documentation/blog/2021-11-29-refine-vs-admin-bro.md",
+            "documentation/blog/2021-12-22-base64-upload.md",
+            "documentation/blog/2021-12-27-multipart-upload.md",
+            "documentation/blog/2022-01-18-csv-import.md",
+            "documentation/blog/2022-02-21-build-internal-tools-with-refine.md",
+            "documentation/blog/2022-02-21-react-antd-admin.md",
+            "documentation/blog/2022-02-21-top-react-frameworks.md",
+            "documentation/blog/2022-02-22-refine-invoice-generator.md",
+            "documentation/blog/2022-03-01-refine-invoice-generator-p2.md",
+            "documentation/blog/2022-03-16-internal-tool-frameworks.md",
+            "documentation/blog/2022-03-22-refine-with-react95.md",
+            "documentation/blog/2022-03-29-react-hook-form-upload.md",
+            "documentation/blog/2022-04-29-top-react-component-libraries-and-frameworks-every-developer-should-know.md",
+            "documentation/blog/2022-05-02-high-quality-free-resources.md",
+            "documentation/blog/2022-05-05-open-source-headless-cms.md",
+            "documentation/blog/2022-05-23-build-access-control-permify.md",
+            "documentation/blog/2022-06-10-weve-raised-dollar1m-seed-funding.md",
+            "documentation/blog/2022-07-20-refine-writer-program.md",
+            "documentation/blog/2022-07-21-admin-panel-with-materialui-and-strapi.md",
+            "documentation/blog/2022-08-04-mocking-api-calls.md",
+            "documentation/blog/2022-08-20-neumorphic-css.md",
+            "documentation/blog/2022-08-23-mui-usedatagrid.md",
+            "documentation/blog/2022-08-24-mui-icons.md",
+            "documentation/blog/2022-09-01-framer-text-animations.md",
+            "documentation/blog/2022-09-02-sveltekit-crud-app.md",
+            "documentation/blog/2022-09-06-nodejs-developer.md",
+            "documentation/blog/2022-09-09-react-18.md",
+            "documentation/blog/2022-09-22-refine-supabase-auth.md",
+            "documentation/blog/2022-09-23-refine-article-guideline.md",
+            "documentation/blog/2022-09-27-react-hook-form-validation.md",
+            "documentation/blog/2022-09-28-docker-build-args.md",
+            "documentation/blog/2022-10-04-hacktoberfest.md",
+            "documentation/blog/2022-10-07-responsive-navbar.md",
+            "documentation/blog/2022-10-31-next-getInitial.md",
+            "documentation/blog/2022-11-29-mui-tooltip.md",
+            "documentation/blog/2022-12-08-svelte-vs-react.md",
+            "documentation/blog/2022-12-23-dynamic-hook-form.md",
+            "documentation/blog/2022-12-28-docker-copy.md",
+            "documentation/blog/2023-01-06-hackaton-january.md",
+            "documentation/blog/2023-01-10-docker-entrypoint.md",
+            "documentation/blog/2023-01-17-airtable-crud-app.md",
+            "documentation/blog/2023-01-23-redwood-vs-refine.md",
+            "documentation/blog/2023-02-14-refine-pixels-1.md",
+            "documentation/blog/2023-02-23-refine-strapi-mantine.md",
+            "documentation/blog/2023-02-28-hackathon-january-winners.md",
+            "documentation/blog/2023-03-03-ra-chakra-tutorial.md",
+            "documentation/blog/2023-04-11-refine-invoicer-2.md",
+            "documentation/blog/2023-04-12-refine-invoicer-3.md",
+            "documentation/blog/2023-04-13-refine-invoicer-4.md",
+            "documentation/blog/2023-04-14-refine-invoicer-5.md",
+            "documentation/blog/2023-05-10-what-is-refine-new.md",
+            "documentation/blog/2023-06-06-docker-list-containers.md",
+            "documentation/blog/2023-06-14-refine-hackathon-2.md",
+            "documentation/blog/2023-06-24-docker-run-command.md",
+            "documentation/blog/2023-07-02-refine-tremor-dashboard.md",
+            "documentation/blog/2023-07-11-docker-volume.md",
+            "documentation/blog/2023-07-26-refine-primereact-dashboard.md",
+            "documentation/blog/2023-07-31-docker-compose.md",
+            "documentation/blog/2023-08-04-refine-hackathon-2-winners.md",
+            "documentation/blog/2023-08-12-react-admin-vs-refine.md",
+            "documentation/blog/2023-08-18-docker-exec.md",
+            "documentation/blog/2023-09-06-daisy-ui-panel.md",
+            "documentation/blog/2023-09-20-next-ui-panel.md",
+            "documentation/blog/2023-10-02-refine-crm-overview.md",
+            "documentation/blog/2023-10-05-docker-swarm.md",
+            "documentation/blog/2023-10-18-docker-networking.md",
+            "documentation/blog/2023-10-19-kubecti-exec.md",
+            "documentation/blog/2023-10-22-kubecti-restart-pod.md",
+            "documentation/blog/2023-10-27-kubecti-config.md",
+            "documentation/blog/2023-11-04-kubecti-image-pull.md",
+            "documentation/blog/2023-11-05-kubectl-port-forwarding.md",
+            "documentation/blog/2023-11-13-kubeclt-describe.md",
+            "documentation/blog/2023-11-20-kubeclt-delete-pod.md",
+            "documentation/blog/2023-11-22-crash-loop-back.md",
+            "documentation/blog/2023-11-29-exit-code-137.md",
+            "documentation/blog/2023-12-07-swiper-js.md",
+            "documentation/blog/2023-12-12-k8s-cronjobs.md",
+            "documentation/blog/2023-12-14-k8s-persistent-volumes.md",
+            "documentation/blog/2023-12-15-kubectl-cheat-sheet.md",
+            "documentation/blog/2023-12-20-web-development.md",
+            "documentation/blog/2023-12-25-kubectl-scale.md",
+            "documentation/blog/2023-12-26-build-an-app.md",
+            "documentation/blog/2023-12-28-kubectl-logs.md",
+            "documentation/blog/2024-01-03-k8s-image-pull.md",
+            "documentation/blog/2024-01-04-k8s-statefulset.md",
+            "documentation/blog/2024-01-05-kubectl-version.md",
+            "documentation/blog/2024-01-09-permify-access-control.md",
+            "documentation/blog/2024-01-11-react-ecosystem-2024.md",
+            "documentation/blog/2024-01-12-k8s-operators.md",
+            "documentation/blog/2024-01-22-k8s-postgres.md",
+            "documentation/blog/2024-01-26-docker-vs-kubernetes.md",
+            "documentation/blog/2024-01-26-git-stash.md",
+            "documentation/blog/2024-01-31-exit-code-1.md",
+            "documentation/blog/2024-02-05-docker-alternatives.md",
+            "documentation/blog/2024-02-12-docker-cheat-sheet.md",
+            "documentation/blog/2024-02-13-css-vertical-align.md",
+            "documentation/blog/2024-02-14-docker-swarm.md",
+            "documentation/blog/2024-02-20-css-scroll-bar.md",
+            "documentation/blog/2024-02-22-bash-script.md",
+            "documentation/blog/2024-02-26-version-control.md",
+            "documentation/blog/2024-02-28-css-box-shadow.md",
+            "documentation/blog/2024-02-29-ts-map.md",
+            "documentation/blog/2024-03-05-css-wrap-text.md",
+            "documentation/blog/2024-03-07-internal-tools-development.md",
+            "documentation/blog/2024-03-11-jwt-authentication.md",
+            "documentation/blog/2024-03-18-low-code-platforms.md",
+            "documentation/blog/2024-03-19-ts-shadcn.md",
+            "documentation/blog/2024-03-22-useeffect-cleanup.md",
+            "documentation/blog/2024-03-27-change-node-version.md",
+            "documentation/blog/2024-04-01-ts-keyof.md",
+            "documentation/blog/2024-04-03-django-rest.md",
+            "documentation/blog/2024-04-19-low-code-vendor.md",
+            "documentation/blog/2024-04-29-nest-js.md",
+            "documentation/blog/2024-05-06-investment-announce.md",
+            "documentation/blog/2024-05-07-graphql-with-django.md",
+            "documentation/blog/2024-05-10-headless-cms.md",
+            "documentation/blog/2024-05-14-react-use-id.md",
+            "documentation/blog/2024-05-21-zod.md",
+            "documentation/blog/2024-05-22-mui-grid.md",
+            "documentation/blog/2024-05-23-usestate-mistakes.md",
+            "documentation/blog/2024-05-24-google-lighthouse.md",
+            "documentation/blog/2024-05-27-js-currying-functions.md",
+            "documentation/blog/2024-05-29-next-link.md",
+            "documentation/blog/2024-06-04-playwright.md",
+            "documentation/blog/2024-06-05-using-next-image.md",
+            "documentation/blog/2024-06-10-next-typescript.md",
+            "documentation/blog/2024-06-12-forward-ref.md",
+            "documentation/blog/2024-06-13-flexbox-vs-grid.md",
+            "documentation/blog/2024-06-14-router-navigate-component.md",
+            "documentation/blog/2024-06-20-framer-motion.md",
+            "documentation/blog/2024-06-21-auth-with-nextauth.md",
+            "documentation/blog/2024-06-21-temporal-api.md",
+            "documentation/blog/2024-06-24-react-content-filtering.md",
+            "documentation/blog/2024-06-24-router-use-navigate.md",
+            "documentation/blog/2024-06-25-next-refine-pwa.md",
+            "documentation/blog/2024-06-26-react-fragments.md",
+            "documentation/blog/2024-07-02-pnpm-post.md",
+            "documentation/blog/2024-07-02-react-dangerouslyInnerhtml.md",
+            "documentation/blog/2024-07-03-mui-autocomplete.md",
+            "documentation/blog/2024-07-03-next-api-routes.md",
+            "documentation/blog/2024-07-05-nvm.md",
+            "documentation/blog/2024-07-05-turborepo.md",
+            "documentation/blog/2024-07-10-react-props.md",
+            "documentation/blog/2024-07-10-react-strict-mode.md",
+            "documentation/blog/2024-07-12-react-lazy.md",
+            "documentation/blog/2024-07-16-top-hosting.md",
+            "documentation/blog/2024-07-17-conditional-rendering.md",
+            "documentation/blog/2024-07-17-css-grid.md",
+            "documentation/blog/2024-07-18-json-error.md",
+            "documentation/blog/2024-07-19-use-swr.md",
+            "documentation/blog/2024-07-23-compare-form-libraries.md",
+            "documentation/blog/2024-07-25-refine-new-part-1.md",
+            "documentation/blog/2024-07-29-git-diff.md",
+            "documentation/blog/2024-07-30-next-redirects.md",
+            "documentation/blog/2024-07-30-vite-js.md",
+            "documentation/blog/2024-07-31-zustand.md",
+            "documentation/blog/2024-08-04-react-tooltip.md",
+            "documentation/blog/2024-08-05-react-unit-testing.md",
+            "documentation/blog/2024-08-07-next-js-server-actions.md",
+            "documentation/blog/2024-08-09-react-toastify.md",
+            "documentation/blog/2024-08-09-react-uselayouteffect.md",
+            "documentation/blog/2024-08-12-bun-vs-node.md",
+            "documentation/blog/2024-08-15-react-web-socket.md",
+            "documentation/blog/2024-08-16-react-markdown.md",
+            "documentation/blog/2024-08-19-heroicons.md",
+            "documentation/blog/2024-08-19-tailwind-flex.md",
+            "documentation/blog/2024-08-20-react-hot-toast.md",
+            "documentation/blog/2024-08-21-react-createportal.md",
+            "documentation/blog/2024-09-04-mojo.md",
+            "documentation/blog/2024-09-05-js-splice.md",
+            "documentation/blog/2024-09-05-react-patterns.md",
+            "documentation/blog/2024-09-06-htmx.md",
+            "documentation/blog/2024-09-06-react-table.md",
+            "documentation/blog/2024-09-09-mantine-ui.md",
+            "documentation/blog/2024-09-09-react-error-boundaries.md",
+            "documentation/blog/2024-09-10-js-vs-ts.md",
+            "documentation/blog/2024-09-11-pnpm-guide.md",
+            "documentation/blog/2024-09-11-react-virtual-dom.md",
+            "documentation/blog/2024-09-12-graphql-vs-rest.md",
+            "documentation/blog/2024-09-12-terraform-aws.md",
+            "documentation/blog/2024-09-16-frameworks-2024.md",
+            "documentation/blog/2024-09-16-stylex-post.md",
+            "documentation/blog/2024-09-17-chakra-ui.md",
+            "documentation/blog/2024-09-18-admin-panel-frameworks.md",
+            "documentation/blog/2024-09-18-uri-vs-url.md",
+            "documentation/blog/2024-09-19-react-memo.md",
+            "documentation/blog/2024-09-19-react-use-memo.md",
+            "documentation/blog/2024-09-24-grpc-vs-rest.md",
+            "documentation/blog/2024-09-24-tdd-vs-bdd.md",
+            "documentation/blog/2024-09-26-react-use-callback.md",
+            "documentation/blog/2024-10-07-react-server-components.md",
+            "documentation/blog/2024-10-08-js-ternary.md",
+            "documentation/blog/2024-10-16-react-useref.md",
+            "documentation/blog/2024-10-17-nextjs-vs-react.md",
+            "documentation/blog/2024-10-21-react-suspense.md",
+            "documentation/blog/2024-10-22-astro-js.md",
+            "documentation/blog/2024-10-23-css-rounded-corners.md",
+            "documentation/blog/2024-10-24-async-vs-sync.md",
+            "documentation/blog/2024-10-30-js-try-catch.md",
+            "documentation/blog/2024-10-30-react-context.md",
+            "documentation/blog/2024-10-31-drizzle.md",
+            "documentation/blog/2024-11-04-js-slice.md",
+            "documentation/blog/2024-11-04-js-some.md",
+            "documentation/blog/2024-11-05-recharts.md",
+            "documentation/blog/2024-11-05-tailwind-animations.md",
+            "documentation/blog/2024-11-06-radix-ui.md",
+            "documentation/blog/2024-11-06-react-hook-form.md",
+            "documentation/blog/2024-11-07-node-uuid.md",
+            "documentation/blog/2024-11-08-nodemon.md",
+            "documentation/blog/2024-11-08-react-usereducer.md",
+            "documentation/blog/2024-11-11-online-ide.md",
+            "documentation/blog/2024-11-11-ts-dictionary.md",
+            "documentation/blog/2024-11-12-esbuild.md",
+            "documentation/blog/2024-11-12-react-date-picker.md",
+            "documentation/blog/2024-11-21-hr-app .md",
+            "documentation/blog/2024-11-26-zsh-and-bash.md",
+            "documentation/blog/2024-11-27-git-delete.md",
+            "documentation/blog/2024-11-27-git-switch.md",
+            "documentation/blog/2024-11-28-em-vs-rem.md",
+            "documentation/blog/2024-11-28-react-query-intro.md",
+            "documentation/blog/2024-12-10-mui-button.md",
+            "documentation/blog/2024-12-10-next-env.md",
+            "documentation/blog/2024-12-12-router-use-params.md",
+            "documentation/blog/2024-12-17-typescript-omit.md",
+            "documentation/blog/2024-12-17-typescript-pick.md",
+            "documentation/blog/2024-12-18-tailwind-grid.md",
+            "documentation/blog/2024-12-18-typescript-partial.md",
+            "documentation/blog/2024-12-20-antd-dynamic-form.md",
+            "documentation/blog/2024-12-20-mui-select.md",
+            "documentation/blog/2024-12-24-react-dnd.md",
+            "documentation/blog/2024-12-25-mui-checkbox.md",
+            "documentation/blog/2024-12-26-mui-card.md",
+            "documentation/blog/2024-12-30-material-ui-modal.md",
+            "documentation/blog/2024-12-31-js-substring.md",
+            "documentation/blog/2025-01-02-react-slick.md",
+            "documentation/blog/2025-01-06-typescript-enums.md",
+            "documentation/blog/2025-01-06-typescript-record.md",
+            "documentation/blog/2025-01-07-react-svg.md",
+            "documentation/blog/2025-01-09-fast-api.md",
+            "documentation/blog/2025-01-09-typescript-decorators.md",
+            "documentation/blog/2025-01-13-ts-classes.md",
+            "documentation/blog/2025-01-14-ts-satisfies.md",
+            "documentation/blog/2025-01-17-js-every.md",
+            "documentation/blog/2025-02-05-bolt-new.md",
+            "documentation/blog/2025-02-12-lovable.md",
+            "documentation/blog/2025-02-17-replit.md",
+            "documentation/blog/2025-03-06-vercel-v0.md",
+            "documentation/blog/2025-05-26-claude4.md",
+            "documentation/blog/2025-06-02-purpose-built-ai-agents.md",
+            "documentation/blog/2025-06-05-shadcn-blog.md",
+            "documentation/blog/2025-06-12-quality-code-generation.md",
+            "documentation/blog/2025-07-09-git-merge.md",
+            "documentation/blog/2025-08-15-comments-in-code.md",
+            "documentation/blog/2025-09-18-refine-v5-blog.md",
+            "documentation/blog/2025-10-01-github-alternatives.md",
+            "documentation/blog/2025-10-08-arc-browser-journey.md",
+            "documentation/blog/2025-11-12-admin-panel-in-5-minutes.md",
+            "documentation/blog/2025-11-17-supabase-tutorial.md",
+            "documentation/blog/2025-12-01-tanstack-vs-swr.md",
+            "documentation/blog/2025-12-11-rtk-query.md",
+            "documentation/blog/2026-01-07-build-internal-tools-low-code-react-refine.md",
+            "documentation/blog/2026-01-12-refine-core-introduction.md",
+            "documentation/blog/2026-01-21-what-is-internal-tools.md",
+            "documentation/blog/2026-01-26-source-code-ownership-low-code.md",
+            "documentation/blog/2026-02-04-react-admin-dashboard.md",
+            "documentation/blog/2026-02-09-what-is-a-dashboard.md",
+            "documentation/blog/2026-02-11-how-to-create-react-admin-dashboard.md",
+            "documentation/blog/2026-02-13-crud-apps.md",
+            "documentation/blog/2026-02-16-what-is-an-admin-panel.md",
+            "documentation/blog/2026-02-18-enterprise-ai-agents.md",
+            "documentation/blog/2026-02-20-vibe-pair-programming.md",
+            "documentation/blog/2026-02-24-vibe-coding.md",
+            "documentation/blog/2026-02-26-ant-design-vs-mui.md",
+            "documentation/blog/2026-02-27-csv-to-dashboard.md",
+            "documentation/blog/2026-03-02-open-source-advantages-disadvantages.md",
+            "typos.toml"
+          ],
+          "code_paths": [],
           "observed": "pass",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T00:04:03Z"
+            "discovered_at": "2026-03-14T09:19:44Z"
           }
         },
         {
@@ -852,13 +1552,17 @@
           "merged_at": "2026-03-11T13:43:07Z",
           "changed_files": 1,
           "code_files": 0,
+          "changed_paths": [
+            "documentation/blog/2026-03-10-avoid-vendor-lock-in.md"
+          ],
+          "code_paths": [],
           "observed": "pass",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T00:04:05Z"
+            "discovered_at": "2026-03-14T09:19:45Z"
           }
         },
         {
@@ -867,13 +1571,216 @@
           "merged_at": "2026-03-10T20:33:02Z",
           "changed_files": 1,
           "code_files": 0,
+          "changed_paths": [
+            "documentation/blog/2026-03-10-avoid-vendor-lock-in.md"
+          ],
+          "code_paths": [],
           "observed": "pass",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T00:04:06Z"
+            "discovered_at": "2026-03-14T09:19:46Z"
+          }
+        }
+      ]
+    },
+    {
+      "repo": "QwikDev/qwik",
+      "current_period_rank": "7",
+      "current_period_growth": "11",
+      "total_prs": "5365",
+      "top_pr_creators": [
+        {
+          "id": "127379",
+          "login": "manucorporat",
+          "name": "Manu MA",
+          "prs": "883",
+          "first_pr_opened_at": "2021-11-11 15:14:12",
+          "first_pr_merged_at": "2021-11-11 16:36:10"
+        },
+        {
+          "id": "452425",
+          "login": "adamdbradley",
+          "name": "Adam Bradley",
+          "prs": "531",
+          "first_pr_opened_at": "2021-06-11 15:04:35",
+          "first_pr_merged_at": "2021-06-18 01:41:19"
+        },
+        {
+          "id": "54934",
+          "login": "wmertens",
+          "name": "Wout Mertens",
+          "prs": "423",
+          "first_pr_opened_at": "2022-09-29 13:56:10",
+          "first_pr_merged_at": "2022-09-29 14:56:59"
+        },
+        {
+          "id": "111951",
+          "login": "mhevery",
+          "name": "Miško Hevery",
+          "prs": "351",
+          "first_pr_opened_at": "2021-06-01 21:34:48",
+          "first_pr_merged_at": "2021-06-01 22:04:07"
+        },
+        {
+          "id": "78650133",
+          "login": "Varixo",
+          "name": "",
+          "prs": "285",
+          "first_pr_opened_at": "2022-09-27 15:11:50",
+          "first_pr_merged_at": "2022-09-27 15:41:08"
+        }
+      ],
+      "prs": [
+        {
+          "number": 8428,
+          "title": "merge 1.19.2 into v2",
+          "merged_at": "2026-03-13T19:18:28Z",
+          "changed_files": 6,
+          "code_files": 6,
+          "changed_paths": [
+            "packages/docs/src/routes/tutorial/layout.tsx",
+            "packages/docs/src/routes/tutorial/tutorial-content-footer.tsx",
+            "packages/qwik-router/src/middleware/request-handler/form-parsing.unit.ts",
+            "packages/qwik-router/src/middleware/request-handler/request-event.ts",
+            "packages/qwik/src/core/shared/serdes/inflate.ts",
+            "packages/qwik/src/core/shared/serdes/inflate.unit.ts"
+          ],
+          "code_paths": [
+            "packages/docs/src/routes/tutorial/layout.tsx",
+            "packages/docs/src/routes/tutorial/tutorial-content-footer.tsx",
+            "packages/qwik-router/src/middleware/request-handler/form-parsing.unit.ts",
+            "packages/qwik-router/src/middleware/request-handler/request-event.ts",
+            "packages/qwik/src/core/shared/serdes/inflate.ts",
+            "packages/qwik/src/core/shared/serdes/inflate.unit.ts"
+          ],
+          "observed": "error",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-14T09:19:53Z"
+          }
+        },
+        {
+          "number": 8426,
+          "title": "Version Packages",
+          "merged_at": "2026-03-13T13:36:00Z",
+          "changed_files": 11,
+          "code_files": 0,
+          "changed_paths": [
+            ".changeset/breezy-items-relax.md",
+            ".changeset/small-candies-train.md",
+            ".changeset/smooth-ends-count.md",
+            "packages/create-qwik/CHANGELOG.md",
+            "packages/create-qwik/package.json",
+            "packages/eslint-plugin-qwik/CHANGELOG.md",
+            "packages/eslint-plugin-qwik/package.json",
+            "packages/qwik-city/CHANGELOG.md",
+            "packages/qwik-city/package.json",
+            "packages/qwik/CHANGELOG.md",
+            "packages/qwik/package.json"
+          ],
+          "code_paths": [],
+          "observed": "pass",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-14T09:19:54Z"
+          }
+        },
+        {
+          "number": 8422,
+          "title": "refactor(core): split QRLs in lazy ref + captures",
+          "merged_at": "2026-03-13T13:35:17Z",
+          "changed_files": 13,
+          "code_files": 12,
+          "changed_paths": [
+            "packages/qwik/src/core/client/dom-container.ts",
+            "packages/qwik/src/core/client/vnode-utils.ts",
+            "packages/qwik/src/core/qwik.core.api.md",
+            "packages/qwik/src/core/reactive-primitives/impl/signal-impl.ts",
+            "packages/qwik/src/core/shared/qrl/qrl-class.ts",
+            "packages/qwik/src/core/shared/qrl/qrl-utils.ts",
+            "packages/qwik/src/core/shared/qrl/qrl.ts",
+            "packages/qwik/src/core/shared/qrl/qrl.unit.ts",
+            "packages/qwik/src/core/shared/serdes/allocate.ts",
+            "packages/qwik/src/core/shared/serdes/qrl-to-string.ts",
+            "packages/qwik/src/core/tests/container.spec.tsx",
+            "packages/qwik/src/core/use/use-hmr.ts",
+            "packages/qwik/src/core/use/use-resource.ts"
+          ],
+          "code_paths": [
+            "packages/qwik/src/core/client/dom-container.ts",
+            "packages/qwik/src/core/client/vnode-utils.ts",
+            "packages/qwik/src/core/reactive-primitives/impl/signal-impl.ts",
+            "packages/qwik/src/core/shared/qrl/qrl-class.ts",
+            "packages/qwik/src/core/shared/qrl/qrl-utils.ts",
+            "packages/qwik/src/core/shared/qrl/qrl.ts",
+            "packages/qwik/src/core/shared/qrl/qrl.unit.ts",
+            "packages/qwik/src/core/shared/serdes/allocate.ts",
+            "packages/qwik/src/core/shared/serdes/qrl-to-string.ts",
+            "packages/qwik/src/core/tests/container.spec.tsx",
+            "packages/qwik/src/core/use/use-hmr.ts",
+            "packages/qwik/src/core/use/use-resource.ts"
+          ],
+          "observed": "error",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-14T09:20:01Z"
+          }
+        },
+        {
+          "number": 8423,
+          "title": "fix(router): make sure css gets found on the correct module graph ",
+          "merged_at": "2026-03-13T13:07:21Z",
+          "changed_files": 2,
+          "code_files": 1,
+          "changed_paths": [
+            ".changeset/tasty-parents-end.md",
+            "packages/qwik-router/src/buildtime/vite/dev-middleware.ts"
+          ],
+          "code_paths": [
+            "packages/qwik-router/src/buildtime/vite/dev-middleware.ts"
+          ],
+          "observed": "pass",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-14T09:20:02Z"
+          }
+        },
+        {
+          "number": 8412,
+          "title": "docs: \"Show Me\" button state in tutorial is not in sync with code",
+          "merged_at": "2026-03-13T12:45:17Z",
+          "changed_files": 2,
+          "code_files": 2,
+          "changed_paths": [
+            "packages/docs/src/routes/tutorial/layout.tsx",
+            "packages/docs/src/routes/tutorial/tutorial-content-footer.tsx"
+          ],
+          "code_paths": [
+            "packages/docs/src/routes/tutorial/layout.tsx",
+            "packages/docs/src/routes/tutorial/tutorial-content-footer.tsx"
+          ],
+          "observed": "pass",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-14T09:20:04Z"
           }
         }
       ]
@@ -932,13 +1839,18 @@
           "merged_at": "2026-03-10T10:01:20Z",
           "changed_files": 2,
           "code_files": 0,
+          "changed_paths": [
+            "package-lock.json",
+            "package.json"
+          ],
+          "code_paths": [],
           "observed": "pass",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T00:04:10Z"
+            "discovered_at": "2026-03-14T09:20:09Z"
           }
         },
         {
@@ -947,13 +1859,17 @@
           "merged_at": "2026-03-02T10:34:40Z",
           "changed_files": 1,
           "code_files": 0,
+          "changed_paths": [
+            "test/todo-app/package-lock.json"
+          ],
+          "code_paths": [],
           "observed": "pass",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T00:04:11Z"
+            "discovered_at": "2026-03-14T09:20:11Z"
           }
         },
         {
@@ -962,13 +1878,60 @@
           "merged_at": "2026-02-07T19:55:14Z",
           "changed_files": 23,
           "code_files": 20,
+          "changed_paths": [
+            ".gitignore",
+            ".prettierignore",
+            "src/compiler/config/outputs/validate-custom-element.ts",
+            "src/compiler/config/test/validate-output-dist-custom-element.spec.ts",
+            "src/compiler/output-targets/dist-custom-elements/custom-elements-types.ts",
+            "src/compiler/output-targets/dist-custom-elements/generate-loader-module.ts",
+            "src/compiler/output-targets/dist-custom-elements/index.ts",
+            "src/compiler/output-targets/test/output-targets-dist-custom-elements.spec.ts",
+            "src/declarations/stencil-public-compiler.ts",
+            "test/bundle-size/stencil.config.ts",
+            "test/wdio/.gitignore",
+            "test/wdio/auto-loader.stencil.config.ts",
+            "test/wdio/auto-loader/auto-loader-child.tsx",
+            "test/wdio/auto-loader/auto-loader-dynamic.tsx",
+            "test/wdio/auto-loader/auto-loader-root.tsx",
+            "test/wdio/auto-loader/cmp.test.tsx",
+            "test/wdio/auto-loader/components.d.ts",
+            "test/wdio/auto-loader/perf-dist.test.tsx",
+            "test/wdio/auto-loader/perf.test.tsx",
+            "test/wdio/package.json",
+            "test/wdio/stencil.config.ts",
+            "test/wdio/tsconfig-auto-loader.json",
+            "test/wdio/tsconfig-stencil.json"
+          ],
+          "code_paths": [
+            ".gitignore",
+            ".prettierignore",
+            "src/compiler/config/outputs/validate-custom-element.ts",
+            "src/compiler/config/test/validate-output-dist-custom-element.spec.ts",
+            "src/compiler/output-targets/dist-custom-elements/custom-elements-types.ts",
+            "src/compiler/output-targets/dist-custom-elements/generate-loader-module.ts",
+            "src/compiler/output-targets/dist-custom-elements/index.ts",
+            "src/compiler/output-targets/test/output-targets-dist-custom-elements.spec.ts",
+            "src/declarations/stencil-public-compiler.ts",
+            "test/bundle-size/stencil.config.ts",
+            "test/wdio/.gitignore",
+            "test/wdio/auto-loader.stencil.config.ts",
+            "test/wdio/auto-loader/auto-loader-child.tsx",
+            "test/wdio/auto-loader/auto-loader-dynamic.tsx",
+            "test/wdio/auto-loader/auto-loader-root.tsx",
+            "test/wdio/auto-loader/cmp.test.tsx",
+            "test/wdio/auto-loader/components.d.ts",
+            "test/wdio/auto-loader/perf-dist.test.tsx",
+            "test/wdio/auto-loader/perf.test.tsx",
+            "test/wdio/stencil.config.ts"
+          ],
           "observed": "error",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T00:04:14Z"
+            "discovered_at": "2026-03-14T09:20:17Z"
           }
         },
         {
@@ -977,13 +1940,19 @@
           "merged_at": "2026-02-27T09:23:41Z",
           "changed_files": 3,
           "code_files": 0,
+          "changed_paths": [
+            "CHANGELOG.md",
+            "package-lock.json",
+            "package.json"
+          ],
+          "code_paths": [],
           "observed": "pass",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T00:04:15Z"
+            "discovered_at": "2026-03-14T09:20:19Z"
           }
         },
         {
@@ -992,13 +1961,17 @@
           "merged_at": "2026-02-27T09:14:50Z",
           "changed_files": 1,
           "code_files": 0,
+          "changed_paths": [
+            "package-lock.json"
+          ],
+          "code_paths": [],
           "observed": "pass",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T00:04:16Z"
+            "discovered_at": "2026-03-14T09:20:20Z"
           }
         }
       ]
