@@ -76,16 +76,30 @@ pub fn list_recent_merged_prs(
     Ok(merged)
 }
 
-/// Fetch reviews for a PR.
+/// Fetch reviews for a PR (paginated).
 pub fn get_pr_reviews(
     client: &GitHubClient,
     owner: &str,
     repo: &str,
     pr_number: u32,
 ) -> Result<Vec<Review>> {
-    let path = format!("/repos/{owner}/{repo}/pulls/{pr_number}/reviews");
-    let body = client.get(&path)?;
-    serde_json::from_str(&body).context("failed to parse PR reviews")
+    let mut all_reviews: Vec<Review> = Vec::new();
+    let mut current_path =
+        format!("/repos/{owner}/{repo}/pulls/{pr_number}/reviews?per_page=100");
+
+    for _ in 0..MAX_PAGES {
+        let (body, next_path) = client.get_with_link(&current_path)?;
+        let reviews: Vec<Review> =
+            serde_json::from_str(&body).context("failed to parse PR reviews")?;
+        all_reviews.extend(reviews);
+
+        match next_path {
+            Some(next) => current_path = next,
+            None => break,
+        }
+    }
+
+    Ok(all_reviews)
 }
 
 /// Fetch commits for a PR.
