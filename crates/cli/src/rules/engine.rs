@@ -2,6 +2,7 @@ use anyhow::Result;
 use gh_verify_core::verdict::RuleResult;
 
 use super::detect_unscoped_change::DetectUnscopedChange;
+use super::verify_branch_protection::VerifyBranchProtection;
 use super::verify_release_integrity::VerifyReleaseIntegrity;
 use super::{Rule, RuleContext};
 
@@ -10,6 +11,7 @@ pub fn run_all(ctx: &RuleContext) -> Result<Vec<RuleResult>> {
     let rules: Vec<Box<dyn Rule>> = vec![
         Box::new(DetectUnscopedChange),
         Box::new(VerifyReleaseIntegrity),
+        Box::new(VerifyBranchProtection),
     ];
 
     let mut results = Vec::new();
@@ -25,5 +27,6 @@ pub fn list_rule_ids() -> Vec<&'static str> {
     vec![
         DetectUnscopedChange.id(),
         VerifyReleaseIntegrity.id(),
+        VerifyBranchProtection.id(),
     ]
 }
