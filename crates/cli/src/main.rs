@@ -81,10 +81,18 @@ fn run() -> Result<()> {
             let pr_metadata =
                 github::pr_api::get_pr_metadata(&client, &owner, &repo_name, pr_number)
                     .context("failed to fetch PR metadata")?;
+            let pr_reviews =
+                github::pr_api::get_pr_reviews(&client, &owner, &repo_name, pr_number)
+                    .context("failed to fetch PR reviews")?;
+            let pr_commits =
+                github::pr_api::get_pr_commits(&client, &owner, &repo_name, pr_number)
+                    .context("failed to fetch PR commits")?;
 
             let ctx = rules::RuleContext::Pr {
                 pr_files,
                 pr_metadata,
+                pr_reviews,
+                pr_commits,
             };
             let results = engine::run_all(&ctx)?;
             output::print(fmt, &results)?;

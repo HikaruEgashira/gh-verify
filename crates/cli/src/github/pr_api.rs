@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 
 use super::client::GitHubClient;
-use super::types::{PrFile, PrMetadata, PullRequestListItem};
+use super::types::{PrCommit, PrFile, PrMetadata, PullRequestListItem, Review};
 
 const MAX_PAGES: usize = 10;
 
@@ -74,4 +74,42 @@ pub fn list_recent_merged_prs(
     }
 
     Ok(merged)
+}
+
+/// Fetch reviews for a PR.
+pub fn get_pr_reviews(
+    client: &GitHubClient,
+    owner: &str,
+    repo: &str,
+    pr_number: u32,
+) -> Result<Vec<Review>> {
+    let path = format!("/repos/{owner}/{repo}/pulls/{pr_number}/reviews");
+    let body = client.get(&path)?;
+    serde_json::from_str(&body).context("failed to parse PR reviews")
+}
+
+/// Fetch commits for a PR.
+pub fn get_pr_commits(
+    client: &GitHubClient,
+    owner: &str,
+    repo: &str,
+    pr_number: u32,
+) -> Result<Vec<PrCommit>> {
+    let mut all_commits: Vec<PrCommit> = Vec::new();
+    let mut current_path =
+        format!("/repos/{owner}/{repo}/pulls/{pr_number}/commits?per_page=100");
+
+    for _ in 0..MAX_PAGES {
+        let (body, next_path) = client.get_with_link(&current_path)?;
+        let commits: Vec<PrCommit> =
+            serde_json::from_str(&body).context("failed to parse PR commits")?;
+        all_commits.extend(commits);
+
+        match next_path {
+            Some(next) => current_path = next,
+            None => break,
+        }
+    }
+
+    Ok(all_commits)
 }

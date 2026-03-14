@@ -100,4 +100,24 @@ pub struct PrUser {
 pub struct Review {
     pub user: PrUser,
     pub state: String,
+    pub submitted_at: Option<String>,
+}
+
+/// A commit on a PR (from the pulls/{number}/commits endpoint).
+#[derive(Debug, Clone, Deserialize)]
+pub struct PrCommit {
+    pub sha: String,
+    pub commit: PrCommitInner,
+}
+
+/// Inner commit data for a PR commit.
+#[derive(Debug, Clone, Deserialize)]
+pub struct PrCommitInner {
+    pub committer: Option<PrCommitAuthor>,
+}
+
+/// Committer info with timestamp.
+#[derive(Debug, Clone, Deserialize)]
+pub struct PrCommitAuthor {
+    pub date: Option<String>,
 }

@@ -1,3 +1,4 @@
+pub mod detect_stale_approval;
 pub mod detect_unscoped_change;
 pub mod engine;
 pub mod verify_release_integrity;
@@ -5,7 +6,9 @@ pub mod verify_release_integrity;
 use anyhow::Result;
 use gh_verify_core::verdict::RuleResult;
 
-use crate::github::types::{CompareCommit, PrFile, PrMetadata, PullRequestSummary, Review};
+use crate::github::types::{
+    CompareCommit, PrCommit, PrFile, PrMetadata, PullRequestSummary, Review,
+};
 
 /// Context payload for rule execution.
 #[allow(dead_code)]
@@ -13,6 +16,8 @@ pub enum RuleContext {
     Pr {
         pr_files: Vec<PrFile>,
         pr_metadata: PrMetadata,
+        pr_reviews: Vec<Review>,
+        pr_commits: Vec<PrCommit>,
     },
     Release {
         base_tag: String,
