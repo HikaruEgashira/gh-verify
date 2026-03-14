@@ -1,0 +1,19 @@
+{
+  "id": "pass-028",
+  "description": "Ember destroyable metadata cleanup edits runtime internals with a targeted destroyables test",
+  "repo": "emberjs/ember.js",
+  "pr_number": 21189,
+  "expected": "pass",
+  "rationale": "Runtime cleanup and its regression test describe one memory safety fix, not unrelated clusters.",
+  "category": "connected-calls",
+  "domains_expected": [],
+  "ecosystem": "javascript",
+  "notes": "Current engine reports warning because implementation and test files are treated as disconnected components.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 10005,
+    "collection_name": "Javascript Framework",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-03-14T00:04:16Z"
+  }
+}

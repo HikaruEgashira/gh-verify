@@ -1,13 +1,13 @@
 {
-  "generated_at": "2026-03-11T01:21:06Z",
+  "generated_at": "2026-03-14T00:04:16Z",
   "collection_id": 10005,
   "period": "past_28_days",
   "repos": [
     {
       "repo": "angular/angular",
       "current_period_rank": "1",
-      "current_period_growth": "86",
-      "total_prs": "33772",
+      "current_period_growth": "89",
+      "total_prs": "33812",
       "top_pr_creators": [
         {
           "id": "8604205",
@@ -18,20 +18,20 @@
           "first_pr_merged_at": "2016-10-18 05:51:48"
         },
         {
-          "id": "1300985",
-          "login": "JeanMeche",
-          "name": "Matthieu Riegler",
-          "prs": "1069",
-          "first_pr_opened_at": "2022-11-02 13:22:07",
-          "first_pr_merged_at": "2024-10-16 15:43:25"
-        },
-        {
           "id": "479713",
           "login": "atscott",
           "name": "Andrew Scott",
           "prs": "1069",
           "first_pr_opened_at": "2019-07-16 16:40:40",
           "first_pr_merged_at": "2021-01-07 20:29:21"
+        },
+        {
+          "id": "1300985",
+          "login": "JeanMeche",
+          "name": "Matthieu Riegler",
+          "prs": "1069",
+          "first_pr_opened_at": "2022-11-02 13:22:07",
+          "first_pr_merged_at": "2024-10-16 15:43:25"
         },
         {
           "id": "43554145",
@@ -45,70 +45,85 @@
           "id": "4450522",
           "login": "crisbeto",
           "name": "Kristiyan Kostadinov",
-          "prs": "927",
+          "prs": "928",
           "first_pr_opened_at": "2016-12-14 21:41:37",
           "first_pr_merged_at": "2020-06-12 22:41:25"
         }
       ],
       "prs": [
         {
-          "number": 67339,
-          "title": "fix(compiler-cli): ignore generated ngDevMode signal branch for code coverage",
-          "merged_at": "2026-03-04T22:42:54Z",
-          "changed_files": 9,
-          "code_files": 9,
-          "observed": "error",
-          "source": {
-            "provider": "ossinsight",
-            "collection_id": 10005,
-            "collection_name": null,
-            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-11T01:20:18Z"
-          }
-        },
-        {
-          "number": 67161,
-          "title": "refactor(forms): restrict reactive logic to a readonly API",
-          "merged_at": "2026-03-10T22:07:42Z",
-          "changed_files": 14,
-          "code_files": 12,
-          "observed": "error",
-          "source": {
-            "provider": "ossinsight",
-            "collection_id": 10005,
-            "collection_name": null,
-            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-11T01:20:20Z"
-          }
-        },
-        {
-          "number": 67488,
-          "title": "build: update dependency @rollup/plugin-babel to v7 (main) - autoclosed",
-          "merged_at": "2026-03-10T20:09:06Z",
-          "changed_files": 4,
-          "code_files": 0,
+          "number": 67481,
+          "title": "build: update cross-repo angular dependencies (main)",
+          "merged_at": "2026-03-13T22:26:42Z",
+          "changed_files": 54,
+          "code_files": 1,
           "observed": "pass",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-11T01:20:22Z"
+            "discovered_at": "2026-03-14T00:02:53Z"
           }
         },
         {
-          "number": 67485,
-          "title": "refactor(core): interface cleanup",
-          "merged_at": "2026-03-10T19:44:32Z",
-          "changed_files": 6,
+          "number": 67455,
+          "title": "build: update cross-repo angular dependencies (21.2.x)",
+          "merged_at": "2026-03-13T22:25:45Z",
+          "changed_files": 51,
+          "code_files": 1,
+          "observed": "pass",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-14T00:02:55Z"
+          }
+        },
+        {
+          "number": 67677,
+          "title": "Rules angular update [patch]",
+          "merged_at": "2026-03-13T19:07:07Z",
+          "changed_files": 3,
           "code_files": 2,
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-14T00:02:57Z"
+          }
+        },
+        {
+          "number": 67681,
+          "title": "Rules angular update",
+          "merged_at": "2026-03-13T19:07:28Z",
+          "changed_files": 4,
+          "code_files": 3,
+          "observed": "error",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-14T00:02:59Z"
+          }
+        },
+        {
+          "number": 67672,
+          "title": "build: update pnpm to v10.32.1 (main)",
+          "merged_at": "2026-03-13T19:09:26Z",
+          "changed_files": 26,
+          "code_files": 1,
           "observed": "pass",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-11T01:20:23Z"
+            "discovered_at": "2026-03-14T00:03:00Z"
           }
         }
       ]
@@ -116,8 +131,8 @@
     {
       "repo": "facebook/react",
       "current_period_rank": "2",
-      "current_period_growth": "48",
-      "total_prs": "18616",
+      "current_period_growth": "49",
+      "total_prs": "18628",
       "top_pr_creators": [
         {
           "id": "63648",
@@ -162,39 +177,9 @@
       ],
       "prs": [
         {
-          "number": 35985,
-          "title": "[DevTools] Fix a crash when rendering a new class Component when simulating errored state",
-          "merged_at": "2026-03-10T17:05:49Z",
-          "changed_files": 3,
-          "code_files": 3,
-          "observed": "error",
-          "source": {
-            "provider": "ossinsight",
-            "collection_id": 10005,
-            "collection_name": null,
-            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-11T01:20:28Z"
-          }
-        },
-        {
-          "number": 35632,
-          "title": "[Flight] Add more DoS mitigations to Flight Reply, and harden Flight",
-          "merged_at": "2026-01-26T19:24:58Z",
-          "changed_files": 18,
-          "code_files": 17,
-          "observed": "error",
-          "source": {
-            "provider": "ossinsight",
-            "collection_id": 10005,
-            "collection_name": null,
-            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-11T01:20:30Z"
-          }
-        },
-        {
-          "number": 35929,
-          "title": "[DevTools] Fix null ref crash in ContextMenu when items list is empty",
-          "merged_at": "2026-03-05T15:52:24Z",
+          "number": 36010,
+          "title": "Fix focus set for delegated and already focused elements",
+          "merged_at": "2026-03-12T21:36:28Z",
           "changed_files": 2,
           "code_files": 2,
           "observed": "warning",
@@ -203,22 +188,67 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-11T01:20:32Z"
+            "discovered_at": "2026-03-14T00:03:04Z"
           }
         },
         {
-          "number": 35790,
-          "title": "[errors] s/form state/action state",
-          "merged_at": "2026-03-04T19:20:04Z",
-          "changed_files": 3,
-          "code_files": 2,
-          "observed": "warning",
+          "number": 36011,
+          "title": "[DevTools] fix: don't show empty suspended by section",
+          "merged_at": "2026-03-12T21:19:21Z",
+          "changed_files": 1,
+          "code_files": 1,
+          "observed": "pass",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-11T01:20:33Z"
+            "discovered_at": "2026-03-14T00:03:05Z"
+          }
+        },
+        {
+          "number": 36024,
+          "title": "[Flight] Clear chunk reason after successful module initialization",
+          "merged_at": "2026-03-12T18:17:25Z",
+          "changed_files": 3,
+          "code_files": 3,
+          "observed": "error",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-14T00:03:07Z"
+          }
+        },
+        {
+          "number": 36026,
+          "title": "Enable Fragment Ref flags across builds",
+          "merged_at": "2026-03-12T17:07:06Z",
+          "changed_files": 4,
+          "code_files": 4,
+          "observed": "error",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-14T00:03:08Z"
+          }
+        },
+        {
+          "number": 35512,
+          "title": "Bump undici from 6.21.2 to 6.23.0 in /compiler",
+          "merged_at": "2026-03-12T15:40:37Z",
+          "changed_files": 1,
+          "code_files": 0,
+          "observed": "pass",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-14T00:03:10Z"
           }
         }
       ]
@@ -226,7 +256,7 @@
     {
       "repo": "emberjs/ember.js",
       "current_period_rank": "3",
-      "current_period_growth": "31",
+      "current_period_growth": "30",
       "total_prs": "10237",
       "top_pr_creators": [
         {
@@ -283,7 +313,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-11T01:20:38Z"
+            "discovered_at": "2026-03-14T00:03:15Z"
           }
         },
         {
@@ -298,7 +328,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-11T01:20:39Z"
+            "discovered_at": "2026-03-14T00:03:16Z"
           }
         },
         {
@@ -313,7 +343,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-11T01:20:40Z"
+            "discovered_at": "2026-03-14T00:03:18Z"
           }
         },
         {
@@ -328,7 +358,22 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-11T01:20:42Z"
+            "discovered_at": "2026-03-14T00:03:19Z"
+          }
+        },
+        {
+          "number": 21189,
+          "title": "[BUGFIX] clear stale metadata references after destruction to allow GC",
+          "merged_at": "2026-03-10T04:30:48Z",
+          "changed_files": 2,
+          "code_files": 2,
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-14T00:03:20Z"
           }
         }
       ]
@@ -336,14 +381,14 @@
     {
       "repo": "sveltejs/svelte",
       "current_period_rank": "4",
-      "current_period_growth": "31",
-      "total_prs": "7541",
+      "current_period_growth": "29",
+      "total_prs": "7550",
       "top_pr_creators": [
         {
           "id": "1162160",
           "login": "Rich-Harris",
           "name": "Rich Harris",
-          "prs": "1709",
+          "prs": "1711",
           "first_pr_opened_at": "2016-11-30 21:01:59",
           "first_pr_merged_at": "2016-11-30 21:20:19"
         },
@@ -382,39 +427,24 @@
       ],
       "prs": [
         {
-          "number": 17900,
-          "title": "chore: rebase batches after process, not during",
-          "merged_at": "2026-03-10T23:23:32Z",
+          "number": 17930,
+          "title": "chore: add \"untracked allows writes\" test",
+          "merged_at": "2026-03-13T21:25:53Z",
           "changed_files": 2,
-          "code_files": 1,
+          "code_files": 2,
           "observed": "pass",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-11T01:20:45Z"
+            "discovered_at": "2026-03-14T00:03:24Z"
           }
         },
         {
-          "number": 17896,
-          "title": "Version Packages",
-          "merged_at": "2026-03-10T21:59:13Z",
-          "changed_files": 4,
-          "code_files": 1,
-          "observed": "pass",
-          "source": {
-            "provider": "ossinsight",
-            "collection_id": 10005,
-            "collection_name": null,
-            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-11T01:20:46Z"
-          }
-        },
-        {
-          "number": 17895,
-          "title": "fix: re-process batch if new root effects were scheduled",
-          "merged_at": "2026-03-10T17:52:23Z",
+          "number": 17928,
+          "title": "fix: avoid traversing clean roots",
+          "merged_at": "2026-03-13T21:25:45Z",
           "changed_files": 6,
           "code_files": 5,
           "observed": "error",
@@ -423,22 +453,52 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-11T01:20:48Z"
+            "discovered_at": "2026-03-14T00:03:25Z"
           }
         },
         {
-          "number": 17889,
-          "title": "docs: fix usable spelling in migration guide",
-          "merged_at": "2026-03-10T14:08:26Z",
-          "changed_files": 1,
-          "code_files": 0,
+          "number": 17925,
+          "title": "fix: handle async RHS in assignment_value_stale",
+          "merged_at": "2026-03-13T18:38:36Z",
+          "changed_files": 6,
+          "code_files": 5,
+          "observed": "error",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-14T00:03:27Z"
+          }
+        },
+        {
+          "number": 17929,
+          "title": "chore: add invariant utility",
+          "merged_at": "2026-03-13T16:48:13Z",
+          "changed_files": 5,
+          "code_files": 2,
           "observed": "pass",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-11T01:20:49Z"
+            "discovered_at": "2026-03-14T00:03:29Z"
+          }
+        },
+        {
+          "number": 17926,
+          "title": "chore: add sandbox output files to .prettierignore",
+          "merged_at": "2026-03-13T12:56:41Z",
+          "changed_files": 1,
+          "code_files": 1,
+          "observed": "pass",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-14T00:03:30Z"
           }
         }
       ]
@@ -447,7 +507,7 @@
       "repo": "vuejs/core",
       "current_period_rank": "5",
       "current_period_growth": "14",
-      "total_prs": "5682",
+      "total_prs": "5687",
       "top_pr_creators": [
         {
           "id": "3705199",
@@ -492,9 +552,9 @@
       ],
       "prs": [
         {
-          "number": 14547,
-          "title": "fix(ssr): prevent watch() from firing after async setup await",
-          "merged_at": "2026-03-09T09:58:11Z",
+          "number": 14567,
+          "title": "fix(compiler-vapor): fix circular reference in repeated call expression cache",
+          "merged_at": "2026-03-13T12:45:53Z",
           "changed_files": 3,
           "code_files": 3,
           "observed": "error",
@@ -503,44 +563,139 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-11T01:20:52Z"
+            "discovered_at": "2026-03-14T00:03:35Z"
           }
         },
         {
-          "number": 12308,
-          "title": "fix(runtime-core): warn about negative number in v-for",
-          "merged_at": "2026-03-09T08:48:54Z",
-          "changed_files": 4,
-          "code_files": 4,
+          "number": 14566,
+          "title": "chore: add jsdoc for defineSlots",
+          "merged_at": "2026-03-13T12:57:41Z",
+          "changed_files": 1,
+          "code_files": 1,
+          "observed": "pass",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-14T00:03:36Z"
+          }
+        },
+        {
+          "number": 14568,
+          "title": "fix(compiler-vapor): avoid cache name collisions in expression dedupe",
+          "merged_at": "2026-03-13T12:54:47Z",
+          "changed_files": 3,
+          "code_files": 3,
           "observed": "error",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-11T01:20:54Z"
+            "discovered_at": "2026-03-14T00:03:38Z"
           }
         },
         {
-          "number": 13374,
-          "title": "fix(custom-element): ensure child component styles are injected in correct order before parent styles",
-          "merged_at": "2026-03-09T08:12:13Z",
-          "changed_files": 4,
-          "code_files": 4,
+          "number": 14565,
+          "title": "refactor(runtime-vapor): only restore current instance for deferred branches",
+          "merged_at": "2026-03-13T10:01:13Z",
+          "changed_files": 1,
+          "code_files": 1,
+          "observed": "pass",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-14T00:03:39Z"
+          }
+        },
+        {
+          "number": 14556,
+          "title": "chore: migrate to VitePlus",
+          "merged_at": "2026-03-13T03:09:09Z",
+          "changed_files": 29,
+          "code_files": 12,
           "observed": "error",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-11T01:20:55Z"
+            "discovered_at": "2026-03-14T00:03:41Z"
+          }
+        }
+      ]
+    },
+    {
+      "repo": "QwikDev/qwik",
+      "current_period_rank": "6",
+      "current_period_growth": "12",
+      "total_prs": "5366",
+      "top_pr_creators": [
+        {
+          "id": "127379",
+          "login": "manucorporat",
+          "name": "Manu MA",
+          "prs": "883",
+          "first_pr_opened_at": "2021-11-11 15:14:12",
+          "first_pr_merged_at": "2021-11-11 16:36:10"
+        },
+        {
+          "id": "452425",
+          "login": "adamdbradley",
+          "name": "Adam Bradley",
+          "prs": "531",
+          "first_pr_opened_at": "2021-06-11 15:04:35",
+          "first_pr_merged_at": "2021-06-18 01:41:19"
+        },
+        {
+          "id": "54934",
+          "login": "wmertens",
+          "name": "Wout Mertens",
+          "prs": "423",
+          "first_pr_opened_at": "2022-09-29 13:56:10",
+          "first_pr_merged_at": "2022-09-29 14:56:59"
+        },
+        {
+          "id": "111951",
+          "login": "mhevery",
+          "name": "Miško Hevery",
+          "prs": "351",
+          "first_pr_opened_at": "2021-06-01 21:34:48",
+          "first_pr_merged_at": "2021-06-01 22:04:07"
+        },
+        {
+          "id": "78650133",
+          "login": "Varixo",
+          "name": "",
+          "prs": "285",
+          "first_pr_opened_at": "2022-09-27 15:11:50",
+          "first_pr_merged_at": "2022-09-27 15:41:08"
+        }
+      ],
+      "prs": [
+        {
+          "number": 8428,
+          "title": "merge 1.19.2 into v2",
+          "merged_at": "2026-03-13T19:18:28Z",
+          "changed_files": 6,
+          "code_files": 6,
+          "observed": "error",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-14T00:03:45Z"
           }
         },
         {
-          "number": 14544,
-          "title": "chore(deps): update dependency puppeteer to ~24.38.0",
-          "merged_at": "2026-03-09T08:05:49Z",
-          "changed_files": 2,
+          "number": 8426,
+          "title": "Version Packages",
+          "merged_at": "2026-03-13T13:36:00Z",
+          "changed_files": 11,
           "code_files": 0,
           "observed": "pass",
           "source": {
@@ -548,16 +703,61 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-11T01:20:57Z"
+            "discovered_at": "2026-03-14T00:03:46Z"
+          }
+        },
+        {
+          "number": 8422,
+          "title": "refactor(core): split QRLs in lazy ref + captures",
+          "merged_at": "2026-03-13T13:35:17Z",
+          "changed_files": 13,
+          "code_files": 12,
+          "observed": "error",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-14T00:03:48Z"
+          }
+        },
+        {
+          "number": 8423,
+          "title": "fix(router): make sure css gets found on the correct module graph ",
+          "merged_at": "2026-03-13T13:07:21Z",
+          "changed_files": 2,
+          "code_files": 1,
+          "observed": "pass",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-14T00:03:50Z"
+          }
+        },
+        {
+          "number": 8412,
+          "title": "docs: \"Show Me\" button state in tutorial is not in sync with code",
+          "merged_at": "2026-03-13T12:45:17Z",
+          "changed_files": 2,
+          "code_files": 2,
+          "observed": "pass",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-14T00:03:51Z"
           }
         }
       ]
     },
     {
       "repo": "refinedev/refine",
-      "current_period_rank": "6",
-      "current_period_growth": "13",
-      "total_prs": "4349",
+      "current_period_rank": "7",
+      "current_period_growth": "11",
+      "total_prs": "4351",
       "top_pr_creators": [
         {
           "id": "23058882",
@@ -602,6 +802,66 @@
       ],
       "prs": [
         {
+          "number": 7347,
+          "title": "docs: update the old blogs with last updated tag",
+          "merged_at": "2026-03-13T09:37:23Z",
+          "changed_files": 175,
+          "code_files": 0,
+          "observed": "pass",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-14T00:03:56Z"
+          }
+        },
+        {
+          "number": 7348,
+          "title": "docs(blog): new blog about internal admin panels vs dashboard",
+          "merged_at": "2026-03-13T07:47:15Z",
+          "changed_files": 1,
+          "code_files": 0,
+          "observed": "pass",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-14T00:03:58Z"
+          }
+        },
+        {
+          "number": 7336,
+          "title": "chore: migrate blog image CDN paths from blog/ to blog-yearly/{year}/",
+          "merged_at": "2026-03-13T07:47:03Z",
+          "changed_files": 278,
+          "code_files": 0,
+          "observed": "pass",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-14T00:04:03Z"
+          }
+        },
+        {
+          "number": 7344,
+          "title": "docs(blog): change image for blog",
+          "merged_at": "2026-03-11T13:43:07Z",
+          "changed_files": 1,
+          "code_files": 0,
+          "observed": "pass",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-14T00:04:05Z"
+          }
+        },
+        {
           "number": 7342,
           "title": "docs(blog): add  avoid vendor lock in blog",
           "merged_at": "2026-03-10T20:33:02Z",
@@ -613,52 +873,132 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-11T01:21:00Z"
+            "discovered_at": "2026-03-14T00:04:06Z"
+          }
+        }
+      ]
+    },
+    {
+      "repo": "stenciljs/core",
+      "current_period_rank": "8",
+      "current_period_growth": "8",
+      "total_prs": "3253",
+      "top_pr_creators": [
+        {
+          "id": "1930213",
+          "login": "rwaskiewicz",
+          "name": "Ryan Waskiewicz",
+          "prs": "489",
+          "first_pr_opened_at": "2021-06-21 19:06:29",
+          "first_pr_merged_at": "2021-06-23 17:41:35"
+        },
+        {
+          "id": "6207644",
+          "login": "alicewriteswrongs",
+          "name": "Alice Pote",
+          "prs": "322",
+          "first_pr_opened_at": "2022-04-04 19:44:35",
+          "first_pr_merged_at": "2022-04-12 15:57:16"
+        },
+        {
+          "id": "127379",
+          "login": "manucorporat",
+          "name": "Manu MA",
+          "prs": "189",
+          "first_pr_opened_at": "2017-09-15 19:30:59",
+          "first_pr_merged_at": "2017-10-24 14:54:48"
+        },
+        {
+          "id": "731337",
+          "login": "christian-bromann",
+          "name": "Christian Bromann",
+          "prs": "188",
+          "first_pr_opened_at": "2023-09-25 18:32:09",
+          "first_pr_merged_at": "2023-09-28 15:42:09"
+        },
+        {
+          "id": "47483144",
+          "login": "tanner-reits",
+          "name": "Tanner Reits",
+          "prs": "121",
+          "first_pr_opened_at": "2022-08-01 15:01:21",
+          "first_pr_merged_at": "2022-08-01 15:47:25"
+        }
+      ],
+      "prs": [
+        {
+          "number": 6634,
+          "title": "chore(deps): bump minimatch",
+          "merged_at": "2026-03-10T10:01:20Z",
+          "changed_files": 2,
+          "code_files": 0,
+          "observed": "pass",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-14T00:04:10Z"
           }
         },
         {
-          "number": 7313,
-          "title": "feat(blog): add last_update support, centralize JSON-LD, and improve SEO",
-          "merged_at": "2026-03-10T07:47:28Z",
-          "changed_files": 18,
-          "code_files": 14,
+          "number": 6625,
+          "title": "chore(deps-dev): bump minimatch from 3.1.2 to 3.1.5 in /test/todo-app",
+          "merged_at": "2026-03-02T10:34:40Z",
+          "changed_files": 1,
+          "code_files": 0,
+          "observed": "pass",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-14T00:04:11Z"
+          }
+        },
+        {
+          "number": 6594,
+          "title": "feat(dist-custom-elements): new `autoLoader` option",
+          "merged_at": "2026-02-07T19:55:14Z",
+          "changed_files": 23,
+          "code_files": 20,
           "observed": "error",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-11T01:21:02Z"
+            "discovered_at": "2026-03-14T00:04:14Z"
           }
         },
         {
-          "number": 7341,
-          "title": "fix: remove week-of-refine pages and fix redirects",
-          "merged_at": "2026-03-09T10:26:20Z",
-          "changed_files": 5,
-          "code_files": 5,
-          "observed": "error",
+          "number": 6624,
+          "title": "Release v4.43.2",
+          "merged_at": "2026-02-27T09:23:41Z",
+          "changed_files": 3,
+          "code_files": 0,
+          "observed": "pass",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-11T01:21:04Z"
+            "discovered_at": "2026-03-14T00:04:15Z"
           }
         },
         {
-          "number": 7337,
-          "title": "fix(documentation): remove .refine prefix from preview urls",
-          "merged_at": "2026-03-05T13:17:51Z",
-          "changed_files": 4,
-          "code_files": 2,
-          "observed": "warning",
+          "number": 6619,
+          "title": "chore(deps-dev): bump basic-ftp from 5.0.5 to 5.2.0",
+          "merged_at": "2026-02-27T09:14:50Z",
+          "changed_files": 1,
+          "code_files": 0,
+          "observed": "pass",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-11T01:21:05Z"
+            "discovered_at": "2026-03-14T00:04:16Z"
           }
         }
       ]
