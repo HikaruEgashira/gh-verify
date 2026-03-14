@@ -1,0 +1,19 @@
+{
+  "id": "svelte-clean-roots-async-pending-effect",
+  "description": "Svelte avoids traversing clean roots by updating batching logic with runtime-runes sample fixtures",
+  "repo": "sveltejs/svelte",
+  "pr_number": 17928,
+  "expected": "pass",
+  "rationale": "The batching fix and async-pending-effect sample files are one regression fix. The sample and config files exist to prove the same runtime behavior, so they should not be treated as separate components.",
+  "category": "semantic-bridge",
+  "domains_expected": [],
+  "ecosystem": "javascript",
+  "notes": "Current engine reports error because the implementation file and runtime-runes sample fixture files are disconnected in patch-level call-graph extraction.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 10005,
+    "collection_name": "Javascript Framework",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-03-14T00:00:00Z"
+  }
+}

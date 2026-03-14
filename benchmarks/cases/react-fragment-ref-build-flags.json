@@ -1,0 +1,19 @@
+{
+  "id": "react-fragment-ref-build-flags",
+  "description": "React enables Fragment Ref feature flags across shared and fork-specific build targets",
+  "repo": "facebook/react",
+  "pr_number": 36026,
+  "expected": "pass",
+  "rationale": "All four files synchronize the same Fragment Ref flag across build variants. This is one logical rollout step, not unrelated changes.",
+  "category": "fork-sync",
+  "domains_expected": [],
+  "ecosystem": "javascript",
+  "notes": "Current engine reports warning because sibling fork files lack direct import or call edges even though they are parallel implementations of the same feature flag surface.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 10005,
+    "collection_name": "Javascript Framework",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-03-14T00:00:00Z"
+  }
+}

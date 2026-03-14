@@ -161,6 +161,8 @@ struct DiscoveryPr {
     merged_at: String,
     changed_files: usize,
     code_files: usize,
+    changed_paths: Vec<String>,
+    code_paths: Vec<String>,
     observed: ActualResult,
     source: BenchCaseSource,
 }
@@ -365,10 +367,13 @@ fn discover_repo(
 
     for pr in merged_prs {
         let files = pr_api::get_pr_files(github, owner, repo, pr.number)?;
-        let code_files = files
+        let changed_paths: Vec<String> = files.iter().map(|file| file.filename.clone()).collect();
+        let code_paths: Vec<String> = files
             .iter()
             .filter(|file| file.patch.is_some() && !is_non_code_file(&file.filename))
-            .count();
+            .map(|file| file.filename.clone())
+            .collect();
+        let code_files = code_paths.len();
         let observed = actual_from_rule_results(github, owner, repo, pr.number);
 
         prs.push(DiscoveryPr {
@@ -377,6 +382,8 @@ fn discover_repo(
             merged_at: pr.merged_at.unwrap_or_default(),
             changed_files: files.len(),
             code_files,
+            changed_paths,
+            code_paths,
             observed,
             source: BenchCaseSource {
                 provider: "ossinsight".into(),

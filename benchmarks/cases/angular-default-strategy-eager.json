@@ -1,0 +1,19 @@
+{
+  "id": "angular-default-strategy-eager",
+  "description": "Angular replaces Default strategy references with Eager across core internals, acceptance tests, and docs",
+  "repo": "angular/angular",
+  "pr_number": 67019,
+  "expected": "pass",
+  "rationale": "The implementation edits and acceptance tests all serve the same change-detection strategy refactor. The markdown files are non-code context and should not widen the semantic scope.",
+  "category": "semantic-bridge",
+  "domains_expected": [],
+  "ecosystem": "typescript",
+  "notes": "Current engine reports error because the core implementation files and acceptance tests do not form patch-local call edges, so one refactor is split into multiple components.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 10005,
+    "collection_name": "Javascript Framework",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-03-14T00:00:00Z"
+  }
+}
