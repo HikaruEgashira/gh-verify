@@ -1,4 +1,4 @@
-//! Scope classification logic for PR change analysis.
+//! Scope classification and semantic connectivity logic for PR change analysis.
 //!
 //! Determines whether a PR's changes are well-scoped (single logical unit)
 //! or spread across disconnected domains.
@@ -27,6 +27,14 @@ pub const NON_CODE_EXTENSIONS: &[&str] = &[
 
 /// Known non-code path prefixes that should be excluded from scope analysis.
 pub const NON_CODE_PREFIXES: &[&str] = &[".github/", "docs/"];
+
+/// Coarse role of a changed file for weak semantic connectivity.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum FileRole {
+    Source,
+    Test,
+    Fixture,
+}
 
 /// Determine whether a file path refers to a non-code file.
 pub fn is_non_code_file(filename: &str) -> bool {
@@ -80,7 +88,14 @@ pub fn resolve_import(import_path: &str, filenames: &[&str]) -> Option<usize> {
         }
         // Try with common extensions
         for ext in &[
-            ".ts", ".tsx", ".js", ".jsx", ".py", ".go", "/index.ts", "/index.js",
+            ".ts",
+            ".tsx",
+            ".js",
+            ".jsx",
+            ".py",
+            ".go",
+            "/index.ts",
+            "/index.js",
         ] {
             let with_ext = format!("{path}{ext}");
             if fname.ends_with(&with_ext) {
@@ -89,6 +104,239 @@ pub fn resolve_import(import_path: &str, filenames: &[&str]) -> Option<usize> {
         }
     }
     None
+}
+
+/// Classify file role from path shape and filename conventions.
+pub fn classify_file_role(path: &str) -> FileRole {
+    let normalized = path.to_ascii_lowercase();
+
+    if has_fixture_marker(&normalized) {
+        return FileRole::Fixture;
+    }
+    if has_test_marker(&normalized) {
+        return FileRole::Test;
+    }
+    FileRole::Source
+}
+
+/// Extract semantic tokens from path for weak matching.
+pub fn semantic_path_tokens(path: &str) -> Vec<String> {
+    let mut out = Vec::new();
+
+    for segment in path.split('/') {
+        for dot_part in segment.split('.') {
+            extend_split_tokens(dot_part, &mut out);
+        }
+    }
+
+    out.sort();
+    out.dedup();
+    out
+}
+
+/// Source-source weak bridge used for colocated feature files.
+/// Guarded by strict long-stem overlap to avoid short-name over-merging.
+pub fn should_bridge_colocated_sources(path_a: &str, path_b: &str) -> bool {
+    if classify_file_role(path_a) != FileRole::Source
+        || classify_file_role(path_b) != FileRole::Source
+    {
+        return false;
+    }
+    if parent_dir(path_a) != parent_dir(path_b) {
+        return false;
+    }
+
+    let stem_a = normalized_file_stem(path_a);
+    let stem_b = normalized_file_stem(path_b);
+    if common_prefix_len(&stem_a, &stem_b) >= 8 {
+        return true;
+    }
+
+    let tokens_a = filename_tokens(path_a);
+    let tokens_b = filename_tokens(path_b);
+    has_token_overlap(&tokens_a, &tokens_b, 8, true)
+}
+
+/// Bridge test/fixture file to a single source file with strict guards.
+pub fn should_bridge_aux_to_single_source(
+    source_path: &str,
+    aux_path: &str,
+    source_count: usize,
+    aux_count: usize,
+) -> bool {
+    if source_count != 1 || aux_count == 0 || aux_count > 3 {
+        return false;
+    }
+
+    if classify_file_role(source_path) != FileRole::Source {
+        return false;
+    }
+
+    let aux_role = classify_file_role(aux_path);
+    if aux_role != FileRole::Test && aux_role != FileRole::Fixture {
+        return false;
+    }
+
+    // Do not collapse same-parent unit test pairs (can hide real split concerns).
+    if parent_dir(source_path) == parent_dir(aux_path) {
+        return false;
+    }
+
+    // Require cross-tree relation (e.g. src vs tests/fixtures tree).
+    if tree_root(source_path) == tree_root(aux_path) {
+        return false;
+    }
+
+    let source_tokens = semantic_path_tokens(source_path);
+    let aux_tokens = semantic_path_tokens(aux_path);
+    has_token_overlap(&source_tokens, &aux_tokens, 5, true)
+}
+
+/// Bridge between test and fixture files that target the same behavior.
+pub fn should_bridge_test_fixture_pair(path_a: &str, path_b: &str) -> bool {
+    let role_a = classify_file_role(path_a);
+    let role_b = classify_file_role(path_b);
+    let is_test_fixture = (role_a == FileRole::Test && role_b == FileRole::Fixture)
+        || (role_a == FileRole::Fixture && role_b == FileRole::Test);
+
+    if !is_test_fixture {
+        return false;
+    }
+
+    let tokens_a = filename_tokens(path_a);
+    let tokens_b = filename_tokens(path_b);
+    has_token_overlap(&tokens_a, &tokens_b, 5, true)
+}
+
+fn has_fixture_marker(path: &str) -> bool {
+    path.contains("/__fixtures__/")
+        || path.contains("/fixtures/")
+        || path.contains("/fixture/")
+        || path.contains("/fixtures-")
+        || (path.contains("/cases/") && (path.contains("test") || path.contains("e2e")))
+}
+
+fn has_test_marker(path: &str) -> bool {
+    path.contains("/__tests__/")
+        || path.contains("/tests/")
+        || path.contains("/test/")
+        || path.contains("/e2e/")
+        || path.contains(".test.")
+        || path.contains("_test.")
+        || path.contains(".spec.")
+        || path.contains("-test.")
+        || path.contains("-spec.")
+        || path.contains("test-d.ts")
+}
+
+fn extend_split_tokens(input: &str, out: &mut Vec<String>) {
+    let mut buf = String::new();
+    let mut prev_is_lower = false;
+
+    for ch in input.chars() {
+        if ch.is_ascii_alphanumeric() {
+            let is_upper = ch.is_ascii_uppercase();
+            if is_upper && prev_is_lower && !buf.is_empty() {
+                push_token(&buf, out);
+                buf.clear();
+            }
+            buf.push(ch.to_ascii_lowercase());
+            prev_is_lower = ch.is_ascii_lowercase();
+        } else {
+            if !buf.is_empty() {
+                push_token(&buf, out);
+                buf.clear();
+            }
+            prev_is_lower = false;
+        }
+    }
+
+    if !buf.is_empty() {
+        push_token(&buf, out);
+    }
+}
+
+fn push_token(token: &str, out: &mut Vec<String>) {
+    if token.len() >= 3 {
+        out.push(token.to_string());
+    }
+}
+
+fn normalized_file_stem(path: &str) -> String {
+    let file = path.rsplit('/').next().unwrap_or(path);
+    let stem = file.split('.').next().unwrap_or(file);
+    stem.chars()
+        .filter(|c| c.is_ascii_alphanumeric())
+        .flat_map(char::to_lowercase)
+        .collect::<String>()
+}
+
+fn filename_tokens(path: &str) -> Vec<String> {
+    let file = path.rsplit('/').next().unwrap_or(path);
+    let stem = file.split('.').next().unwrap_or(file);
+    let mut out = Vec::new();
+    extend_split_tokens(stem, &mut out);
+    out.sort();
+    out.dedup();
+    out
+}
+
+fn parent_dir(path: &str) -> &str {
+    path.rsplit_once('/').map(|(p, _)| p).unwrap_or("")
+}
+
+fn tree_root(path: &str) -> String {
+    let mut parts = path.split('/');
+    match (parts.next(), parts.next()) {
+        (Some(a), Some(b)) => format!("{a}/{b}"),
+        (Some(a), None) => a.to_string(),
+        _ => String::new(),
+    }
+}
+
+fn common_prefix_len(a: &str, b: &str) -> usize {
+    a.bytes().zip(b.bytes()).take_while(|(x, y)| x == y).count()
+}
+
+fn has_token_overlap(
+    tokens_a: &[String],
+    tokens_b: &[String],
+    min_len: usize,
+    require_non_generic: bool,
+) -> bool {
+    tokens_a.iter().any(|a| {
+        if a.len() < min_len {
+            return false;
+        }
+        if require_non_generic && is_generic_token(a) {
+            return false;
+        }
+        tokens_b.iter().any(|b| b == a)
+    })
+}
+
+fn is_generic_token(token: &str) -> bool {
+    matches!(
+        token,
+        "test"
+            | "tests"
+            | "spec"
+            | "fixture"
+            | "fixtures"
+            | "runtime"
+            | "source"
+            | "types"
+            | "type"
+            | "index"
+            | "core"
+            | "src"
+            | "lib"
+            | "util"
+            | "utils"
+            | "package"
+            | "packages"
+            | "private"
+    )
 }
 
 #[cfg(test)]
@@ -178,5 +426,73 @@ mod tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn classify_file_roles() {
+        assert_eq!(
+            classify_file_role("packages/runtime-core/src/foo.ts"),
+            FileRole::Source
+        );
+        assert_eq!(
+            classify_file_role("packages/runtime-core/__tests__/foo.spec.ts"),
+            FileRole::Test
+        );
+        assert_eq!(
+            classify_file_role("packages/runtime-core/__tests__/fixtures/foo.ts"),
+            FileRole::Fixture
+        );
+        assert_eq!(
+            classify_file_role("packages-private/vapor-e2e-test/transition/cases/mode/sample.vue"),
+            FileRole::Fixture
+        );
+    }
+
+    #[test]
+    fn colocated_source_bridge_requires_long_stem() {
+        assert!(should_bridge_colocated_sources(
+            "packages/devtools/src/ContextMenu.tsx",
+            "packages/devtools/src/ContextMenuItem.tsx"
+        ));
+        assert!(!should_bridge_colocated_sources(
+            "packages/prisma/src/auth.ts",
+            "packages/prisma/src/auth-client.ts"
+        ));
+    }
+
+    #[test]
+    fn aux_bridge_requires_single_source_and_cross_tree_overlap() {
+        assert!(should_bridge_aux_to_single_source(
+            "packages/runtime-core/src/apiDefineComponent.ts",
+            "packages-private/dts-test/defineComponent.test-d.ts",
+            1,
+            1
+        ));
+
+        assert!(!should_bridge_aux_to_single_source(
+            "packages/client/src/mariadb.ts",
+            "packages/client/src/mariadb.test.ts",
+            1,
+            1
+        ));
+
+        assert!(!should_bridge_aux_to_single_source(
+            "packages/runtime-core/src/apiDefineComponent.ts",
+            "packages-private/dts-test/defineComponent.test-d.ts",
+            2,
+            1
+        ));
+    }
+
+    #[test]
+    fn test_fixture_bridge_uses_semantic_overlap() {
+        assert!(should_bridge_test_fixture_pair(
+            "packages/vue/__tests__/transition.spec.ts",
+            "packages/vue/__tests__/fixtures/transition.html"
+        ));
+        assert!(!should_bridge_test_fixture_pair(
+            "packages/vue/__tests__/alpha.spec.ts",
+            "packages/vue/__tests__/fixtures/beta.html"
+        ));
     }
 }
