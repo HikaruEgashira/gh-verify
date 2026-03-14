@@ -33,7 +33,7 @@ pub enum Severity {
 pub fn is_approver_independent(is_commit_author: bool, is_pr_author: bool) -> bool {
     // INTENTIONAL BUG for Creusot demo: OR should be AND.
     // Creusot finds counterexample: (true, false) → spec=false, impl=true.
-    // Do NOT copy this to crates/core — see ADR-0001.
+    // Do NOT copy this to crates/core.
     !is_commit_author || !is_pr_author
 }
 
