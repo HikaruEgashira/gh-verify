@@ -15,8 +15,10 @@ pub const DEFAULT_TYPES: &[&str] = &[
 /// `<type>[optional scope]: <description>`
 ///
 /// Requirements:
-/// - The type must be one of `allowed_types`.
-/// - An optional scope in parentheses may follow the type.
+/// - If `allowed_types` is non-empty, the type must be one of the allowed types.
+/// - If `allowed_types` is empty, any type matching `[a-z][a-z0-9]*` is accepted
+///   (per the Conventional Commits spec, which does not restrict types to a fixed list).
+/// - An optional scope in parentheses may follow the type; if present, it must be non-empty.
 /// - A colon followed by a space must separate the prefix from the description.
 /// - The description must be non-empty.
 pub fn is_conventional_commit(message: &str, allowed_types: &[&str]) -> bool {
@@ -37,13 +39,18 @@ pub fn is_conventional_commit(message: &str, allowed_types: &[&str]) -> bool {
     }
 
     // Parse type and optional scope from prefix.
-    // Valid forms: "feat", "feat(core)", "feat!"", "feat(core)!"
-    let (ty, rest) = match prefix.find('(') {
+    // Valid forms: "feat", "feat(core)", "feat!", "feat(core)!"
+    let (ty, _rest) = match prefix.find('(') {
         Some(paren_pos) => {
             let ty = &prefix[..paren_pos];
             let rest = &prefix[paren_pos..];
             // Scope must close with ')' optionally followed by '!'.
             if let Some(close) = rest.find(')') {
+                let scope = &rest[1..close];
+                // Scope must contain at least one non-whitespace character.
+                if scope.trim().is_empty() {
+                    return false;
+                }
                 let after_close = &rest[close + 1..];
                 if after_close.is_empty() || after_close == "!" {
                     (ty, "")
@@ -61,17 +68,32 @@ pub fn is_conventional_commit(message: &str, allowed_types: &[&str]) -> bool {
         }
     };
 
-    let _ = rest; // consumed during scope validation above
+    if allowed_types.is_empty() {
+        // Accept any type matching [a-z][a-z0-9]*
+        is_valid_type(ty)
+    } else {
+        allowed_types.iter().any(|&t| t == ty)
+    }
+}
 
-    allowed_types.iter().any(|&t| t == ty)
+/// Returns true if `ty` matches the pattern `[a-z][a-z0-9]*`.
+fn is_valid_type(ty: &str) -> bool {
+    let mut chars = ty.chars();
+    match chars.next() {
+        Some(c) if c.is_ascii_lowercase() => {}
+        _ => return false,
+    }
+    chars.all(|c| c.is_ascii_lowercase() || c.is_ascii_digit())
 }
 
 /// Check whether a commit message is a merge commit.
 ///
-/// Matches GitHub's `Merge pull request #...` and git's `Merge branch '...'` patterns.
+/// Uses `starts_with("Merge ")` to match the convention in `integrity.rs`.
+/// This covers GitHub merges (`Merge pull request #...`), git merges
+/// (`Merge branch '...'`), and remote-tracking merges (`Merge remote-tracking ...`).
 pub fn is_merge_commit(message: &str) -> bool {
     let subject = message.lines().next().unwrap_or("");
-    subject.starts_with("Merge pull request #") || subject.starts_with("Merge branch ")
+    subject.starts_with("Merge ")
 }
 
 /// Classify the compliance of a set of commit messages.
@@ -180,8 +202,54 @@ mod tests {
     }
 
     #[test]
+    fn merge_remote_tracking() {
+        assert!(is_merge_commit(
+            "Merge remote-tracking branch 'origin/main'"
+        ));
+    }
+
+    #[test]
     fn not_merge() {
         assert!(!is_merge_commit("feat: not a merge"));
+    }
+
+    // --- is_conventional_commit edge cases ---
+
+    #[test]
+    fn custom_type_accepted_with_empty_allowed() {
+        // The spec does not restrict types to a fixed list.
+        assert!(is_conventional_commit("deps: bump rustls", &[]));
+    }
+
+    #[test]
+    fn custom_type_security() {
+        assert!(is_conventional_commit("security: patch CVE", &[]));
+    }
+
+    #[test]
+    fn custom_type_rejected_with_strict_list() {
+        assert!(!is_conventional_commit("deps: bump rustls", DEFAULT_TYPES));
+    }
+
+    #[test]
+    fn empty_scope_rejected() {
+        assert!(!is_conventional_commit("feat(): desc", DEFAULT_TYPES));
+        assert!(!is_conventional_commit("feat(): desc", &[]));
+    }
+
+    #[test]
+    fn whitespace_only_scope_rejected() {
+        assert!(!is_conventional_commit("feat( ): desc", &[]));
+    }
+
+    #[test]
+    fn invalid_type_uppercase_rejected() {
+        assert!(!is_conventional_commit("Feat: something", &[]));
+    }
+
+    #[test]
+    fn invalid_type_with_digit_start_rejected() {
+        assert!(!is_conventional_commit("1fix: something", &[]));
     }
 
     // --- classify_commit_compliance ---

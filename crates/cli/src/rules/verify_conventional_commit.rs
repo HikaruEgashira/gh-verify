@@ -1,12 +1,16 @@
 use anyhow::Result;
-use gh_verify_core::conventional::{
-    classify_commit_compliance, is_conventional_commit, DEFAULT_TYPES,
-};
+use gh_verify_core::conventional::{classify_commit_compliance, is_conventional_commit};
 use gh_verify_core::verdict::{RuleResult, Severity};
 
 use super::{Rule, RuleContext};
 
 const RULE_ID: &str = "verify-conventional-commit";
+
+/// Empty slice means "accept any valid type matching `[a-z][a-z0-9]*`".
+const ALLOWED_TYPES: &[&str] = &[];
+
+const FORMAT_HINT: &str = "Use the format: <type>[optional scope]: <description>\n\
+    Common types: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert";
 
 pub struct VerifyConventionalCommit;
 
@@ -19,7 +23,7 @@ impl Rule for VerifyConventionalCommit {
         match ctx {
             RuleContext::Pr { pr_metadata, .. } => {
                 let title = &pr_metadata.title;
-                if is_conventional_commit(title, DEFAULT_TYPES) {
+                if is_conventional_commit(title, ALLOWED_TYPES) {
                     Ok(vec![RuleResult::pass(
                         RULE_ID,
                         "PR title follows Conventional Commits format",
@@ -33,18 +37,14 @@ impl Rule for VerifyConventionalCommit {
                             title
                         ),
                         affected_files: vec![],
-                        suggestion: Some(
-                            "Use the format: <type>[optional scope]: <description>\n\
-                             Allowed types: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert"
-                                .to_string(),
-                        ),
+                        suggestion: Some(FORMAT_HINT.to_string()),
                     }])
                 }
             }
             RuleContext::Release { commits, .. } => {
                 let messages: Vec<&str> =
                     commits.iter().map(|c| c.commit.message.as_str()).collect();
-                let severity = classify_commit_compliance(&messages, DEFAULT_TYPES);
+                let severity = classify_commit_compliance(&messages, ALLOWED_TYPES);
 
                 let non_merge_msgs: Vec<&str> = messages
                     .iter()
@@ -53,7 +53,7 @@ impl Rule for VerifyConventionalCommit {
                     .collect();
                 let non_compliant: Vec<&&str> = non_merge_msgs
                     .iter()
-                    .filter(|m| !is_conventional_commit(m, DEFAULT_TYPES))
+                    .filter(|m| !is_conventional_commit(m, ALLOWED_TYPES))
                     .collect();
 
                 if severity == Severity::Pass {
@@ -67,10 +67,8 @@ impl Rule for VerifyConventionalCommit {
                         let subject = msg.lines().next().unwrap_or(msg);
                         detail.push_str(&format!("  - {}\n", subject));
                     }
-                    detail.push_str(
-                        "\nUse the format: <type>[optional scope]: <description>\n\
-                         Allowed types: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert",
-                    );
+                    detail.push('\n');
+                    detail.push_str(FORMAT_HINT);
 
                     Ok(vec![RuleResult {
                         rule_id: RULE_ID.to_string(),
