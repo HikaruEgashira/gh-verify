@@ -29,6 +29,14 @@ const CLOSING_KEYWORDS: &[&str] = &[
     "resolved",
 ];
 
+/// Common acronym prefixes that should NOT be treated as Jira project keys.
+const JIRA_BLOCKLIST: &[&str] = &[
+    "UTF", "HTTP", "RFC", "CVE", "ISO", "SHA", "SSL", "TLS", "TCP", "UDP",
+    "DNS", "SSH", "API", "URL", "URI", "XML", "JSON", "YAML", "TOML", "HTML",
+    "CSS", "ANSI", "ASCII", "IEEE", "IETF", "SMTP", "IMAP", "LDAP", "SAML",
+    "CORS", "CSRF", "ECDSA", "HMAC",
+];
+
 /// Extract issue references from a PR body.
 ///
 /// Recognized patterns:
@@ -64,6 +72,10 @@ pub fn has_issue_linkage(refs: &[IssueReference]) -> bool {
 }
 
 /// Extract GitHub issue references: bare `#123` and keyword-prefixed `fixes #123`.
+///
+/// All indexing operates on `Vec<char>` to avoid byte/char index confusion
+/// with non-ASCII input. The keyword text for the output is reconstructed
+/// from `body_chars` (original casing) rather than slicing `body` by byte.
 fn extract_github_issues(body: &str, refs: &mut Vec<IssueReference>) {
     let lower = body.to_lowercase();
     let chars: Vec<char> = lower.chars().collect();
@@ -90,11 +102,10 @@ fn extract_github_issues(body: &str, refs: &mut Vec<IssueReference>) {
                 }
                 if j < chars.len() && chars[j] == '#' {
                     if let Some((num_str, end)) = parse_digits(&body_chars, j + 1) {
-                        let full = format!(
-                            "{} #{}",
-                            &body[i..i + kw_chars.len()],
-                            num_str
-                        );
+                        // Reconstruct keyword from original chars (preserves casing)
+                        let kw_original: String =
+                            body_chars[i..i + kw_chars.len()].iter().collect();
+                        let full = format!("{} #{}", kw_original, num_str);
                         refs.push(IssueReference {
                             kind: IssueRefKind::GitHubIssue,
                             value: full,
@@ -146,6 +157,8 @@ fn parse_digits(chars: &[char], start: usize) -> Option<(String, usize)> {
 }
 
 /// Extract Jira-style ticket references: `[A-Z]{2,}-\d+`.
+///
+/// Rejects prefixes in [`JIRA_BLOCKLIST`] (common acronyms like UTF, HTTP, etc.).
 fn extract_jira_tickets(body: &str, refs: &mut Vec<IssueReference>) {
     let chars: Vec<char> = body.chars().collect();
     let mut i = 0;
@@ -192,6 +205,14 @@ fn extract_jira_tickets(body: &str, refs: &mut Vec<IssueReference>) {
             continue;
         }
 
+        let prefix: String = chars[alpha_start..alpha_start + alpha_len].iter().collect();
+
+        // Reject well-known acronyms
+        if JIRA_BLOCKLIST.iter().any(|b| *b == prefix) {
+            i = j;
+            continue;
+        }
+
         let ticket: String = chars[alpha_start..j].iter().collect();
 
         // Skip if this was already captured as part of a URL
@@ -207,20 +228,39 @@ fn extract_jira_tickets(body: &str, refs: &mut Vec<IssueReference>) {
 }
 
 /// Extract URL references containing `/issues/` or `/browse/`.
+///
+/// Handles both whitespace-delimited URLs and Markdown link syntax
+/// `[text](url)`.
 fn extract_urls(body: &str, refs: &mut Vec<IssueReference>) {
-    for word in body.split_whitespace() {
-        // Also handle URLs wrapped in parentheses or angle brackets
-        let word = word.trim_start_matches(['(', '<', '[']);
-        let word = word.trim_end_matches([')', '>', ']', '.', ',']);
+    // Strategy 1: scan for `https://` or `http://` anywhere in the text
+    // and extract to the next whitespace or closing delimiter.
+    let mut search_start = 0;
+    while search_start < body.len() {
+        // Find next URL-like prefix
+        let rest = &body[search_start..];
+        let offset = rest
+            .find("https://")
+            .or_else(|| rest.find("http://"));
 
-        if (word.starts_with("https://") || word.starts_with("http://"))
-            && (word.contains("/issues/") || word.contains("/browse/"))
-        {
+        let Some(pos) = offset else { break };
+        let url_start = search_start + pos;
+
+        // Determine end of URL: stop at whitespace, ')', '>', ']', or end of string
+        let url_end = body[url_start..]
+            .find(|c: char| c.is_whitespace() || c == ')' || c == '>' || c == ']')
+            .map(|e| url_start + e)
+            .unwrap_or(body.len());
+
+        let url = body[url_start..url_end].trim_end_matches(['.', ',']);
+
+        if url.contains("/issues/") || url.contains("/browse/") {
             refs.push(IssueReference {
                 kind: IssueRefKind::Url,
-                value: word.to_string(),
+                value: url.to_string(),
             });
         }
+
+        search_start = url_end;
     }
 }
 
@@ -342,5 +382,86 @@ mod tests {
         // Single letter prefix is not valid Jira
         let refs = extract_issue_references("X-123 should not match", &[]);
         assert!(!has_issue_linkage(&refs));
+    }
+
+    // --- P1: Non-ASCII safety ---
+
+    #[test]
+    fn non_ascii_body_with_issue_ref() {
+        // Multi-byte chars before issue reference must not panic
+        let refs = extract_issue_references("あいう fixes #12", &[]);
+        assert!(has_issue_linkage(&refs));
+        assert!(refs.iter().any(|r| r.value.contains("#12")));
+    }
+
+    #[test]
+    fn non_ascii_body_bare_hash() {
+        let refs = extract_issue_references("日本語テスト #99 です", &[]);
+        assert!(has_issue_linkage(&refs));
+        assert_eq!(refs[0].value, "#99");
+    }
+
+    #[test]
+    fn emoji_body_with_issue_ref() {
+        let refs = extract_issue_references("🎉🎊 closes #42", &[]);
+        assert!(has_issue_linkage(&refs));
+        assert!(refs.iter().any(|r| r.value.contains("#42")));
+    }
+
+    // --- P2: Markdown URL detection ---
+
+    #[test]
+    fn markdown_link_github_issues() {
+        let body = "See [the issue](https://github.com/o/r/issues/1) for details";
+        let refs = extract_issue_references(body, &[]);
+        assert!(has_issue_linkage(&refs));
+        assert_eq!(refs[0].kind, IssueRefKind::Url);
+        assert!(refs[0].value.contains("/issues/1"));
+    }
+
+    #[test]
+    fn markdown_link_jira_browse() {
+        let body = "Related: [ticket](https://jira.example.com/browse/PROJ-456)";
+        let refs = extract_issue_references(body, &[]);
+        assert!(refs.iter().any(|r| r.kind == IssueRefKind::Url && r.value.contains("/browse/")));
+    }
+
+    // --- P3: Jira blocklist ---
+
+    #[test]
+    fn blocklist_utf8_not_jira() {
+        let refs = extract_issue_references("Supports UTF-8 encoding", &[]);
+        assert!(!refs.iter().any(|r| r.kind == IssueRefKind::JiraTicket));
+    }
+
+    #[test]
+    fn blocklist_http_not_jira() {
+        let refs = extract_issue_references("Returns HTTP-500 errors", &[]);
+        assert!(!refs.iter().any(|r| r.kind == IssueRefKind::JiraTicket));
+    }
+
+    #[test]
+    fn blocklist_rfc_not_jira() {
+        let refs = extract_issue_references("Per RFC-9110 specification", &[]);
+        assert!(!refs.iter().any(|r| r.kind == IssueRefKind::JiraTicket));
+    }
+
+    #[test]
+    fn blocklist_cve_not_jira() {
+        let refs = extract_issue_references("Fixes CVE-2024 vulnerability", &[]);
+        assert!(!refs.iter().any(|r| r.kind == IssueRefKind::JiraTicket));
+    }
+
+    #[test]
+    fn real_jira_ticket_still_works() {
+        let refs = extract_issue_references("See PROJ-123 and MYAPP-456", &[]);
+        assert_eq!(
+            refs.iter()
+                .filter(|r| r.kind == IssueRefKind::JiraTicket)
+                .count(),
+            2
+        );
+        assert!(refs.iter().any(|r| r.value == "PROJ-123"));
+        assert!(refs.iter().any(|r| r.value == "MYAPP-456"));
     }
 }
