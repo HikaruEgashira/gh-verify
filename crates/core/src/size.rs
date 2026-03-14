@@ -1,10 +1,12 @@
 /// Check if a filename matches common generated-file patterns.
 ///
-/// Matches: `*.lock`, `*-lock.json`, `*.snap`, `*.generated.*`
+/// Matches: `*.lock`, `*-lock.json`, `*-lock.yaml`, `*-lock.yml`, `*.snap`, `*.generated.*`
 pub fn is_generated_file(filename: &str) -> bool {
     let name = filename.rsplit('/').next().unwrap_or(filename);
     name.ends_with(".lock")
         || name.ends_with("-lock.json")
+        || name.ends_with("-lock.yaml")
+        || name.ends_with("-lock.yml")
         || name.ends_with(".snap")
         || name.contains(".generated.")
 }
@@ -49,6 +51,19 @@ mod tests {
     fn lock_json() {
         assert!(is_generated_file("package-lock.json"));
         assert!(is_generated_file("node_modules/foo/package-lock.json"));
+    }
+
+    #[test]
+    fn lock_yaml() {
+        assert!(is_generated_file("pnpm-lock.yaml"));
+        assert!(is_generated_file("some/path/pnpm-lock.yaml"));
+        assert!(is_generated_file("pnpm-lock.yml"));
+    }
+
+    #[test]
+    fn yarn_lock() {
+        assert!(is_generated_file("yarn.lock"));
+        assert!(is_generated_file("packages/app/yarn.lock"));
     }
 
     #[test]
