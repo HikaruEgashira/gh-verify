@@ -208,6 +208,36 @@ pub fn should_bridge_test_fixture_pair(path_a: &str, path_b: &str) -> bool {
     has_token_overlap(&tokens_a, &tokens_b, 5, true)
 }
 
+/// Bridge build-fork variants that share one canonical feature surface.
+pub fn should_bridge_fork_variants(path_a: &str, path_b: &str) -> bool {
+    if classify_file_role(path_a) != FileRole::Source
+        || classify_file_role(path_b) != FileRole::Source
+    {
+        return false;
+    }
+
+    if !is_fork_variant_path(path_a) && !is_fork_variant_path(path_b) {
+        return false;
+    }
+
+    let family_a = fork_family_root(path_a);
+    let family_b = fork_family_root(path_b);
+    if family_a.is_empty() || family_a != family_b {
+        return false;
+    }
+
+    let stem_a = normalized_file_stem(path_a);
+    let stem_b = normalized_file_stem(path_b);
+    if stem_a != stem_b {
+        return false;
+    }
+    if stem_a.len() < 8 || is_generic_token(&stem_a) {
+        return false;
+    }
+
+    true
+}
+
 fn has_fixture_marker(path: &str) -> bool {
     path.contains("/__fixtures__/")
         || path.contains("/fixtures/")
@@ -283,6 +313,17 @@ fn filename_tokens(path: &str) -> Vec<String> {
 
 fn parent_dir(path: &str) -> &str {
     path.rsplit_once('/').map(|(p, _)| p).unwrap_or("")
+}
+
+fn is_fork_variant_path(path: &str) -> bool {
+    path.contains("/forks/")
+}
+
+fn fork_family_root(path: &str) -> String {
+    if let Some((prefix, _)) = path.split_once("/forks/") {
+        return prefix.to_string();
+    }
+    parent_dir(path).to_string()
 }
 
 fn tree_root(path: &str) -> String {
@@ -493,6 +534,34 @@ mod tests {
         assert!(!should_bridge_test_fixture_pair(
             "packages/vue/__tests__/alpha.spec.ts",
             "packages/vue/__tests__/fixtures/beta.html"
+        ));
+    }
+
+    #[test]
+    fn fork_variant_bridge_requires_same_family_and_stem() {
+        assert!(should_bridge_fork_variants(
+            "packages/shared/ReactFeatureFlags.js",
+            "packages/shared/forks/ReactFeatureFlags.native-oss.js"
+        ));
+        assert!(should_bridge_fork_variants(
+            "packages/shared/forks/ReactFeatureFlags.test-renderer.js",
+            "packages/shared/forks/ReactFeatureFlags.test-renderer.www.js"
+        ));
+    }
+
+    #[test]
+    fn fork_variant_bridge_rejects_broad_over_merge() {
+        assert!(!should_bridge_fork_variants(
+            "packages/shared/index.js",
+            "packages/shared/forks/index.www.js"
+        ));
+        assert!(!should_bridge_fork_variants(
+            "packages/shared/ReactFeatureFlags.js",
+            "packages/other/forks/ReactFeatureFlags.native-oss.js"
+        ));
+        assert!(!should_bridge_fork_variants(
+            "packages/shared/ReactFeatureFlags.js",
+            "packages/shared/ReactFeatureFlags.native-oss.js"
         ));
     }
 }
