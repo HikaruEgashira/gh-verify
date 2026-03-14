@@ -1,5 +1,9 @@
 use anyhow::Result;
-use gh_verify_core::scope::{classify_scope, is_non_code_file, resolve_import};
+use gh_verify_core::scope::{
+    FileRole, classify_file_role, classify_scope, is_non_code_file, resolve_import,
+    should_bridge_aux_to_single_source, should_bridge_colocated_sources,
+    should_bridge_test_fixture_pair,
+};
 use gh_verify_core::union_find::{NodeKind, UnionFind};
 use gh_verify_core::verdict::{RuleResult, Severity};
 
@@ -43,6 +47,16 @@ impl Rule for DetectUnscopedChange {
             all_symbols.push(symbols);
         }
 
+        let file_roles: Vec<FileRole> = code_files
+            .iter()
+            .map(|(_, file)| classify_file_role(&file.filename))
+            .collect();
+        let source_count = file_roles
+            .iter()
+            .filter(|&&r| r == FileRole::Source)
+            .count();
+        let aux_count = file_roles.len() - source_count;
+
         // Build call graph
         let mut graph = UnionFind::new();
 
@@ -77,13 +91,33 @@ impl Rule for DetectUnscopedChange {
         }
 
         // Import edges: resolve import paths to changed files
-        let filenames: Vec<&str> = code_files.iter().map(|(_, f)| f.filename.as_str()).collect();
+        let filenames: Vec<&str> = code_files
+            .iter()
+            .map(|(_, f)| f.filename.as_str())
+            .collect();
         for (idx_a, syms_a) in all_symbols.iter().enumerate() {
             for import_path in &syms_a.imports {
                 if let Some(idx_b) = resolve_import(import_path, &filenames) {
                     if idx_a != idx_b {
                         graph.merge(file_nodes[idx_a], file_nodes[idx_b]);
                     }
+                }
+            }
+        }
+
+        // Guarded weak edges for semantics (source+test+fixture, colocated feature files).
+        for idx_a in 0..code_files.len() {
+            for idx_b in (idx_a + 1)..code_files.len() {
+                let path_a = &code_files[idx_a].1.filename;
+                let path_b = &code_files[idx_b].1.filename;
+
+                let should_merge = should_bridge_colocated_sources(path_a, path_b)
+                    || should_bridge_aux_to_single_source(path_a, path_b, source_count, aux_count)
+                    || should_bridge_aux_to_single_source(path_b, path_a, source_count, aux_count)
+                    || should_bridge_test_fixture_pair(path_a, path_b);
+
+                if should_merge {
+                    graph.merge(file_nodes[idx_a], file_nodes[idx_b]);
                 }
             }
         }
