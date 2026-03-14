@@ -1,0 +1,19 @@
+{
+  "id": "pass-027",
+  "description": "React fragment ref focus fix updates DOM binding logic with a paired regression test",
+  "repo": "facebook/react",
+  "pr_number": 36010,
+  "expected": "pass",
+  "rationale": "The production fix and regression test both target delegated focus behavior. They should be treated as one scoped bugfix.",
+  "category": "connected-calls",
+  "domains_expected": [],
+  "ecosystem": "javascript",
+  "notes": "Current engine reports warning because runtime and test files are disconnected in patch-local call graph extraction.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 10005,
+    "collection_name": "Javascript Framework",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-03-14T00:04:16Z"
+  }
+}

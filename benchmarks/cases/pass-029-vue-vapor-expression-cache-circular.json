@@ -1,0 +1,19 @@
+{
+  "id": "pass-029",
+  "description": "Vue vapor expression cache fix updates generator logic with matching transform snapshot tests",
+  "repo": "vuejs/core",
+  "pr_number": 14567,
+  "expected": "pass",
+  "rationale": "Compiler implementation, spec, and snapshot are one semantic unit for the same circular-reference bugfix.",
+  "category": "connected-calls",
+  "domains_expected": [],
+  "ecosystem": "typescript",
+  "notes": "Current engine reports error because source, spec, and snapshot are split into disconnected patch-level components.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 10005,
+    "collection_name": "Javascript Framework",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-03-14T00:04:16Z"
+  }
+}
