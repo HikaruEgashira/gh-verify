@@ -33,15 +33,13 @@ impl Rule for VerifyBranchProtection {
                 }
                 seen.push(pr_summary.number);
 
+                // Count ALL reviews (any state) to detect review activity.
+                // Admin merge detection checks whether the PR had any review,
+                // not whether it was approved.
                 let review_count = pr_reviews
                     .iter()
                     .find(|r| r.pr_number == pr_summary.number)
-                    .map(|r| {
-                        r.reviews
-                            .iter()
-                            .filter(|rev| rev.state == "APPROVED")
-                            .count() as u32
-                    })
+                    .map(|r| r.reviews.len() as u32)
                     .unwrap_or(0);
 
                 let base_ref = pr_summary
@@ -60,7 +58,9 @@ impl Rule for VerifyBranchProtection {
         }
 
         // Use default protected branches (main, master).
-        // A future enhancement could read this from repository settings.
+        // TODO: Add `--protected-branches` CLI option to allow repos using
+        // `develop`, `release/*`, etc. The core logic already supports custom
+        // protected branches via the `protected_branches` parameter.
         Ok(branch_protection::check_branch_protection(&prs, &[]))
     }
 }

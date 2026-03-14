@@ -245,6 +245,19 @@ mod tests {
     }
 
     #[test]
+    fn commented_review_counts_as_review_activity() {
+        // A PR with COMMENTED or CHANGES_REQUESTED reviews (but no APPROVED)
+        // should NOT be flagged as admin merge, because review_count reflects
+        // all review activity, not just approvals.
+        let prs = vec![make_pr(1, "main", 1, true)]; // 1 review (e.g. COMMENTED)
+        let violations = classify_branch_compliance(&prs, &["main"]);
+        assert!(
+            violations.is_empty(),
+            "PR with non-APPROVED review activity should not be flagged as admin merge"
+        );
+    }
+
+    #[test]
     fn empty_protected_branches_uses_defaults() {
         let prs = vec![make_pr(1, "main", 1, true)];
         let violations = classify_branch_compliance(&prs, &[]);
