@@ -292,7 +292,7 @@ https://jfrog.com/blog/evidence-collection-with-jfrog/
 - JFrog: パイプラインにインライン / gh-verify: オンデマンド or CI
 - JFrog: 規制フレームワーク (SOC 2, ISO 27001等) を広くカバー / gh-verify: SLSA概念ベース + SOCレポート生成 (構想段階)
 - JFrog Evidenceにはlint的な大量ルール高速実行の概念がない
-- gh-verifyには署名付きattestation保管の機能がない
+- gh-verifyは保管をGitHubに委譲し自前で持たない (JFrogはArtifactoryに集約)。gh-verifyの価値はGitHubにできない検証にある
 - JFrog: $531.8M売上のNASDAQ上場企業 / gh-verify: OSS — 規模が根本的に異なる
 - JFrogのAI戦略 (Fly, AI Catalog, MCP) はエージェント時代のプラットフォーム化。gh-verifyにはこの方向性がない
 

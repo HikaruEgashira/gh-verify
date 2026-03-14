@@ -225,6 +225,7 @@ Aviatorが自社サイトで明示的に比較ページを設けている競合:
 - Aviatorにはルールロジックの形式検証に相当する機能がない
 - gh-verifyにはMergeQueue的なプロセス強制機能がない (検査のみ)
 - Aviatorは主にGitHub中心、gh-verifyはJira等GitHub外ツールとの連携を設計に内包
+- gh-verifyは保管をGitHubに委譲し自前で持たない。GitHubにできない検証を提供するのが価値
 - Aviatorは$7.1M売上のスタートアップ、gh-verifyはOSS — コスト構造が根本的に異なる
 - AviatorのAI戦略 (Runbooks, agent-plugins) はgh-verifyにはない方向性
 
