@@ -2,6 +2,7 @@ use anyhow::Result;
 use gh_verify_core::verdict::RuleResult;
 
 use super::detect_unscoped_change::DetectUnscopedChange;
+use super::verify_conventional_commit::VerifyConventionalCommit;
 use super::verify_release_integrity::VerifyReleaseIntegrity;
 use super::{Rule, RuleContext};
 
@@ -9,6 +10,7 @@ use super::{Rule, RuleContext};
 pub fn run_all(ctx: &RuleContext) -> Result<Vec<RuleResult>> {
     let rules: Vec<Box<dyn Rule>> = vec![
         Box::new(DetectUnscopedChange),
+        Box::new(VerifyConventionalCommit),
         Box::new(VerifyReleaseIntegrity),
     ];
 
@@ -24,6 +26,7 @@ pub fn run_all(ctx: &RuleContext) -> Result<Vec<RuleResult>> {
 pub fn list_rule_ids() -> Vec<&'static str> {
     vec![
         DetectUnscopedChange.id(),
+        VerifyConventionalCommit.id(),
         VerifyReleaseIntegrity.id(),
     ]
 }
