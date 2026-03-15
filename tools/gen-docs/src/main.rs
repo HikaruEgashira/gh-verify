@@ -731,9 +731,6 @@ fn render_html(rules: &BTreeMap<String, RuleInfo>) -> String {
         html,
         r#"<header>
 <h1>gh-verify Rule Specification</h1>
-<p class="subtitle">Derived from <strong>{total_tests}</strong> test cases and
-<strong>{total_specs}</strong> <a href="https://github.com/creusot-rs/creusot">Creusot</a>
-formal verification specs. Source of truth is code.</p>
 <p class="timestamp">Generated: {timestamp}</p>
 </header>
 "#
