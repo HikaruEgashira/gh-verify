@@ -4,6 +4,7 @@ pub mod branch_protection;
 pub mod control;
 pub mod controls;
 pub mod conventional;
+pub mod coverage;
 pub mod evidence;
 pub mod integrity;
 pub mod linkage;

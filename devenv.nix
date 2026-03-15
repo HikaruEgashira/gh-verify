@@ -84,14 +84,23 @@
       '';
     };
 
-    "ghverify:verify" = {
-      description = "Run Creusot formal verification on verif crate";
+    "ghverify:docs" = {
+      description = "Generate rule specification docs from tests and Creusot specs";
       exec = ''
         set -euo pipefail
-        eval $(opam env --switch=creusot 2>/dev/null) || { echo "Creusot not installed. See HACKING.md for setup."; exit 1; }
-        cargo creusot -p gh-verify-verif
-        echo "Translation complete. Use 'cargo creusot prove \"<fn>\" -- -p gh-verify-verif' to prove individual functions."
+        cargo build --release -p gen-docs
+        "$DEVENV_ROOT/target/release/gen-docs"
       '';
+    };
+
+    "ghverify:verify" = {
+      description = "Creusot formal verification: translate + prove all predicates";
+      exec = ''"$DEVENV_ROOT/scripts/verify.sh"'';
+    };
+
+    "ghverify:verify-one" = {
+      description = "Prove a single Creusot predicate (pass name as argument)";
+      exec = ''"$DEVENV_ROOT/scripts/verify.sh" "''${1:?Usage: devenv tasks run ghverify:verify-one <predicate_name>}"'';
     };
   };
 
