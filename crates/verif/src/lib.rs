@@ -23,18 +23,9 @@ pub enum Severity {
 ///
 /// An approver is independent iff they are **neither** a commit author
 /// **nor** the PR author. Both conditions must hold (AND).
-///
-/// # Verification target
-///
-/// If the implementation uses OR instead of AND, Creusot will find
-/// counterexample: `(true, false)` — approver IS a commit author,
-/// so the spec requires `false`, but OR returns `true`.
 #[ensures(result == (!is_commit_author && !is_pr_author))]
 pub fn is_approver_independent(is_commit_author: bool, is_pr_author: bool) -> bool {
-    // INTENTIONAL BUG for Creusot demo: OR should be AND.
-    // Creusot finds counterexample: (true, false) → spec=false, impl=true.
-    // Do NOT copy this to crates/core.
-    !is_commit_author || !is_pr_author
+    !is_commit_author && !is_pr_author
 }
 
 /// Core predicate for PR coverage check.
@@ -53,6 +44,19 @@ pub fn is_uncovered_commit(is_merge: bool, has_pr: bool) -> bool {
 #[ensures(unsigned_count > 0usize ==> result == Severity::Error)]
 pub fn signature_severity(unsigned_count: usize) -> Severity {
     if unsigned_count == 0 {
+        Severity::Pass
+    } else {
+        Severity::Error
+    }
+}
+
+/// PR coverage severity.
+///
+/// Error iff there are uncovered commits; Pass otherwise.
+#[ensures(uncovered_count == 0usize ==> result == Severity::Pass)]
+#[ensures(uncovered_count > 0usize ==> result == Severity::Error)]
+pub fn pr_coverage_severity(uncovered_count: usize) -> Severity {
+    if uncovered_count == 0 {
         Severity::Pass
     } else {
         Severity::Error
@@ -118,16 +122,6 @@ pub fn is_admin_merge(review_count: usize) -> bool {
 #[ensures(code_files_count > 1usize && components <= 1usize ==> result == Severity::Pass)]
 #[ensures(code_files_count > 1usize && components == 2usize ==> result == Severity::Warning)]
 #[ensures(code_files_count > 1usize && components >= 3usize ==> result == Severity::Error)]
-/// Stale approval predicate.
-///
-/// An approval is stale iff the last approval timestamp is strictly before
-/// the last commit timestamp. Mirrors `gh-verify-core::approval::is_approval_stale`
-/// using integer timestamps instead of ISO 8601 strings.
-#[ensures(result == (last_approval_ts < last_commit_ts))]
-pub fn is_stale(last_approval_ts: usize, last_commit_ts: usize) -> bool {
-    last_approval_ts < last_commit_ts
-}
-
 pub fn classify_scope(code_files_count: usize, components: usize) -> Severity {
     if code_files_count <= 1 {
         return Severity::Pass;
@@ -137,6 +131,16 @@ pub fn classify_scope(code_files_count: usize, components: usize) -> Severity {
         2 => Severity::Warning,
         _ => Severity::Error,
     }
+}
+
+/// Stale approval predicate.
+///
+/// An approval is stale iff the last approval timestamp is strictly before
+/// the last commit timestamp. Mirrors `gh-verify-core::approval::is_approval_stale`
+/// using integer timestamps instead of ISO 8601 strings.
+#[ensures(result == (last_approval_ts < last_commit_ts))]
+pub fn is_stale(last_approval_ts: usize, last_commit_ts: usize) -> bool {
+    last_approval_ts < last_commit_ts
 }
 
 /// PR size classification.

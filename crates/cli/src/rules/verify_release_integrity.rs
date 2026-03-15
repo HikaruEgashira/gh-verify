@@ -30,6 +30,9 @@ impl Rule for VerifyReleaseIntegrity {
                 message: c.commit.message.clone(),
                 verified: c.commit.verification.verified,
                 author_login: c.author.as_ref().map(|a| a.login.clone()),
+                // GitHub Compare API always returns parents[].
+                // Empty = root commit (0 parents), 2+ = merge commit.
+                parent_count: Some(c.parents.len() as u8),
             })
             .collect();
 

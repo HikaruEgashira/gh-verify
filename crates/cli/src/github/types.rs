@@ -64,12 +64,20 @@ pub struct CompareCommitInner {
     pub verification: CommitVerification,
 }
 
+/// Parent commit reference from the GitHub API.
+#[derive(Debug, Clone, Deserialize)]
+pub struct CommitParent {
+    pub sha: String,
+}
+
 /// A commit from the compare API.
 #[derive(Debug, Clone, Deserialize)]
 pub struct CompareCommit {
     pub sha: String,
     pub commit: CompareCommitInner,
     pub author: Option<CommitAuthor>,
+    #[serde(default)]
+    pub parents: Vec<CommitParent>,
 }
 
 /// Response from the compare API.
