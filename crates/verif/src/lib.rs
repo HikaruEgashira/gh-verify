@@ -133,6 +133,33 @@ pub fn classify_scope(code_files_count: usize, components: usize) -> Severity {
     }
 }
 
+/// Coverage classification severity.
+///
+/// Integer arithmetic avoids f64: `covered * 100` vs `threshold * total`.
+/// Exhaustive postconditions covering all four cases.
+#[ensures(total == 0usize ==> result == Severity::Pass)]
+#[ensures(total > 0usize && covered * 100usize > warn_pct * total ==> result == Severity::Pass)]
+#[ensures(total > 0usize && covered * 100usize <= warn_pct * total
+    && covered * 100usize > error_pct * total ==> result == Severity::Warning)]
+#[ensures(total > 0usize && covered * 100usize <= error_pct * total ==> result == Severity::Error)]
+pub fn classify_coverage_severity(
+    covered: usize,
+    total: usize,
+    warn_pct: usize,
+    error_pct: usize,
+) -> Severity {
+    if total == 0 {
+        return Severity::Pass;
+    }
+    if covered * 100 > warn_pct * total {
+        Severity::Pass
+    } else if covered * 100 > error_pct * total {
+        Severity::Warning
+    } else {
+        Severity::Error
+    }
+}
+
 /// Stale approval predicate.
 ///
 /// An approval is stale iff the last approval timestamp is strictly before
