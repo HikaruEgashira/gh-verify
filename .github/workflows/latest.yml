@@ -79,11 +79,6 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - name: Delete existing latest release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh release delete latest --yes --cleanup-tag 2>/dev/null || true
-
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           path: dist
@@ -95,17 +90,36 @@ jobs:
         with:
           subject-path: dist/*
 
-      - uses: softprops/action-gh-release@1853d73993c8ca1b2c9c1a7fede39682d0ab5c2a # v2.5.3
-        with:
-          tag_name: latest
-          target_commitish: ${{ github.sha }}
-          name: "Latest (rolling)"
-          body: |
-            Rolling build from `main` at ${{ github.sha }}.
+      - name: Create or update latest release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Delete old assets from existing release (if any)
+          gh release view latest --json assets --jq '.assets[].name' 2>/dev/null | while read -r name; do
+            gh release delete-asset latest "$name" --yes 2>/dev/null || true
+          done
 
-            ```
-            gh extension install HikaruEgashira/gh-verify --pin latest
-            ```
-          files: dist/*
-          prerelease: true
-          make_latest: false
+          # Create release if it doesn't exist, or update body
+          if gh release view latest >/dev/null 2>&1; then
+            gh release edit latest \
+              --title "Latest (rolling)" \
+              --notes "Rolling build from \`main\` at ${{ github.sha }}.
+
+          \`\`\`
+          gh extension install HikaruEgashira/gh-verify --pin latest
+          \`\`\`" \
+              --prerelease
+          else
+            gh release create latest \
+              --title "Latest (rolling)" \
+              --notes "Rolling build from \`main\` at ${{ github.sha }}.
+
+          \`\`\`
+          gh extension install HikaruEgashira/gh-verify --pin latest
+          \`\`\`" \
+              --prerelease \
+              --target ${{ github.sha }}
+          fi
+
+          # Upload new assets
+          gh release upload latest dist/* --clobber
