@@ -1,0 +1,19 @@
+{
+  "id": "stencil-dist-custom-elements-autoloader",
+  "description": "Stencil adds dist-custom-elements autoLoader support across compiler output, declarations, and wdio harness",
+  "repo": "stenciljs/core",
+  "pr_number": 6594,
+  "expected": "pass",
+  "rationale": "The changed compiler output files, public compiler declarations, validation specs, and wdio fixtures all belong to one autoLoader feature rollout. They should remain one semantic unit even without direct patch-local call edges.",
+  "category": "semantic-bridge",
+  "domains_expected": [],
+  "ecosystem": "typescript",
+  "notes": "Current engine reports error because feature implementation, declaration surface, validation tests, and e2e harness files are fragmented into many disconnected clusters.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 10005,
+    "collection_name": "Javascript Framework",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-03-15T01:16:46Z"
+  }
+}
