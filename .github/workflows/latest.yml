@@ -87,7 +87,7 @@ jobs:
           path: dist
           merge-multiple: true
 
-      - uses: softprops/action-gh-release@c95fe1489396fe8a6f36d0f87a8b4e7df4bb07a2 # v2
+      - uses: softprops/action-gh-release@1853d73993c8ca1b2c9c1a7fede39682d0ab5c2a # v2.5.3
         with:
           tag_name: latest
           name: "Latest (rolling)"
