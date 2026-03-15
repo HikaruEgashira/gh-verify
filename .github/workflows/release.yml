@@ -104,6 +104,9 @@ jobs:
           fi
 
       - uses: softprops/action-gh-release@1853d73993c8ca1b2c9c1a7fede39682d0ab5c2a # v2.5.3
+        # TODO: remove continue-on-error after GitHub clears immutable release cache
+        # (caused by prior required_signatures ruleset). Tracked via GitHub Support.
+        continue-on-error: ${{ steps.meta.outputs.prerelease == 'true' }}
         with:
           files: dist/*
           prerelease: ${{ steps.meta.outputs.prerelease }}
