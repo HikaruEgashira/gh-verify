@@ -779,22 +779,26 @@ fn render_html(rules: &BTreeMap<String, RuleInfo>) -> String {
     html.push_str("</main>\n</div>\n");
 
     // Scroll-spy script for active sidebar highlighting
-    html.push_str("</div>\n<script>\n");
-    html.push_str("(function(){\n");
-    html.push_str("  var secs = document.querySelectorAll(\".rule[id]\");\n");
-    html.push_str("  var links = document.querySelectorAll(\".sidebar a\");\n");
-    html.push_str("  var obs = new IntersectionObserver(function(entries){\n");
-    html.push_str("    entries.forEach(function(e){\n");
-    html.push_str("      if(e.isIntersecting){\n");
-    html.push_str("        links.forEach(function(a){a.parentElement.classList.remove(\"active\")});\n");
-    html.push_str("        var l=document.querySelector(\".sidebar a[href=\\\"#\"+e.target.id+\"\\\"]\");\n");
-    html.push_str("        if(l) l.parentElement.classList.add(\"active\");\n");
-    html.push_str("      }\n");
-    html.push_str("    });\n");
-    html.push_str("  }, {rootMargin:\"-20% 0px -70% 0px\"});\n");
-    html.push_str("  secs.forEach(function(s){obs.observe(s)});\n");
-    html.push_str("})();\n");
-    html.push_str("</script>\n</body>\n</html>");
+    html.push_str(
+        "</div>\n<script>\n\
+         (function(){\n\
+         var secs=document.querySelectorAll(\".rule[id]\");\n\
+         var links=document.querySelectorAll(\".sidebar a\");\n\
+         var map=new Map();\n\
+         links.forEach(function(a){map.set(a.getAttribute(\"href\"),a)});\n\
+         var obs=new IntersectionObserver(function(entries){\n\
+         entries.forEach(function(e){\n\
+         if(e.isIntersecting){\n\
+         links.forEach(function(a){a.parentElement.classList.remove(\"active\")});\n\
+         var l=map.get(\"#\"+e.target.id);\n\
+         if(l)l.parentElement.classList.add(\"active\");\n\
+         }\n\
+         });\n\
+         },{rootMargin:\"-20% 0px -70% 0px\"});\n\
+         secs.forEach(function(s){obs.observe(s)});\n\
+         })();\n\
+         </script>\n</body>\n</html>",
+    );
 
     html
 }
@@ -1019,8 +1023,12 @@ body {
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
-header { margin-bottom: 1.5rem; }
-h1 { font-size: 1.8rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+header {
+  position: sticky; top: 0; z-index: 10;
+  background: var(--bg); padding: 0.8rem 0; margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+h1 { font-size: 1.5rem; margin: 0; }
 .subtitle { color: var(--muted); margin-top: 0.5rem; }
 .subtitle strong { color: var(--fg); }
 .timestamp { color: var(--muted); font-size: 0.8rem; margin-top: 0.3rem; }
@@ -1036,7 +1044,7 @@ h1 { font-size: 1.8rem; border-bottom: 1px solid var(--border); padding-bottom: 
 /* Sidebar + main layout */
 .layout { display: flex; gap: 1.5rem; align-items: flex-start; }
 .sidebar {
-  position: sticky; top: 1rem;
+  position: sticky; top: 4.5rem;
   width: 220px; min-width: 220px;
   background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
   padding: 0.8rem 0; max-height: calc(100vh - 2rem); overflow-y: auto;
