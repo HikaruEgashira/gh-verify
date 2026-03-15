@@ -36,6 +36,7 @@ without relying solely on human judgement.
 | Rule | Severity | Description |
 |---|---|---|
 | `detect-unscoped-change` | warning / error | Flags PRs that touch multiple unrelated domains |
+| `detect-missing-test` | warning | Warns when source changes have no matching test updates |
 | `verify-release-integrity` | error | Checks commit signatures, mutual approval, PR coverage |
 
 Run `gh verify pr list-rules` to see all registered rules.
@@ -47,6 +48,9 @@ Run `gh verify pr list-rules` to see all registered rules.
 ```bash
 # Verify a PR
 gh verify pr 123 --repo owner/repo
+
+# Verify a PR and disable missing-test detection
+gh verify pr 123 --repo owner/repo --no-detect-missing-test
 
 # JSON output
 gh verify pr 123 --repo owner/repo --format json
