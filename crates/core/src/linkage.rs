@@ -143,17 +143,28 @@ fn extract_github_issues(body: &str, refs: &mut Vec<IssueReference>) {
 }
 
 /// Parse a run of ASCII digits starting at `start`, returning the digit string and end index.
+///
+/// Returns `None` if there are no digits **or** if the digit run is immediately
+/// followed by an alphanumeric character, `_`, or `-`. This prevents matching
+/// `#123abc` as a GitHub issue reference while still accepting `#123`, `#123 `,
+/// `#123.`, and `#123!`.
 fn parse_digits(chars: &[char], start: usize) -> Option<(String, usize)> {
     let mut end = start;
     while end < chars.len() && chars[end].is_ascii_digit() {
         end += 1;
     }
-    if end > start {
-        let s: String = chars[start..end].iter().collect();
-        Some((s, end))
-    } else {
-        None
+    if end == start {
+        return None;
     }
+    // Reject if digits are followed by word-like characters (e.g. #123abc)
+    if end < chars.len() {
+        let next = chars[end];
+        if next.is_alphanumeric() || next == '_' || next == '-' {
+            return None;
+        }
+    }
+    let s: String = chars[start..end].iter().collect();
+    Some((s, end))
 }
 
 /// Extract Jira-style ticket references: `[A-Z]{2,}-\d+`.
@@ -304,14 +315,14 @@ mod tests {
     fn github_issue_closes_keyword() {
         let refs = extract_issue_references("Closes #789", &[]);
         assert!(has_issue_linkage(&refs));
-        assert!(refs[0].value.contains("#789"));
+        assert_eq!(refs[0].value, "Closes #789");
     }
 
     #[test]
     fn github_issue_resolves_keyword() {
         let refs = extract_issue_references("resolves #012", &[]);
         assert!(has_issue_linkage(&refs));
-        assert!(refs[0].value.contains("#012"));
+        assert_eq!(refs[0].value, "resolves #012");
     }
 
     #[test]
@@ -391,7 +402,7 @@ mod tests {
         // Multi-byte chars before issue reference must not panic
         let refs = extract_issue_references("あいう fixes #12", &[]);
         assert!(has_issue_linkage(&refs));
-        assert!(refs.iter().any(|r| r.value.contains("#12")));
+        assert_eq!(refs[0].value, "fixes #12");
     }
 
     #[test]
@@ -405,7 +416,7 @@ mod tests {
     fn emoji_body_with_issue_ref() {
         let refs = extract_issue_references("🎉🎊 closes #42", &[]);
         assert!(has_issue_linkage(&refs));
-        assert!(refs.iter().any(|r| r.value.contains("#42")));
+        assert_eq!(refs[0].value, "closes #42");
     }
 
     // --- P2: Markdown URL detection ---
@@ -463,5 +474,51 @@ mod tests {
         );
         assert!(refs.iter().any(|r| r.value == "PROJ-123"));
         assert!(refs.iter().any(|r| r.value == "MYAPP-456"));
+    }
+
+    // --- Trailing-character rejection (coderabbit fix) ---
+
+    #[test]
+    fn hash_followed_by_alpha_not_matched() {
+        // #123abc is not a valid GitHub issue reference
+        let refs = extract_issue_references("#123abc", &[]);
+        assert!(!has_issue_linkage(&refs));
+    }
+
+    #[test]
+    fn color_hex_not_matched() {
+        // CSS hex color should not match
+        let refs = extract_issue_references("color: #FF0000", &[]);
+        assert!(!has_issue_linkage(&refs));
+    }
+
+    #[test]
+    fn hash_followed_by_period_matched() {
+        // Period is not alphanumeric, so #123. should match
+        let refs = extract_issue_references("#123.", &[]);
+        assert!(has_issue_linkage(&refs));
+        assert_eq!(refs[0].value, "#123");
+    }
+
+    #[test]
+    fn keyword_hash_followed_by_exclamation_matched() {
+        // Exclamation is not alphanumeric, so fixes #123! should match
+        let refs = extract_issue_references("fixes #123!", &[]);
+        assert!(has_issue_linkage(&refs));
+        assert_eq!(refs[0].value, "fixes #123");
+    }
+
+    // --- Biconditional property test ---
+
+    /// Property: has_issue_linkage returns true iff extract_issue_references returns non-empty.
+    #[test]
+    fn linkage_biconditional() {
+        // Forward: references exist => linkage
+        let with_refs = extract_issue_references("fixes #1", &[]);
+        assert!(has_issue_linkage(&with_refs));
+
+        // Backward: no references => no linkage
+        let without_refs = extract_issue_references("plain text", &[]);
+        assert!(!has_issue_linkage(&without_refs));
     }
 }
