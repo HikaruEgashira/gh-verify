@@ -299,7 +299,9 @@ pub fn extract_feature_namespace(paths: &[&str]) -> Option<FeatureNamespace> {
         {
             continue;
         }
-        if indices.len() > best_count {
+        if indices.len() > best_count
+            || (indices.len() == best_count && best.map_or(true, |(t, _)| *token < t))
+        {
             best_count = indices.len();
             best = Some((token, indices));
         }
@@ -315,7 +317,7 @@ pub fn extract_feature_namespace(paths: &[&str]) -> Option<FeatureNamespace> {
     }
 
     // Bigram pass: two tokens each >= 5 chars whose intersection covers threshold.
-    let short_keys: Vec<&str> = token_stats
+    let mut short_keys: Vec<&str> = token_stats
         .keys()
         .filter(|t| {
             t.len() >= 5 && {
@@ -325,6 +327,7 @@ pub fn extract_feature_namespace(paths: &[&str]) -> Option<FeatureNamespace> {
         })
         .copied()
         .collect();
+    short_keys.sort_unstable();
 
     let mut best_bigram: Option<(&str, Vec<usize>)> = None;
     let mut best_bigram_count: usize = 0;
@@ -338,7 +341,13 @@ pub fn extract_feature_namespace(paths: &[&str]) -> Option<FeatureNamespace> {
                 .filter(|idx| set_b.contains(idx))
                 .copied()
                 .collect();
-            if intersection.len() >= threshold && intersection.len() > best_bigram_count {
+            if intersection.len() >= threshold
+                && (intersection.len() > best_bigram_count
+                    || (intersection.len() == best_bigram_count
+                        && best_bigram
+                            .as_ref()
+                            .map_or(true, |(t, _)| short_keys[i] < *t)))
+            {
                 best_bigram_count = intersection.len();
                 let label = if short_keys[i].len() >= short_keys[j].len() {
                     short_keys[i]
@@ -507,6 +516,14 @@ fn parent_dir(path: &str) -> &str {
 /// boundary directory (src, lib, test, tests, __tests__, e2e).
 /// Falls back to parent_dir when no boundary is found.
 fn package_root(path: &str) -> &str {
+    // Handle repo-root boundaries (e.g. "src/...", "test/...")
+    const ROOT_BOUNDARIES: &[&str] = &["src/", "lib/", "test/", "tests/", "__tests__/", "e2e/"];
+    for boundary in ROOT_BOUNDARIES {
+        if path.starts_with(boundary) {
+            return &path[..boundary.len() - 1]; // "src", "test", etc.
+        }
+    }
+
     const BOUNDARIES: &[&str] = &[
         "/src/",
         "/lib/",
