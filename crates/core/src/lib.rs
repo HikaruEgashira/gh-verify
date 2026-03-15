@@ -1,9 +1,14 @@
 pub mod approval;
+pub mod assessment;
 pub mod branch_protection;
+pub mod control;
+pub mod controls;
 pub mod conventional;
 pub mod coverage;
+pub mod evidence;
 pub mod integrity;
 pub mod linkage;
+pub mod profile;
 pub mod scope;
 pub mod size;
 pub mod test_coverage;
