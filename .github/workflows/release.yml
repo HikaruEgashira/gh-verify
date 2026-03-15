@@ -54,6 +54,7 @@ jobs:
 
       - name: Set edge version suffix
         if: contains(env.RELEASE_TAG, '-dev.')
+        shell: bash
         run: |
           SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
           echo "GH_VERIFY_VERSION_SUFFIX=dev+${SHORT_SHA}" >> "$GITHUB_ENV"
