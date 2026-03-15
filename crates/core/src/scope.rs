@@ -157,17 +157,10 @@ pub fn should_bridge_colocated_sources(path_a: &str, path_b: &str) -> bool {
     has_token_overlap(&tokens_a, &tokens_b, 8, true)
 }
 
-/// Bridge test/fixture file to a single source file with strict guards.
-pub fn should_bridge_aux_to_single_source(
-    source_path: &str,
-    aux_path: &str,
-    source_count: usize,
-    aux_count: usize,
-) -> bool {
-    if source_count != 1 || aux_count == 0 || aux_count > 3 {
-        return false;
-    }
-
+/// Bridge test/fixture file to a source file with semantic token overlap.
+/// Guards: role check, parent_dir difference, same package root, and
+/// token overlap (≥5 chars, non-generic).
+pub fn should_bridge_aux_to_source(source_path: &str, aux_path: &str) -> bool {
     if classify_file_role(source_path) != FileRole::Source {
         return false;
     }
@@ -182,8 +175,9 @@ pub fn should_bridge_aux_to_single_source(
         return false;
     }
 
-    // Require cross-tree relation (e.g. src vs tests/fixtures tree).
-    if tree_root(source_path) == tree_root(aux_path) {
+    // Source and aux must be in the same package (share a package root).
+    // This prevents cross-package bridging via coincidental token overlap.
+    if package_root(source_path) != package_root(aux_path) {
         return false;
     }
 
@@ -315,6 +309,21 @@ fn parent_dir(path: &str) -> &str {
     path.rsplit_once('/').map(|(p, _)| p).unwrap_or("")
 }
 
+/// Detect the package root by finding the prefix before the first conventional
+/// boundary directory (src, lib, test, tests, __tests__, e2e).
+/// Falls back to parent_dir when no boundary is found.
+fn package_root(path: &str) -> &str {
+    const BOUNDARIES: &[&str] = &[
+        "/src/", "/lib/", "/test/", "/tests/", "/__tests__/", "/e2e/",
+    ];
+    for boundary in BOUNDARIES {
+        if let Some(idx) = path.find(boundary) {
+            return &path[..idx];
+        }
+    }
+    parent_dir(path)
+}
+
 fn is_fork_variant_path(path: &str) -> bool {
     path.contains("/forks/")
 }
@@ -324,15 +333,6 @@ fn fork_family_root(path: &str) -> String {
         return prefix.to_string();
     }
     parent_dir(path).to_string()
-}
-
-fn tree_root(path: &str) -> String {
-    let mut parts = path.split('/');
-    match (parts.next(), parts.next()) {
-        (Some(a), Some(b)) => format!("{a}/{b}"),
-        (Some(a), None) => a.to_string(),
-        _ => String::new(),
-    }
 }
 
 fn common_prefix_len(a: &str, b: &str) -> usize {
@@ -502,26 +502,47 @@ mod tests {
     }
 
     #[test]
-    fn aux_bridge_requires_single_source_and_cross_tree_overlap() {
-        assert!(should_bridge_aux_to_single_source(
-            "packages/runtime-core/src/apiDefineComponent.ts",
-            "packages-private/dts-test/defineComponent.test-d.ts",
-            1,
-            1
-        ));
-
-        assert!(!should_bridge_aux_to_single_source(
+    fn aux_bridge_with_token_overlap() {
+        // Same-dir unit test must NOT bridge
+        assert!(!should_bridge_aux_to_source(
             "packages/client/src/mariadb.ts",
             "packages/client/src/mariadb.test.ts",
-            1,
-            1
         ));
 
-        assert!(!should_bridge_aux_to_single_source(
+        // Same package, different dirs, token overlap → bridge
+        assert!(should_bridge_aux_to_source(
+            "packages/compiler-vapor/src/generators/expression.ts",
+            "packages/compiler-vapor/__tests__/transforms/expression.spec.ts",
+        ));
+
+        // Scoped packages in monorepo → bridge
+        assert!(should_bridge_aux_to_source(
+            "packages/@ember/-internals/glimmer/lib/components/link-to.ts",
+            "packages/@ember/-internals/glimmer/tests/integration/components/link-to/routing-angle-test.js",
+        ));
+
+        // Same package (compiler), src/ vs test/ → bridge
+        assert!(should_bridge_aux_to_source(
+            "packages/compiler/src/ml_parser/parser.ts",
+            "packages/compiler/test/ml_parser/html_parser_spec.ts",
+        ));
+
+        // Cross-package must NOT bridge (different package roots)
+        assert!(!should_bridge_aux_to_source(
+            "packages/client-engine-runtime/src/query-interpreter.ts",
+            "packages/client/tests/functional/issue/tests.ts",
+        ));
+
+        // No semantic overlap must NOT bridge
+        assert!(!should_bridge_aux_to_source(
+            "packages/compiler/src/parser.ts",
+            "packages/compiler/test/scheduler.spec.ts",
+        ));
+
+        // Cross-package (runtime-core vs packages-private) must NOT bridge
+        assert!(!should_bridge_aux_to_source(
             "packages/runtime-core/src/apiDefineComponent.ts",
             "packages-private/dts-test/defineComponent.test-d.ts",
-            2,
-            1
         ));
     }
 

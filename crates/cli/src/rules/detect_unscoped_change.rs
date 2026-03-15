@@ -1,8 +1,8 @@
 use anyhow::Result;
 use gh_verify_core::scope::{
-    FileRole, classify_file_role, classify_scope, is_non_code_file, resolve_import,
-    should_bridge_aux_to_single_source, should_bridge_colocated_sources,
-    should_bridge_fork_variants, should_bridge_test_fixture_pair,
+    classify_scope, is_non_code_file, resolve_import, should_bridge_aux_to_source,
+    should_bridge_colocated_sources, should_bridge_fork_variants,
+    should_bridge_test_fixture_pair,
 };
 use gh_verify_core::union_find::{NodeKind, UnionFind};
 use gh_verify_core::verdict::{RuleResult, Severity};
@@ -46,16 +46,6 @@ impl Rule for DetectUnscopedChange {
                 symbol_extractor::extract_symbols(&file.filename, file.patch.as_deref().unwrap())?;
             all_symbols.push(symbols);
         }
-
-        let file_roles: Vec<FileRole> = code_files
-            .iter()
-            .map(|(_, file)| classify_file_role(&file.filename))
-            .collect();
-        let source_count = file_roles
-            .iter()
-            .filter(|&&r| r == FileRole::Source)
-            .count();
-        let aux_count = file_roles.len() - source_count;
 
         // Build call graph
         let mut graph = UnionFind::new();
@@ -112,8 +102,8 @@ impl Rule for DetectUnscopedChange {
                 let path_b = &code_files[idx_b].1.filename;
 
                 let should_merge = should_bridge_colocated_sources(path_a, path_b)
-                    || should_bridge_aux_to_single_source(path_a, path_b, source_count, aux_count)
-                    || should_bridge_aux_to_single_source(path_b, path_a, source_count, aux_count)
+                    || should_bridge_aux_to_source(path_a, path_b)
+                    || should_bridge_aux_to_source(path_b, path_a)
                     || should_bridge_fork_variants(path_a, path_b)
                     || should_bridge_test_fixture_pair(path_a, path_b);
 
