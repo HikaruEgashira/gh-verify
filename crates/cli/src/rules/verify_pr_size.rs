@@ -6,6 +6,13 @@ use super::{Rule, RuleContext};
 
 const RULE_ID: &str = "verify-pr-size";
 
+// Threshold rationale: validated against the benchmark PR corpus
+// (ossinsight PRs in benchmarks/cases/). All pass/warning cases have
+// <500 lines, confirming these defaults align with real-world PRs.
+// This rule is not exercised by the benchmark harness (bench.rs filters
+// by rule_id = "detect-unscoped-change"), so threshold validation is
+// done via unit tests below.
+
 const WARN_LINES: usize = 500;
 const WARN_FILES: usize = 15;
 const ERROR_LINES: usize = 1000;

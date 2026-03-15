@@ -76,3 +76,30 @@ pub fn classify_scope(code_files_count: usize, components: usize) -> Severity {
         _ => Severity::Error,
     }
 }
+
+/// PR size classification.
+///
+/// Returns `Error` when either dimension exceeds its error threshold,
+/// `Warning` when either exceeds its warning threshold, `Pass` otherwise.
+/// Uses strict greater-than: exactly at the threshold does NOT trigger.
+#[ensures(total_lines > error_lines || total_files > error_files ==> result == Severity::Error)]
+#[ensures(!(total_lines > error_lines || total_files > error_files)
+    && (total_lines > warn_lines || total_files > warn_files) ==> result == Severity::Warning)]
+#[ensures(!(total_lines > error_lines || total_files > error_files)
+    && !(total_lines > warn_lines || total_files > warn_files) ==> result == Severity::Pass)]
+pub fn classify_pr_size(
+    total_lines: usize,
+    total_files: usize,
+    warn_lines: usize,
+    warn_files: usize,
+    error_lines: usize,
+    error_files: usize,
+) -> Severity {
+    if total_lines > error_lines || total_files > error_files {
+        Severity::Error
+    } else if total_lines > warn_lines || total_files > warn_files {
+        Severity::Warning
+    } else {
+        Severity::Pass
+    }
+}
