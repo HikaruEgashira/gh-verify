@@ -175,10 +175,7 @@ mod tests {
 
     #[test]
     fn unknown_type() {
-        assert!(!is_conventional_commit(
-            "yolo: something",
-            DEFAULT_TYPES
-        ));
+        assert!(!is_conventional_commit("yolo: something", DEFAULT_TYPES));
     }
 
     #[test]
@@ -256,7 +253,11 @@ mod tests {
 
     #[test]
     fn all_compliant_returns_pass() {
-        let msgs = vec!["feat: add feature", "fix: resolve bug", "docs: update readme"];
+        let msgs = vec![
+            "feat: add feature",
+            "fix: resolve bug",
+            "docs: update readme",
+        ];
         assert_eq!(
             classify_commit_compliance(&msgs, DEFAULT_TYPES),
             Severity::Pass
@@ -344,16 +345,8 @@ mod tests {
     fn exactly_half_non_compliant_returns_warning() {
         // 5 out of 10 => 50%, not > 50%, so Warning
         let msgs = vec![
-            "feat: a",
-            "fix: b",
-            "docs: c",
-            "chore: d",
-            "test: e",
-            "bad 1",
-            "bad 2",
-            "bad 3",
-            "bad 4",
-            "bad 5",
+            "feat: a", "fix: b", "docs: c", "chore: d", "test: e", "bad 1", "bad 2", "bad 3",
+            "bad 4", "bad 5",
         ];
         assert_eq!(
             classify_commit_compliance(&msgs, DEFAULT_TYPES),

@@ -165,9 +165,14 @@ pub fn should_bridge_colocated_sources(path_a: &str, path_b: &str) -> bool {
 }
 
 /// Bridge test/fixture file to a source file with semantic token overlap.
-/// Guards: role check, parent_dir difference, same package root, and
+/// Guards: aux count cap, role check, parent_dir difference, and
 /// token overlap (≥5 chars, non-generic).
-pub fn should_bridge_aux_to_source(source_path: &str, aux_path: &str) -> bool {
+pub fn should_bridge_aux_to_source(source_path: &str, aux_path: &str, aux_count: usize) -> bool {
+    // Too many aux files suggests bulk cleanup, not focused change.
+    if aux_count > 6 {
+        return false;
+    }
+
     if classify_file_role(source_path) != FileRole::Source {
         return false;
     }
@@ -179,12 +184,6 @@ pub fn should_bridge_aux_to_source(source_path: &str, aux_path: &str) -> bool {
 
     // Do not collapse same-parent unit test pairs (can hide real split concerns).
     if parent_dir(source_path) == parent_dir(aux_path) {
-        return false;
-    }
-
-    // Source and aux must be in the same package (share a package root).
-    // This prevents cross-package bridging via coincidental token overlap.
-    if package_root(source_path) != package_root(aux_path) {
         return false;
     }
 
@@ -731,42 +730,42 @@ mod tests {
         assert!(!should_bridge_aux_to_source(
             "packages/client/src/mariadb.ts",
             "packages/client/src/mariadb.test.ts",
+            1,
         ));
 
         // Same package, different dirs, token overlap → bridge
         assert!(should_bridge_aux_to_source(
             "packages/compiler-vapor/src/generators/expression.ts",
             "packages/compiler-vapor/__tests__/transforms/expression.spec.ts",
+            1,
         ));
 
         // Scoped packages in monorepo → bridge
         assert!(should_bridge_aux_to_source(
             "packages/@ember/-internals/glimmer/lib/components/link-to.ts",
             "packages/@ember/-internals/glimmer/tests/integration/components/link-to/routing-angle-test.js",
+            2,
         ));
 
         // Same package (compiler), src/ vs test/ → bridge
         assert!(should_bridge_aux_to_source(
             "packages/compiler/src/ml_parser/parser.ts",
             "packages/compiler/test/ml_parser/html_parser_spec.ts",
+            1,
         ));
 
-        // Cross-package must NOT bridge (different package roots)
-        assert!(!should_bridge_aux_to_source(
-            "packages/client-engine-runtime/src/query-interpreter.ts",
-            "packages/client/tests/functional/issue/tests.ts",
-        ));
-
-        // No semantic overlap must NOT bridge
-        assert!(!should_bridge_aux_to_source(
-            "packages/compiler/src/parser.ts",
-            "packages/compiler/test/scheduler.spec.ts",
-        ));
-
-        // Cross-package (runtime-core vs packages-private) must NOT bridge
-        assert!(!should_bridge_aux_to_source(
+        // Cross-package with token overlap → bridge allowed
+        assert!(should_bridge_aux_to_source(
             "packages/runtime-core/src/apiDefineComponent.ts",
             "packages-private/dts-test/defineComponent.test-d.ts",
+            1,
+        ));
+
+        // Too many aux files → bulk operation, no bridge
+        assert!(!should_bridge_aux_to_source(
+            "packages/compiler/src/parser.ts",
+            "packages/compiler/test/parser.spec.ts",
+            7,
         ));
     }
 

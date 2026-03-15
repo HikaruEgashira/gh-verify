@@ -144,10 +144,7 @@ pub fn check_branch_protection(
         results.push(RuleResult {
             rule_id: RULE_ID.to_string(),
             severity: Severity::Warning,
-            message: format!(
-                "{} PRs merged to unprotected branches",
-                unprotected.len()
-            ),
+            message: format!("{} PRs merged to unprotected branches", unprotected.len()),
             affected_files: unprotected
                 .iter()
                 .map(|v| format!("PR #{}", v.pr_number))
@@ -196,10 +193,7 @@ mod tests {
 
     #[test]
     fn all_prs_merged_to_main_pass() {
-        let prs = vec![
-            make_pr(1, "main", 2, true),
-            make_pr(2, "main", 1, true),
-        ];
+        let prs = vec![make_pr(1, "main", 2, true), make_pr(2, "main", 1, true)];
         let violations = classify_branch_compliance(&prs, &["main"]);
         assert!(violations.is_empty());
     }

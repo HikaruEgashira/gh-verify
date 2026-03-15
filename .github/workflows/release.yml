@@ -7,6 +7,8 @@ on:
 
 permissions:
   contents: write
+  id-token: write
+  attestations: write
 
 jobs:
   build:
@@ -74,7 +76,12 @@ jobs:
           path: dist
           merge-multiple: true
 
-      - uses: softprops/action-gh-release@c95fe1489396fe8a6f36d0f87a8b4e7df4bb07a2 # v2
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4.1.0
+        with:
+          subject-path: dist/*
+
+      - uses: softprops/action-gh-release@1853d73993c8ca1b2c9c1a7fede39682d0ab5c2a # v2.5.3
         with:
           files: dist/*
           prerelease: false

@@ -16,8 +16,7 @@ impl GitHubClient {
         let mut headers = HeaderMap::new();
         headers.insert(
             AUTHORIZATION,
-            HeaderValue::from_str(&format!("Bearer {}", cfg.token))
-                .context("invalid token")?,
+            HeaderValue::from_str(&format!("Bearer {}", cfg.token)).context("invalid token")?,
         );
         headers.insert(
             ACCEPT,
@@ -27,10 +26,7 @@ impl GitHubClient {
             "X-GitHub-Api-Version",
             HeaderValue::from_static("2022-11-28"),
         );
-        headers.insert(
-            USER_AGENT,
-            HeaderValue::from_static("gh-verify/0.2.0"),
-        );
+        headers.insert(USER_AGENT, HeaderValue::from_static("gh-verify/0.2.0"));
 
         let client = Client::builder()
             .default_headers(headers)
@@ -46,7 +42,11 @@ impl GitHubClient {
     /// GET request returning body as string.
     pub fn get(&self, path: &str) -> Result<String> {
         let url = format!("{}{}", self.base_url, path);
-        let resp = self.client.get(&url).send().context("HTTP request failed")?;
+        let resp = self
+            .client
+            .get(&url)
+            .send()
+            .context("HTTP request failed")?;
 
         let status = resp.status();
         if !status.is_success() {
@@ -67,7 +67,11 @@ impl GitHubClient {
     /// GET request with pagination support. Returns (body, next_url).
     pub fn get_with_link(&self, path: &str) -> Result<(String, Option<String>)> {
         let url = format!("{}{}", self.base_url, path);
-        let resp = self.client.get(&url).send().context("HTTP request failed")?;
+        let resp = self
+            .client
+            .get(&url)
+            .send()
+            .context("HTTP request failed")?;
 
         let status = resp.status();
         if !status.is_success() {
@@ -118,10 +122,7 @@ mod tests {
     fn parse_link_next_extracts_path() {
         let header = r#"<https://api.github.com/repos/o/r/pulls/1/files?page=2>; rel="next", <https://api.github.com/repos/o/r/pulls/1/files?page=5>; rel="last""#;
         let result = parse_link_next(header, "https://api.github.com");
-        assert_eq!(
-            result,
-            Some("/repos/o/r/pulls/1/files?page=2".to_string())
-        );
+        assert_eq!(result, Some("/repos/o/r/pulls/1/files?page=2".to_string()));
     }
 
     #[test]

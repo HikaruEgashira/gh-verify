@@ -6,7 +6,9 @@ use gh_verify_core::evidence::{
     WorkItemRef,
 };
 
-use crate::github::types::{CompareCommit, PrCommit, PrFile, PrMetadata, PullRequestSummary, Review};
+use crate::github::types::{
+    CompareCommit, PrCommit, PrFile, PrMetadata, PullRequestSummary, Review,
+};
 
 /// Associates a commit SHA with the pull requests that introduced it.
 pub struct GitHubCommitPullAssociation {
@@ -133,8 +135,7 @@ pub fn map_promotion_batch_evidence(
     commits: &[CompareCommit],
     commit_pulls: &[GitHubCommitPullAssociation],
 ) -> PromotionBatch {
-    let commit_shas: HashSet<&str> =
-        commits.iter().map(|c| c.sha.as_str()).collect();
+    let commit_shas: HashSet<&str> = commits.iter().map(|c| c.sha.as_str()).collect();
     let mut seen_prs = HashSet::new();
     let linked_change_requests: Vec<ChangeRequestId> = commit_pulls
         .iter()

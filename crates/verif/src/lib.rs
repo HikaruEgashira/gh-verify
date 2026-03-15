@@ -151,7 +151,7 @@ pub fn classify_scope(code_files_count: usize, components: usize) -> Severity {
 ///
 /// Preconditions prevent overflow in `covered * 100` and `pct * total`.
 #[requires(covered <= total)]
-#[requires(total <= 46116860184273879usize)]    // prevents total * 100 overflow
+#[requires(total <= 46116860184273879usize)] // prevents total * 100 overflow
 #[requires(warn_pct <= 100usize)]
 #[requires(error_pct <= 100usize)]
 #[requires(error_pct <= warn_pct)]
@@ -242,10 +242,7 @@ pub fn classify_pr_size(
 #[ensures(known_author_count == 0usize ==> result == false)]
 #[ensures(known_author_count > 0usize && has_independent ==> result == true)]
 #[ensures(known_author_count > 0usize && !has_independent ==> result == false)]
-pub fn four_eyes_with_known_authors(
-    known_author_count: usize,
-    has_independent: bool,
-) -> bool {
+pub fn four_eyes_with_known_authors(known_author_count: usize, has_independent: bool) -> bool {
     known_author_count > 0 && has_independent
 }
 

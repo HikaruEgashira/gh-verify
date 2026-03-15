@@ -39,7 +39,9 @@ fn normalize_secret(value: &str) -> Option<String> {
 }
 
 fn non_empty_env_var(name: &str) -> Option<String> {
-    std::env::var(name).ok().and_then(|value| normalize_secret(&value))
+    std::env::var(name)
+        .ok()
+        .and_then(|value| normalize_secret(&value))
 }
 
 fn resolve_token() -> Result<String> {
@@ -76,7 +78,10 @@ mod tests {
 
     #[test]
     fn normalize_secret_trims_valid_token() {
-        assert_eq!(normalize_secret("  gho_test  "), Some("gho_test".to_string()));
+        assert_eq!(
+            normalize_secret("  gho_test  "),
+            Some("gho_test".to_string())
+        );
     }
 
     #[test]
