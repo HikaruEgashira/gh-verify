@@ -14,7 +14,8 @@ devenv tasks run ghverify:bench          # Benchmarks (uses GitHub API)
 devenv tasks run ghverify:dist           # Build release binary for distribution
 devenv tasks run ghverify:fmt            # Format + clippy lint
 devenv tasks run ghverify:docs            # Generate rule docs from tests/specs → site/
-devenv tasks run ghverify:verify         # Creusot formal verification
+./scripts/verify.sh                      # Creusot formal verification (all)
+./scripts/verify.sh <predicate_name>     # Creusot verify single predicate
 ```
 
 ## Architecture
