@@ -3,6 +3,7 @@ use gh_verify_core::verdict::RuleResult;
 
 use super::detect_missing_test::DetectMissingTest;
 use super::detect_unscoped_change::DetectUnscopedChange;
+use super::verify_branch_protection::VerifyBranchProtection;
 use super::verify_release_integrity::VerifyReleaseIntegrity;
 use super::{Rule, RuleContext};
 
@@ -12,6 +13,7 @@ pub fn run_all(ctx: &RuleContext) -> Result<Vec<RuleResult>> {
         Box::new(DetectUnscopedChange),
         Box::new(DetectMissingTest),
         Box::new(VerifyReleaseIntegrity),
+        Box::new(VerifyBranchProtection),
     ];
 
     let mut results = Vec::new();
@@ -28,5 +30,6 @@ pub fn list_rule_ids() -> Vec<&'static str> {
         DetectUnscopedChange.id(),
         DetectMissingTest.id(),
         VerifyReleaseIntegrity.id(),
+        VerifyBranchProtection.id(),
     ]
 }
