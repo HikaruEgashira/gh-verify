@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-14T09:20:20Z",
+  "generated_at": "2026-03-15T01:17:13Z",
   "collection_id": 10005,
   "period": "past_28_days",
   "repos": [
@@ -7,7 +7,7 @@
       "repo": "angular/angular",
       "current_period_rank": "1",
       "current_period_growth": "89",
-      "total_prs": "33812",
+      "total_prs": "33814",
       "top_pr_creators": [
         {
           "id": "8604205",
@@ -52,37 +52,26 @@
       ],
       "prs": [
         {
-          "number": 67014,
-          "title": "build: update pnpm to v10.29.2 (21.1.x)",
-          "merged_at": "2026-02-11T23:37:16Z",
-          "changed_files": 27,
+          "number": 67034,
+          "title": "build: update cross-repo angular dependencies (21.1.x)",
+          "merged_at": "2026-02-12T19:15:40Z",
+          "changed_files": 16,
           "code_files": 1,
           "changed_paths": [
+            ".github/actions/saucelabs-legacy/action.yml",
+            ".github/workflows/adev-preview-build.yml",
+            ".github/workflows/adev-preview-deploy.yml",
+            ".github/workflows/assistant-to-the-branch-manager.yml",
+            ".github/workflows/benchmark-compare.yml",
+            ".github/workflows/ci.yml",
+            ".github/workflows/dev-infra.yml",
+            ".github/workflows/google-internal-tests.yml",
+            ".github/workflows/manual.yml",
+            ".github/workflows/merge-ready-status.yml",
+            ".github/workflows/perf.yml",
+            ".github/workflows/pr.yml",
             "MODULE.bazel",
             "MODULE.bazel.lock",
-            "integration/cli-hello-world-ivy-i18n/package.json",
-            "integration/cli-hello-world-lazy/package.json",
-            "integration/cli-hello-world/package.json",
-            "integration/cli-signal-inputs/package.json",
-            "integration/defer/package.json",
-            "integration/legacy-animations-async/package.json",
-            "integration/legacy-animations/package.json",
-            "integration/legacy-animations/pnpm-lock.yaml",
-            "integration/ng-add-localize/package.json",
-            "integration/ng_elements/package.json",
-            "integration/ng_update/package.json",
-            "integration/no_ts_linker/package.json",
-            "integration/nodenext_resolution/package.json",
-            "integration/platform-server-hydration/package.json",
-            "integration/platform-server-zoneless/package.json",
-            "integration/platform-server/package.json",
-            "integration/service-worker-schema/package.json",
-            "integration/side-effects/package.json",
-            "integration/standalone-bootstrap/package.json",
-            "integration/terser/package.json",
-            "integration/trusted-types/package.json",
-            "integration/typings_test_rxjs7/package.json",
-            "integration/typings_test_ts59/package.json",
             "package.json",
             "pnpm-lock.yaml"
           ],
@@ -95,102 +84,32 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T09:18:48Z"
+            "discovered_at": "2026-03-15T01:15:21Z"
           }
         },
         {
-          "number": 67018,
-          "title": "build: add workspace rule for antigravity",
-          "merged_at": "2026-02-11T23:23:05Z",
-          "changed_files": 4,
-          "code_files": 1,
-          "changed_paths": [
-            ".agent/rules/agents.md",
-            ".prettierignore",
-            ".pullapprove.yml",
-            "AGENTS.md"
-          ],
-          "code_paths": [
-            ".prettierignore"
-          ],
-          "observed": "pass",
-          "source": {
-            "provider": "ossinsight",
-            "collection_id": 10005,
-            "collection_name": null,
-            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T09:18:49Z"
-          }
-        },
-        {
-          "number": 67019,
-          "title": "refactor(core): replacing usages of `Default` strategy with `Eager`",
-          "merged_at": "2026-02-11T22:40:49Z",
-          "changed_files": 7,
-          "code_files": 5,
-          "changed_paths": [
-            "adev/src/content/guide/components/advanced-configuration.md",
-            "adev/src/content/guide/zoneless.md",
-            "packages/core/src/change_detection/provide_check_no_changes_config.ts",
-            "packages/core/src/metadata/directives.ts",
-            "packages/core/src/render3/util/discovery_utils.ts",
-            "packages/core/test/acceptance/change_detection_spec.ts",
-            "packages/core/test/acceptance/discover_utils_spec.ts"
-          ],
-          "code_paths": [
-            "packages/core/src/change_detection/provide_check_no_changes_config.ts",
-            "packages/core/src/metadata/directives.ts",
-            "packages/core/src/render3/util/discovery_utils.ts",
-            "packages/core/test/acceptance/change_detection_spec.ts",
-            "packages/core/test/acceptance/discover_utils_spec.ts"
-          ],
-          "observed": "error",
-          "source": {
-            "provider": "ossinsight",
-            "collection_id": 10005,
-            "collection_name": null,
-            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T09:18:51Z"
-          }
-        },
-        {
-          "number": 67028,
-          "title": "build: update cross-repo angular dependencies to v21.1.4 (21.1.x)",
-          "merged_at": "2026-02-11T22:43:26Z",
-          "changed_files": 32,
+          "number": 66988,
+          "title": "build: lock file maintenance (main)",
+          "merged_at": "2026-02-12T18:18:04Z",
+          "changed_files": 17,
           "code_files": 0,
           "changed_paths": [
-            "adev/package.json",
-            "dev-app/package.json",
-            "integration/cli-hello-world-ivy-i18n/package.json",
             "integration/cli-hello-world-ivy-i18n/pnpm-lock.yaml",
-            "integration/cli-hello-world-lazy/package.json",
             "integration/cli-hello-world-lazy/pnpm-lock.yaml",
-            "integration/cli-hello-world/package.json",
             "integration/cli-hello-world/pnpm-lock.yaml",
-            "integration/cli-signal-inputs/package.json",
             "integration/cli-signal-inputs/pnpm-lock.yaml",
-            "integration/defer/package.json",
             "integration/defer/pnpm-lock.yaml",
-            "integration/legacy-animations-async/package.json",
             "integration/legacy-animations-async/pnpm-lock.yaml",
-            "integration/legacy-animations/package.json",
             "integration/legacy-animations/pnpm-lock.yaml",
-            "integration/ng-add-localize/package.json",
             "integration/ng-add-localize/pnpm-lock.yaml",
-            "integration/platform-server-hydration/package.json",
+            "integration/ng_elements/pnpm-lock.yaml",
             "integration/platform-server-hydration/pnpm-lock.yaml",
-            "integration/platform-server-zoneless/package.json",
             "integration/platform-server-zoneless/pnpm-lock.yaml",
-            "integration/platform-server/package.json",
             "integration/platform-server/pnpm-lock.yaml",
-            "integration/standalone-bootstrap/package.json",
+            "integration/side-effects/pnpm-lock.yaml",
             "integration/standalone-bootstrap/pnpm-lock.yaml",
-            "integration/trusted-types/package.json",
             "integration/trusted-types/pnpm-lock.yaml",
-            "modules/package.json",
-            "package.json",
-            "packages/core/test/bundling/package.json",
+            "integration/typings_test_rxjs7/pnpm-lock.yaml",
             "pnpm-lock.yaml"
           ],
           "code_paths": [],
@@ -200,32 +119,75 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T09:18:53Z"
+            "discovered_at": "2026-03-15T01:15:24Z"
           }
         },
         {
-          "number": 66990,
-          "title": "fix(forms): warn when showing hidden field state",
-          "merged_at": "2026-02-11T22:46:44Z",
-          "changed_files": 3,
-          "code_files": 3,
+          "number": 67037,
+          "title": "build: update bazel dependencies (21.1.x)",
+          "merged_at": "2026-02-12T17:39:45Z",
+          "changed_files": 2,
+          "code_files": 1,
           "changed_paths": [
-            "packages/forms/signals/src/directive/form_field_directive.ts",
-            "packages/forms/signals/src/errors.ts",
-            "packages/forms/signals/test/web/form_field_directive.spec.ts"
+            "MODULE.bazel",
+            "MODULE.bazel.lock"
           ],
           "code_paths": [
-            "packages/forms/signals/src/directive/form_field_directive.ts",
-            "packages/forms/signals/src/errors.ts",
-            "packages/forms/signals/test/web/form_field_directive.spec.ts"
+            "MODULE.bazel"
           ],
-          "observed": "error",
+          "observed": "pass",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T09:18:54Z"
+            "discovered_at": "2026-03-15T01:15:26Z"
+          }
+        },
+        {
+          "number": 67040,
+          "title": "Revert \"refactor(compiler): Add info about unclosed element.\"",
+          "merged_at": "2026-02-12T17:30:57Z",
+          "changed_files": 2,
+          "code_files": 2,
+          "changed_paths": [
+            "packages/compiler/src/ml_parser/parser.ts",
+            "packages/compiler/test/ml_parser/html_parser_spec.ts"
+          ],
+          "code_paths": [
+            "packages/compiler/src/ml_parser/parser.ts",
+            "packages/compiler/test/ml_parser/html_parser_spec.ts"
+          ],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-15T01:15:27Z"
+          }
+        },
+        {
+          "number": 67039,
+          "title": "Revert \"refactor(compiler): Add info about unclosed element.\"",
+          "merged_at": "2026-02-12T16:54:40Z",
+          "changed_files": 2,
+          "code_files": 2,
+          "changed_paths": [
+            "packages/compiler/src/ml_parser/parser.ts",
+            "packages/compiler/test/ml_parser/html_parser_spec.ts"
+          ],
+          "code_paths": [
+            "packages/compiler/src/ml_parser/parser.ts",
+            "packages/compiler/test/ml_parser/html_parser_spec.ts"
+          ],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-15T01:15:29Z"
           }
         }
       ]
@@ -233,8 +195,8 @@
     {
       "repo": "facebook/react",
       "current_period_rank": "2",
-      "current_period_growth": "50",
-      "total_prs": "18631",
+      "current_period_growth": "48",
+      "total_prs": "18634",
       "top_pr_creators": [
         {
           "id": "63648",
@@ -292,13 +254,13 @@
             "packages/react-dom-bindings/src/client/ReactFiberConfigDOM.js",
             "packages/react-dom/src/__tests__/ReactDOMFragmentRefs-test.js"
           ],
-          "observed": "warning",
+          "observed": "pass",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T09:18:58Z"
+            "discovered_at": "2026-03-15T01:15:34Z"
           }
         },
         {
@@ -319,7 +281,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T09:18:59Z"
+            "discovered_at": "2026-03-15T01:15:36Z"
           }
         },
         {
@@ -344,7 +306,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T09:19:00Z"
+            "discovered_at": "2026-03-15T01:15:37Z"
           }
         },
         {
@@ -365,13 +327,13 @@
             "packages/shared/forks/ReactFeatureFlags.test-renderer.js",
             "packages/shared/forks/ReactFeatureFlags.test-renderer.www.js"
           ],
-          "observed": "error",
+          "observed": "pass",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T09:19:02Z"
+            "discovered_at": "2026-03-15T01:15:39Z"
           }
         },
         {
@@ -390,7 +352,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T09:19:03Z"
+            "discovered_at": "2026-03-15T01:15:40Z"
           }
         }
       ]
@@ -398,8 +360,8 @@
     {
       "repo": "emberjs/ember.js",
       "current_period_rank": "3",
-      "current_period_growth": "30",
-      "total_prs": "10237",
+      "current_period_growth": "31",
+      "total_prs": "10238",
       "top_pr_creators": [
         {
           "id": "12637",
@@ -443,6 +405,91 @@
         }
       ],
       "prs": [
+        {
+          "number": 21204,
+          "title": "[CLEANUP] Remove old browser workarounds, targeting Ember 6.x",
+          "merged_at": "2026-03-14T15:38:58Z",
+          "changed_files": 33,
+          "code_files": 33,
+          "changed_paths": [
+            "eslint.config.mjs",
+            "packages/@ember/-internals/environment/index.ts",
+            "packages/@ember/-internals/environment/lib/context.ts",
+            "packages/@ember/-internals/environment/lib/env.ts",
+            "packages/@ember/-internals/environment/lib/global.ts",
+            "packages/@ember/-internals/glimmer/tests/integration/components/input-angle-test.js",
+            "packages/@ember/-internals/glimmer/tests/integration/components/input-curly-test.js",
+            "packages/@ember/-internals/glimmer/tests/integration/components/link-to/routing-angle-test.js",
+            "packages/@ember/-internals/glimmer/tests/integration/components/link-to/routing-curly-test.js",
+            "packages/@ember/-internals/glimmer/tests/integration/components/textarea-angle-test.js",
+            "packages/@ember/-internals/glimmer/tests/integration/components/textarea-curly-test.js",
+            "packages/@ember/-internals/glimmer/tests/integration/components/utils-test.js",
+            "packages/@ember/-internals/glimmer/tests/integration/event-dispatcher-test.js",
+            "packages/@ember/-internals/glimmer/tests/integration/syntax/each-test.js",
+            "packages/@ember/-internals/metal/lib/property_get.ts",
+            "packages/@ember/-internals/views/lib/system/utils.ts",
+            "packages/@ember/debug/index.ts",
+            "packages/@ember/instrumentation/index.ts",
+            "packages/@ember/object/mixin.ts",
+            "packages/@ember/routing/history-location.ts",
+            "packages/@ember/routing/lib/location-utils.ts",
+            "packages/@ember/routing/tests/location/hash_location_test.js",
+            "packages/@ember/routing/tests/location/history_location_test.js",
+            "packages/@ember/routing/tests/location/util_test.js",
+            "packages/@ember/runloop/tests/later_test.js",
+            "packages/@glimmer/runtime/lib/dom/props.ts",
+            "packages/internal-test-helpers/index.ts",
+            "packages/internal-test-helpers/lib/browser-detect.ts",
+            "packages/internal-test-helpers/lib/ember-dev/assertion.ts",
+            "packages/internal-test-helpers/lib/equal-inner-html.ts",
+            "packages/internal-test-helpers/lib/matchers.ts",
+            "packages/internal-test-helpers/lib/system/synthetic-events.ts",
+            "packages/loader/lib/index.js"
+          ],
+          "code_paths": [
+            "eslint.config.mjs",
+            "packages/@ember/-internals/environment/index.ts",
+            "packages/@ember/-internals/environment/lib/context.ts",
+            "packages/@ember/-internals/environment/lib/env.ts",
+            "packages/@ember/-internals/environment/lib/global.ts",
+            "packages/@ember/-internals/glimmer/tests/integration/components/input-angle-test.js",
+            "packages/@ember/-internals/glimmer/tests/integration/components/input-curly-test.js",
+            "packages/@ember/-internals/glimmer/tests/integration/components/link-to/routing-angle-test.js",
+            "packages/@ember/-internals/glimmer/tests/integration/components/link-to/routing-curly-test.js",
+            "packages/@ember/-internals/glimmer/tests/integration/components/textarea-angle-test.js",
+            "packages/@ember/-internals/glimmer/tests/integration/components/textarea-curly-test.js",
+            "packages/@ember/-internals/glimmer/tests/integration/components/utils-test.js",
+            "packages/@ember/-internals/glimmer/tests/integration/event-dispatcher-test.js",
+            "packages/@ember/-internals/glimmer/tests/integration/syntax/each-test.js",
+            "packages/@ember/-internals/metal/lib/property_get.ts",
+            "packages/@ember/-internals/views/lib/system/utils.ts",
+            "packages/@ember/debug/index.ts",
+            "packages/@ember/instrumentation/index.ts",
+            "packages/@ember/object/mixin.ts",
+            "packages/@ember/routing/history-location.ts",
+            "packages/@ember/routing/lib/location-utils.ts",
+            "packages/@ember/routing/tests/location/hash_location_test.js",
+            "packages/@ember/routing/tests/location/history_location_test.js",
+            "packages/@ember/routing/tests/location/util_test.js",
+            "packages/@ember/runloop/tests/later_test.js",
+            "packages/@glimmer/runtime/lib/dom/props.ts",
+            "packages/internal-test-helpers/index.ts",
+            "packages/internal-test-helpers/lib/browser-detect.ts",
+            "packages/internal-test-helpers/lib/ember-dev/assertion.ts",
+            "packages/internal-test-helpers/lib/equal-inner-html.ts",
+            "packages/internal-test-helpers/lib/matchers.ts",
+            "packages/internal-test-helpers/lib/system/synthetic-events.ts",
+            "packages/loader/lib/index.js"
+          ],
+          "observed": "error",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-15T01:15:45Z"
+          }
+        },
         {
           "number": 21206,
           "title": "[CLEANUP] unused exports, variables, imports and dependencies",
@@ -506,7 +553,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T09:19:08Z"
+            "discovered_at": "2026-03-15T01:15:48Z"
           }
         },
         {
@@ -535,7 +582,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T09:19:09Z"
+            "discovered_at": "2026-03-15T01:15:49Z"
           }
         },
         {
@@ -554,7 +601,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T09:19:10Z"
+            "discovered_at": "2026-03-15T01:15:51Z"
           }
         },
         {
@@ -573,30 +620,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T09:19:12Z"
-          }
-        },
-        {
-          "number": 21189,
-          "title": "[BUGFIX] clear stale metadata references after destruction to allow GC",
-          "merged_at": "2026-03-10T04:30:48Z",
-          "changed_files": 2,
-          "code_files": 2,
-          "changed_paths": [
-            "packages/@glimmer/destroyable/index.ts",
-            "packages/@glimmer/destroyable/test/destroyables-test.ts"
-          ],
-          "code_paths": [
-            "packages/@glimmer/destroyable/index.ts",
-            "packages/@glimmer/destroyable/test/destroyables-test.ts"
-          ],
-          "observed": "warning",
-          "source": {
-            "provider": "ossinsight",
-            "collection_id": 10005,
-            "collection_name": null,
-            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T09:19:13Z"
+            "discovered_at": "2026-03-15T01:15:52Z"
           }
         }
       ]
@@ -604,8 +628,8 @@
     {
       "repo": "sveltejs/svelte",
       "current_period_rank": "4",
-      "current_period_growth": "30",
-      "total_prs": "7551",
+      "current_period_growth": "27",
+      "total_prs": "7550",
       "top_pr_creators": [
         {
           "id": "1162160",
@@ -650,6 +674,32 @@
       ],
       "prs": [
         {
+          "number": 17934,
+          "title": "fix: discard batches made obsolete by commit",
+          "merged_at": "2026-03-14T21:43:04Z",
+          "changed_files": 4,
+          "code_files": 3,
+          "changed_paths": [
+            ".changeset/modern-towns-call.md",
+            "packages/svelte/src/internal/client/reactivity/batch.js",
+            "packages/svelte/tests/runtime-runes/samples/async-discard-obsolete-batch/_config.js",
+            "packages/svelte/tests/runtime-runes/samples/async-discard-obsolete-batch/main.svelte"
+          ],
+          "code_paths": [
+            "packages/svelte/src/internal/client/reactivity/batch.js",
+            "packages/svelte/tests/runtime-runes/samples/async-discard-obsolete-batch/_config.js",
+            "packages/svelte/tests/runtime-runes/samples/async-discard-obsolete-batch/main.svelte"
+          ],
+          "observed": "pass",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-15T01:15:55Z"
+          }
+        },
+        {
           "number": 17919,
           "title": "Version Packages",
           "merged_at": "2026-03-14T08:26:40Z",
@@ -674,7 +724,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T09:19:16Z"
+            "discovered_at": "2026-03-15T01:15:57Z"
           }
         },
         {
@@ -697,7 +747,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T09:19:18Z"
+            "discovered_at": "2026-03-15T01:15:58Z"
           }
         },
         {
@@ -727,7 +777,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T09:19:19Z"
+            "discovered_at": "2026-03-15T01:15:59Z"
           }
         },
         {
@@ -757,33 +807,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T09:19:21Z"
-          }
-        },
-        {
-          "number": 17929,
-          "title": "chore: add invariant utility",
-          "merged_at": "2026-03-13T16:48:13Z",
-          "changed_files": 5,
-          "code_files": 2,
-          "changed_paths": [
-            ".changeset/flat-lemons-joke.md",
-            "documentation/docs/98-reference/.generated/shared-errors.md",
-            "packages/svelte/messages/shared-errors/errors.md",
-            "packages/svelte/src/internal/shared/dev.js",
-            "packages/svelte/src/internal/shared/errors.js"
-          ],
-          "code_paths": [
-            "packages/svelte/src/internal/shared/dev.js",
-            "packages/svelte/src/internal/shared/errors.js"
-          ],
-          "observed": "pass",
-          "source": {
-            "provider": "ossinsight",
-            "collection_id": 10005,
-            "collection_name": null,
-            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T09:19:22Z"
+            "discovered_at": "2026-03-15T01:16:01Z"
           }
         }
       ]
@@ -858,7 +882,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T09:19:26Z"
+            "discovered_at": "2026-03-15T01:16:05Z"
           }
         },
         {
@@ -879,7 +903,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T09:19:27Z"
+            "discovered_at": "2026-03-15T01:16:06Z"
           }
         },
         {
@@ -904,7 +928,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T09:19:28Z"
+            "discovered_at": "2026-03-15T01:16:08Z"
           }
         },
         {
@@ -925,7 +949,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T09:19:30Z"
+            "discovered_at": "2026-03-15T01:16:09Z"
           }
         },
         {
@@ -985,7 +1009,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T09:19:32Z"
+            "discovered_at": "2026-03-15T01:16:12Z"
           }
         }
       ]
@@ -1228,7 +1252,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T09:19:37Z"
+            "discovered_at": "2026-03-15T01:16:18Z"
           }
         },
         {
@@ -1247,7 +1271,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T09:19:39Z"
+            "discovered_at": "2026-03-15T01:16:19Z"
           }
         },
         {
@@ -1543,7 +1567,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T09:19:44Z"
+            "discovered_at": "2026-03-15T01:16:25Z"
           }
         },
         {
@@ -1562,7 +1586,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T09:19:45Z"
+            "discovered_at": "2026-03-15T01:16:26Z"
           }
         },
         {
@@ -1581,7 +1605,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T09:19:46Z"
+            "discovered_at": "2026-03-15T01:16:28Z"
           }
         }
       ]
@@ -1589,7 +1613,7 @@
     {
       "repo": "QwikDev/qwik",
       "current_period_rank": "7",
-      "current_period_growth": "11",
+      "current_period_growth": "10",
       "total_prs": "5365",
       "top_pr_creators": [
         {
@@ -1662,7 +1686,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T09:19:53Z"
+            "discovered_at": "2026-03-15T01:16:32Z"
           }
         },
         {
@@ -1691,7 +1715,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T09:19:54Z"
+            "discovered_at": "2026-03-15T01:16:34Z"
           }
         },
         {
@@ -1735,7 +1759,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T09:20:01Z"
+            "discovered_at": "2026-03-15T01:16:36Z"
           }
         },
         {
@@ -1757,7 +1781,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T09:20:02Z"
+            "discovered_at": "2026-03-15T01:16:37Z"
           }
         },
         {
@@ -1780,7 +1804,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T09:20:04Z"
+            "discovered_at": "2026-03-15T01:16:38Z"
           }
         }
       ]
@@ -1850,7 +1874,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T09:20:09Z"
+            "discovered_at": "2026-03-15T01:16:42Z"
           }
         },
         {
@@ -1869,7 +1893,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T09:20:11Z"
+            "discovered_at": "2026-03-15T01:16:44Z"
           }
         },
         {
@@ -1931,7 +1955,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T09:20:17Z"
+            "discovered_at": "2026-03-15T01:16:46Z"
           }
         },
         {
@@ -1952,7 +1976,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T09:20:19Z"
+            "discovered_at": "2026-03-15T01:16:47Z"
           }
         },
         {
@@ -1971,7 +1995,452 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-14T09:20:20Z"
+            "discovered_at": "2026-03-15T01:16:49Z"
+          }
+        }
+      ]
+    },
+    {
+      "repo": "marko-js/marko",
+      "current_period_rank": "9",
+      "current_period_growth": "7",
+      "total_prs": "1830",
+      "top_pr_creators": [
+        {
+          "id": "4985201",
+          "login": "DylanPiercey",
+          "name": "Dylan Piercey",
+          "prs": "741",
+          "first_pr_opened_at": "2017-05-01 04:44:34",
+          "first_pr_merged_at": "2017-08-15 21:34:32"
+        },
+        {
+          "id": "1958812",
+          "login": "mlrawlings",
+          "name": "Michael Rawlings",
+          "prs": "168",
+          "first_pr_opened_at": "2016-05-05 18:23:30",
+          "first_pr_merged_at": "2016-05-05 18:28:06"
+        },
+        {
+          "id": "26027232",
+          "login": "LuLaValva",
+          "name": "Luke LaValva",
+          "prs": "77",
+          "first_pr_opened_at": "2023-03-02 22:37:47",
+          "first_pr_merged_at": "2023-03-02 23:46:55"
+        },
+        {
+          "id": "3771924",
+          "login": "austinkelleher",
+          "name": "Austin Kelleher",
+          "prs": "41",
+          "first_pr_opened_at": "2016-11-09 16:00:07",
+          "first_pr_merged_at": "2016-11-10 18:24:21"
+        },
+        {
+          "id": "11449439",
+          "login": "rturnq",
+          "name": "Ryan Turnquist",
+          "prs": "35",
+          "first_pr_opened_at": "2023-07-26 17:26:08",
+          "first_pr_merged_at": "2023-08-04 22:16:14"
+        }
+      ],
+      "prs": [
+        {
+          "number": 3136,
+          "title": "[ci] release",
+          "merged_at": "2026-03-14T02:13:26Z",
+          "changed_files": 7,
+          "code_files": 0,
+          "changed_paths": [
+            ".changeset/slow-geese-repair.md",
+            ".changeset/sour-squids-sniff.md",
+            "package-lock.json",
+            "packages/runtime-class/CHANGELOG.md",
+            "packages/runtime-class/package.json",
+            "packages/runtime-tags/CHANGELOG.md",
+            "packages/runtime-tags/package.json"
+          ],
+          "code_paths": [],
+          "observed": "pass",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-15T01:16:52Z"
+          }
+        },
+        {
+          "number": 3135,
+          "title": "fix: improve return tag analysis",
+          "merged_at": "2026-03-14T02:06:26Z",
+          "changed_files": 43,
+          "code_files": 23,
+          "changed_paths": [
+            ".changeset/slow-geese-repair.md",
+            ".changeset/sour-squids-sniff.md",
+            ".sizes.json",
+            ".sizes/dom.js",
+            "packages/runtime-tags/src/__tests__/fixtures/custom-tag-var-in-body/__snapshots__/.name-cache.json",
+            "packages/runtime-tags/src/__tests__/fixtures/error-tag-var-uninitialized/__snapshots__/.name-cache.json",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-custom-tag/__snapshots__/.name-cache.json",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-custom-tag/__snapshots__/csr-sanitized.expected.md",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-custom-tag/__snapshots__/csr.expected.md",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-custom-tag/__snapshots__/dom.expected/tags/child.js",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-custom-tag/__snapshots__/dom.expected/tags/let-global.js",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-custom-tag/__snapshots__/dom.expected/template.hydrate.js",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-custom-tag/__snapshots__/dom.expected/template.js",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-custom-tag/__snapshots__/html.expected/tags/child.js",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-custom-tag/__snapshots__/html.expected/tags/let-global.js",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-custom-tag/__snapshots__/html.expected/template.js",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-custom-tag/__snapshots__/resume-sanitized.expected.md",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-custom-tag/__snapshots__/resume.expected.md",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-custom-tag/__snapshots__/ssr-sanitized.expected.md",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-custom-tag/__snapshots__/ssr.expected.md",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-custom-tag/tags/child.marko",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-custom-tag/tags/let-global.marko",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-custom-tag/template.marko",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-custom-tag/test.ts",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-define/__snapshots__/.name-cache.json",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-define/__snapshots__/csr-sanitized.expected.md",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-define/__snapshots__/csr.expected.md",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-define/__snapshots__/dom.expected/template.hydrate.js",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-define/__snapshots__/dom.expected/template.js",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-define/__snapshots__/html.expected/template.js",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-define/__snapshots__/resume-sanitized.expected.md",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-define/__snapshots__/resume.expected.md",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-define/__snapshots__/ssr-sanitized.expected.md",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-define/__snapshots__/ssr.expected.md",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-define/template.marko",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-define/test.ts",
+            "packages/runtime-tags/src/__tests__/fixtures/reference-in-own-body/__snapshots__/.name-cache.json",
+            "packages/runtime-tags/src/dom/signals.ts",
+            "packages/runtime-tags/src/translator/core/return.ts",
+            "packages/runtime-tags/src/translator/util/known-tag.ts",
+            "packages/runtime-tags/src/translator/util/references.ts",
+            "packages/runtime-tags/src/translator/util/sections.ts",
+            "packages/runtime-tags/src/translator/visitors/program/index.ts"
+          ],
+          "code_paths": [
+            ".sizes/dom.js",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-custom-tag/__snapshots__/dom.expected/tags/child.js",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-custom-tag/__snapshots__/dom.expected/tags/let-global.js",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-custom-tag/__snapshots__/dom.expected/template.hydrate.js",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-custom-tag/__snapshots__/dom.expected/template.js",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-custom-tag/__snapshots__/html.expected/tags/child.js",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-custom-tag/__snapshots__/html.expected/tags/let-global.js",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-custom-tag/__snapshots__/html.expected/template.js",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-custom-tag/tags/child.marko",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-custom-tag/tags/let-global.marko",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-custom-tag/template.marko",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-custom-tag/test.ts",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-define/__snapshots__/dom.expected/template.hydrate.js",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-define/__snapshots__/dom.expected/template.js",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-define/__snapshots__/html.expected/template.js",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-define/template.marko",
+            "packages/runtime-tags/src/__tests__/fixtures/let-intersection-child-var-define/test.ts",
+            "packages/runtime-tags/src/dom/signals.ts",
+            "packages/runtime-tags/src/translator/core/return.ts",
+            "packages/runtime-tags/src/translator/util/known-tag.ts",
+            "packages/runtime-tags/src/translator/util/references.ts",
+            "packages/runtime-tags/src/translator/util/sections.ts",
+            "packages/runtime-tags/src/translator/visitors/program/index.ts"
+          ],
+          "observed": "error",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-15T01:16:55Z"
+          }
+        },
+        {
+          "number": 3134,
+          "title": "[ci] release",
+          "merged_at": "2026-03-13T01:07:55Z",
+          "changed_files": 8,
+          "code_files": 0,
+          "changed_paths": [
+            ".changeset/plain-mirrors-smell.md",
+            "package-lock.json",
+            "packages/compiler/CHANGELOG.md",
+            "packages/compiler/package.json",
+            "packages/runtime-class/CHANGELOG.md",
+            "packages/runtime-class/package.json",
+            "packages/runtime-tags/CHANGELOG.md",
+            "packages/runtime-tags/package.json"
+          ],
+          "code_paths": [],
+          "observed": "pass",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-15T01:16:57Z"
+          }
+        },
+        {
+          "number": 3133,
+          "title": "fix: improve warnings for invalid attribute names (tags api)",
+          "merged_at": "2026-03-12T23:33:20Z",
+          "changed_files": 17,
+          "code_files": 10,
+          "changed_paths": [
+            ".changeset/plain-mirrors-smell.md",
+            "packages/runtime-tags/src/__tests__/fixtures/error-invalid-html-attr-name/__snapshots__/dom.expected/template.error.txt",
+            "packages/runtime-tags/src/__tests__/fixtures/error-invalid-html-attr-name/__snapshots__/html.expected/template.error.txt",
+            "packages/runtime-tags/src/__tests__/fixtures/error-invalid-html-attr-name/template.marko",
+            "packages/runtime-tags/src/__tests__/fixtures/error-invalid-html-attr-name/test.ts",
+            "packages/runtime-tags/src/__tests__/fixtures/error-invalid-modifier-name/__snapshots__/dom.expected/template.error.txt",
+            "packages/runtime-tags/src/__tests__/fixtures/error-invalid-modifier-name/__snapshots__/html.expected/template.error.txt",
+            "packages/runtime-tags/src/__tests__/fixtures/error-invalid-modifier-name/template.marko",
+            "packages/runtime-tags/src/__tests__/fixtures/error-invalid-modifier-name/test.ts",
+            "packages/runtime-tags/src/__tests__/fixtures/error-invalid-user-attr-name/__snapshots__/dom.expected/template.error.txt",
+            "packages/runtime-tags/src/__tests__/fixtures/error-invalid-user-attr-name/__snapshots__/html.expected/template.error.txt",
+            "packages/runtime-tags/src/__tests__/fixtures/error-invalid-user-attr-name/template.marko",
+            "packages/runtime-tags/src/__tests__/fixtures/error-invalid-user-attr-name/test.ts",
+            "packages/runtime-tags/src/common/helpers.ts",
+            "packages/runtime-tags/src/dom/dom.ts",
+            "packages/runtime-tags/src/html/attrs.ts",
+            "packages/runtime-tags/src/translator/visitors/program/pre-analyze.ts"
+          ],
+          "code_paths": [
+            "packages/runtime-tags/src/__tests__/fixtures/error-invalid-html-attr-name/template.marko",
+            "packages/runtime-tags/src/__tests__/fixtures/error-invalid-html-attr-name/test.ts",
+            "packages/runtime-tags/src/__tests__/fixtures/error-invalid-modifier-name/template.marko",
+            "packages/runtime-tags/src/__tests__/fixtures/error-invalid-modifier-name/test.ts",
+            "packages/runtime-tags/src/__tests__/fixtures/error-invalid-user-attr-name/template.marko",
+            "packages/runtime-tags/src/__tests__/fixtures/error-invalid-user-attr-name/test.ts",
+            "packages/runtime-tags/src/common/helpers.ts",
+            "packages/runtime-tags/src/dom/dom.ts",
+            "packages/runtime-tags/src/html/attrs.ts",
+            "packages/runtime-tags/src/translator/visitors/program/pre-analyze.ts"
+          ],
+          "observed": "error",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-15T01:16:58Z"
+          }
+        },
+        {
+          "number": 3127,
+          "title": "feat: add spell checking",
+          "merged_at": "2026-03-12T21:19:49Z",
+          "changed_files": 22,
+          "code_files": 17,
+          "changed_paths": [
+            "cspell.json",
+            "package-lock.json",
+            "package.json",
+            "packages/compiler/src/taglib/loader/loadAttributeFromProps.js",
+            "packages/compiler/src/taglib/loader/loadTaglibFromProps.js",
+            "packages/runtime-class/docs/class-components.md",
+            "packages/runtime-class/docs/troubleshooting-streaming.md",
+            "packages/runtime-class/index.d.ts",
+            "packages/runtime-class/src/node_modules/@internal/components-define-widget-legacy/index-browser.js",
+            "packages/runtime-class/src/runtime/components/renderer.js",
+            "packages/runtime-class/src/taglib/index.js",
+            "packages/runtime-class/src/translator/taglib/core/index.js",
+            "packages/runtime-class/src/translator/taglib/core/transform-style.js",
+            "packages/runtime-class/tags-html.d.ts",
+            "packages/runtime-tags/index.d.ts",
+            "packages/runtime-tags/src/__tests__/main.test.ts",
+            "packages/runtime-tags/src/__tests__/serializer.test.ts",
+            "packages/runtime-tags/src/html/dynamic-tag.ts",
+            "packages/runtime-tags/src/translator/util/known-tag.ts",
+            "packages/runtime-tags/src/translator/util/signals.ts",
+            "packages/runtime-tags/src/translator/visitors/tag/custom-tag.ts",
+            "packages/runtime-tags/tags-html.d.ts"
+          ],
+          "code_paths": [
+            "packages/compiler/src/taglib/loader/loadAttributeFromProps.js",
+            "packages/compiler/src/taglib/loader/loadTaglibFromProps.js",
+            "packages/runtime-class/index.d.ts",
+            "packages/runtime-class/src/node_modules/@internal/components-define-widget-legacy/index-browser.js",
+            "packages/runtime-class/src/runtime/components/renderer.js",
+            "packages/runtime-class/src/taglib/index.js",
+            "packages/runtime-class/src/translator/taglib/core/index.js",
+            "packages/runtime-class/src/translator/taglib/core/transform-style.js",
+            "packages/runtime-class/tags-html.d.ts",
+            "packages/runtime-tags/index.d.ts",
+            "packages/runtime-tags/src/__tests__/main.test.ts",
+            "packages/runtime-tags/src/__tests__/serializer.test.ts",
+            "packages/runtime-tags/src/html/dynamic-tag.ts",
+            "packages/runtime-tags/src/translator/util/known-tag.ts",
+            "packages/runtime-tags/src/translator/util/signals.ts",
+            "packages/runtime-tags/src/translator/visitors/tag/custom-tag.ts",
+            "packages/runtime-tags/tags-html.d.ts"
+          ],
+          "observed": "error",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-15T01:17:01Z"
+          }
+        }
+      ]
+    },
+    {
+      "repo": "jquery/jquery",
+      "current_period_rank": "10",
+      "current_period_growth": "4",
+      "total_prs": "2781",
+      "top_pr_creators": [
+        {
+          "id": "1758366",
+          "login": "mgol",
+          "name": "Michał Gołębiowski-Owczarek",
+          "prs": "424",
+          "first_pr_opened_at": "2015-01-25 00:25:15",
+          "first_pr_merged_at": "2013-09-06 15:29:45"
+        },
+        {
+          "id": "192451",
+          "login": "timmywil",
+          "name": "Timmy Willison",
+          "prs": "190",
+          "first_pr_opened_at": "2011-02-12 18:53:00",
+          "first_pr_merged_at": "2014-07-17 18:09:26"
+        },
+        {
+          "id": "27985",
+          "login": "rwaldron",
+          "name": "Rick Waldron",
+          "prs": "89",
+          "first_pr_opened_at": "2011-03-28 16:35:11",
+          "first_pr_merged_at": "2011-10-24 14:17:09"
+        },
+        {
+          "id": "1199584",
+          "login": "gibson042",
+          "name": "Richard Gibson",
+          "prs": "83",
+          "first_pr_opened_at": "2011-11-18 07:06:21",
+          "first_pr_merged_at": "2012-11-26 17:46:16"
+        },
+        {
+          "id": "945528",
+          "login": "markelog",
+          "name": "Oleg Gaidarenko",
+          "prs": "59",
+          "first_pr_opened_at": "2011-08-09 02:10:54",
+          "first_pr_merged_at": "2013-01-14 00:13:08"
+        }
+      ],
+      "prs": [
+        {
+          "number": 5787,
+          "title": "Docs: Update active version table",
+          "merged_at": "2026-03-12T16:20:41Z",
+          "changed_files": 1,
+          "code_files": 0,
+          "changed_paths": [
+            "README.md"
+          ],
+          "code_paths": [],
+          "observed": "pass",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-15T01:17:07Z"
+          }
+        },
+        {
+          "number": 5795,
+          "title": "Tests: Re-enable the AJAX binary data tests in IE",
+          "merged_at": "2026-03-10T15:03:31Z",
+          "changed_files": 1,
+          "code_files": 1,
+          "changed_paths": [
+            "test/unit/ajax.js"
+          ],
+          "code_paths": [
+            "test/unit/ajax.js"
+          ],
+          "observed": "pass",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-15T01:17:08Z"
+          }
+        },
+        {
+          "number": 5793,
+          "title": "Tests: Add jQuery.ajaxPrefilter & jQuery.ajaxTransport tests",
+          "merged_at": "2026-03-09T16:45:40Z",
+          "changed_files": 1,
+          "code_files": 1,
+          "changed_paths": [
+            "test/unit/ajax.js"
+          ],
+          "code_paths": [
+            "test/unit/ajax.js"
+          ],
+          "observed": "pass",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-15T01:17:10Z"
+          }
+        },
+        {
+          "number": 5688,
+          "title": "Tests: Use releases.jquery.com as external host for AJAX testing",
+          "merged_at": "2025-08-11T15:43:01Z",
+          "changed_files": 1,
+          "code_files": 1,
+          "changed_paths": [
+            "test/data/testinit.js"
+          ],
+          "code_paths": [
+            "test/data/testinit.js"
+          ],
+          "observed": "pass",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-15T01:17:11Z"
+          }
+        },
+        {
+          "number": 5690,
+          "title": "Release: Run `npm publish` in the post-release phase",
+          "merged_at": "2025-08-11T16:40:09Z",
+          "changed_files": 2,
+          "code_files": 2,
+          "changed_paths": [
+            ".release-it.cjs",
+            "build/release/post-release.sh"
+          ],
+          "code_paths": [
+            ".release-it.cjs",
+            "build/release/post-release.sh"
+          ],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-15T01:17:13Z"
           }
         }
       ]

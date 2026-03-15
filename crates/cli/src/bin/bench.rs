@@ -416,6 +416,9 @@ fn run_case(client: &GitHubClient, case: &BenchCase) -> ActualResult {
     actual_from_rule_results(client, owner, repo, case.pr_number)
 }
 
+/// The rule ID that benchmark cases are designed to test.
+const BENCH_RULE_ID: &str = "detect-unscoped-change";
+
 fn actual_from_rule_results(
     client: &GitHubClient,
     owner: &str,
@@ -435,15 +438,16 @@ fn actual_from_rule_results(
     let ctx = RuleContext::Pr {
         pr_files,
         pr_metadata,
+        options: rules::PrRuleOptions::for_benchmark(),
     };
 
     match rules::engine::run_all(&ctx) {
         Ok(results) => {
-            if results.is_empty() {
-                return ActualResult::Pass;
-            }
+            // Filter to only the rule under test so that other rules
+            // (e.g. verify-pr-size) don't inflate the max severity.
             let max_sev = results
                 .iter()
+                .filter(|r| r.rule_id == BENCH_RULE_ID)
                 .map(|r| r.severity)
                 .max()
                 .unwrap_or(Severity::Pass);

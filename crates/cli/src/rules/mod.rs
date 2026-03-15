@@ -1,6 +1,9 @@
+pub mod detect_missing_test;
 pub mod detect_unscoped_change;
 pub mod engine;
+pub mod verify_branch_protection;
 pub mod verify_conventional_commit;
+pub mod verify_pr_size;
 pub mod verify_release_integrity;
 
 use anyhow::Result;
@@ -8,12 +11,37 @@ use gh_verify_core::verdict::RuleResult;
 
 use crate::github::types::{CompareCommit, PrFile, PrMetadata, PullRequestSummary, Review};
 
+#[derive(Debug, Clone)]
+pub struct PrRuleOptions {
+    pub detect_missing_test: bool,
+    pub test_patterns: Vec<String>,
+}
+
+impl Default for PrRuleOptions {
+    fn default() -> Self {
+        Self {
+            detect_missing_test: true,
+            test_patterns: vec![],
+        }
+    }
+}
+
+impl PrRuleOptions {
+    pub fn for_benchmark() -> Self {
+        Self {
+            detect_missing_test: false,
+            test_patterns: vec![],
+        }
+    }
+}
+
 /// Context payload for rule execution.
 #[allow(dead_code)]
 pub enum RuleContext {
     Pr {
         pr_files: Vec<PrFile>,
         pr_metadata: PrMetadata,
+        options: PrRuleOptions,
     },
     Release {
         base_tag: String,

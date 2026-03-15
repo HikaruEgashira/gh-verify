@@ -1,0 +1,19 @@
+{
+  "id": "angular-parser-unclosed-element-revert",
+  "description": "Angular reverts an unclosed-element parser refactor across compiler source and parser spec",
+  "repo": "angular/angular",
+  "pr_number": 67040,
+  "expected": "pass",
+  "rationale": "The parser implementation and adjacent html_parser_spec.ts revert the same behavior change. This is one corrective rollback, not two unrelated clusters.",
+  "category": "semantic-bridge",
+  "domains_expected": [],
+  "ecosystem": "typescript",
+  "notes": "Current engine reports warning because the parser source file and parser spec do not create patch-local call or import edges, so a direct code+test revert is split into disconnected clusters.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 10005,
+    "collection_name": "Javascript Framework",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-03-15T01:15:27Z"
+  }
+}

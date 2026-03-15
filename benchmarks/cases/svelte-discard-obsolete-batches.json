@@ -1,0 +1,19 @@
+{
+  "id": "svelte-discard-obsolete-batches",
+  "description": "Svelte discards obsolete batches with one runtime fix and a matching runtime-runes sample",
+  "repo": "sveltejs/svelte",
+  "pr_number": 17934,
+  "expected": "pass",
+  "rationale": "The batching fix and runtime-runes sample files exercise the same stale-reaction bug. This is one scoped regression fix, not unrelated implementation and fixture work.",
+  "category": "semantic-bridge",
+  "domains_expected": [],
+  "ecosystem": "javascript",
+  "notes": "Control case showing that some implementation+sample PRs already pass when the rule can keep them connected enough.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 10005,
+    "collection_name": "Javascript Framework",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-03-15T01:15:55Z"
+  }
+}
