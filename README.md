@@ -5,6 +5,10 @@
 </p>
 
 <p align="center">
+  <a href="https://scorecard.dev/viewer/?uri=github.com/HikaruEgashira/gh-verify"><img src="https://api.scorecard.dev/projects/github.com/HikaruEgashira/gh-verify/badge" alt="OpenSSF Scorecard"></a>
+</p>
+
+<p align="center">
   <a href="HACKING.md">Hacking</a> · <a href="action/check-pr/README.md">GitHub Action</a> · <a href="benchmarks/README.md">Benchmarks</a>
 </p>
 
