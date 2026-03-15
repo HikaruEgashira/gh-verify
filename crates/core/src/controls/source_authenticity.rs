@@ -2,6 +2,8 @@ use crate::control::{Control, ControlFinding, ControlId};
 use crate::evidence::{
     AuthenticityEvidence, EvidenceBundle, EvidenceGap, EvidenceState, SourceRevision,
 };
+use crate::integrity::signature_severity;
+use crate::verdict::Severity;
 
 /// Verifies that all source revisions carry valid cryptographic signatures.
 pub struct SourceAuthenticityControl;
@@ -82,21 +84,20 @@ fn evaluate_revisions(
         );
     }
 
-    if unsigned.is_empty() {
-        ControlFinding::satisfied(
+    match signature_severity(unsigned.len()) {
+        Severity::Pass => ControlFinding::satisfied(
             ControlId::SourceAuthenticity,
             format!("All revisions in the {scope_label} carry authenticity evidence"),
             vec![subject],
-        )
-    } else {
-        ControlFinding::violated(
+        ),
+        _ => ControlFinding::violated(
             ControlId::SourceAuthenticity,
             format!(
                 "Unsigned or unverified revisions were found in the {scope_label}: {}",
                 unsigned.join(", ")
             ),
             vec![subject],
-        )
+        ),
     }
 }
 

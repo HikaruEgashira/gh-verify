@@ -2,6 +2,7 @@ use crate::control::{Control, ControlFinding, ControlId};
 use crate::evidence::{
     ApprovalDisposition, EvidenceBundle, EvidenceGap, EvidenceState, GovernedChange,
 };
+use crate::integrity::is_approver_independent;
 
 /// Verifies that at least one approver is independent from the change author and requester.
 pub struct ReviewIndependenceControl;
@@ -93,11 +94,12 @@ fn evaluate_change(change: &GovernedChange) -> ControlFinding {
         .as_deref()
         .expect("submitted_by guaranteed Some: early return on missing field");
     let has_independent_approval = approvals.iter().any(|approval| {
-        approval.disposition == ApprovalDisposition::Approved
-            && approval.actor != requester
-            && !authors
-                .iter()
-                .any(|author| *author == approval.actor.as_str())
+        if approval.disposition != ApprovalDisposition::Approved {
+            return false;
+        }
+        let is_commit_author = authors.iter().any(|author| *author == approval.actor.as_str());
+        let is_pr_author = approval.actor == requester;
+        is_approver_independent(is_commit_author, is_pr_author)
     });
 
     if has_independent_approval {
