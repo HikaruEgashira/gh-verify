@@ -1,4 +1,4 @@
-name: latest
+name: edge
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main
 
 concurrency:
-  group: latest-release
+  group: edge-release
   cancel-in-progress: true
 
 permissions:
@@ -90,36 +90,36 @@ jobs:
         with:
           subject-path: dist/*
 
-      - name: Create or update latest release
+      - name: Create or update edge release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           # Delete old assets from existing release (if any)
-          gh release view latest --json assets --jq '.assets[].name' 2>/dev/null | while read -r name; do
-            gh release delete-asset latest "$name" --yes 2>/dev/null || true
+          gh release view edge --json assets --jq '.assets[].name' 2>/dev/null | while read -r name; do
+            gh release delete-asset edge "$name" --yes 2>/dev/null || true
           done
 
           # Create release if it doesn't exist, or update body
-          if gh release view latest >/dev/null 2>&1; then
-            gh release edit latest \
+          if gh release view edge >/dev/null 2>&1; then
+            gh release edit edge \
               --title "Latest (rolling)" \
               --notes "Rolling build from \`main\` at ${{ github.sha }}.
 
           \`\`\`
-          gh extension install HikaruEgashira/gh-verify --pin latest
+          gh extension install HikaruEgashira/gh-verify --pin edge
           \`\`\`" \
               --prerelease
           else
-            gh release create latest \
+            gh release create edge \
               --title "Latest (rolling)" \
               --notes "Rolling build from \`main\` at ${{ github.sha }}.
 
           \`\`\`
-          gh extension install HikaruEgashira/gh-verify --pin latest
+          gh extension install HikaruEgashira/gh-verify --pin edge
           \`\`\`" \
               --prerelease \
               --target ${{ github.sha }}
           fi
 
           # Upload new assets
-          gh release upload latest dist/* --clobber
+          gh release upload edge dist/* --clobber
