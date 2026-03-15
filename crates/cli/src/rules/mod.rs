@@ -3,6 +3,7 @@ pub mod detect_stale_approval;
 pub mod detect_unscoped_change;
 pub mod engine;
 pub mod verify_branch_protection;
+pub mod verify_conventional_commit;
 pub mod verify_issue_linkage;
 pub mod verify_pr_size;
 pub mod verify_release_integrity;

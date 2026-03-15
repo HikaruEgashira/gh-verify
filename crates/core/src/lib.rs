@@ -1,5 +1,6 @@
 pub mod approval;
 pub mod branch_protection;
+pub mod conventional;
 pub mod integrity;
 pub mod linkage;
 pub mod scope;

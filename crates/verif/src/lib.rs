@@ -59,6 +59,26 @@ pub fn signature_severity(unsigned_count: usize) -> Severity {
     }
 }
 
+/// Commit compliance severity based on non-compliant ratio.
+///
+/// - If there are no commits (total == 0), pass.
+/// - If all non-merge commits are compliant (non_compliant == 0), pass.
+/// - If more than half are non-compliant (non_compliant * 2 > total), error.
+/// - Otherwise, warning.
+#[ensures(total == 0usize ==> result == Severity::Pass)]
+#[ensures(total > 0usize && non_compliant == 0usize ==> result == Severity::Pass)]
+#[ensures(total > 0usize && non_compliant > 0usize && non_compliant * 2usize > total ==> result == Severity::Error)]
+#[ensures(total > 0usize && non_compliant > 0usize && non_compliant * 2usize <= total ==> result == Severity::Warning)]
+pub fn commit_compliance_severity(non_compliant: usize, total: usize) -> Severity {
+    if total == 0 || non_compliant == 0 {
+        Severity::Pass
+    } else if non_compliant * 2 > total {
+        Severity::Error
+    } else {
+        Severity::Warning
+    }
+}
+
 /// Issue linkage predicate.
 ///
 /// Returns true iff there is at least one issue reference.
