@@ -70,7 +70,10 @@ impl ControlProfile for SlsaFoundationProfile {
             ControlStatus::Satisfied | ControlStatus::NotApplicable => {
                 (FindingSeverity::Info, GateDecision::Pass)
             }
-            ControlStatus::Indeterminate => (FindingSeverity::Warning, GateDecision::Review),
+            // Intentionally separate from Violated: other profiles may map
+            // Indeterminate → Review. SLSA Foundation treats insufficient evidence as failure
+            // to align with Creusot's four_eyes_gate proof.
+            ControlStatus::Indeterminate => (FindingSeverity::Error, GateDecision::Fail),
             ControlStatus::Violated => (FindingSeverity::Error, GateDecision::Fail),
         };
 
@@ -99,7 +102,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn indeterminate_finding_maps_to_review_gate() {
+    fn indeterminate_finding_maps_to_fail_gate() {
         let outcome = SlsaFoundationProfile.map(&ControlFinding::indeterminate(
             ControlId::ReviewIndependence,
             "Evidence is partial",
@@ -107,8 +110,8 @@ mod tests {
             vec![],
         ));
 
-        assert_eq!(outcome.severity, FindingSeverity::Warning);
-        assert_eq!(outcome.decision, GateDecision::Review);
+        assert_eq!(outcome.severity, FindingSeverity::Error);
+        assert_eq!(outcome.decision, GateDecision::Fail);
     }
 
     #[test]
@@ -198,7 +201,7 @@ mod tests {
         assert_eq!(outcomes[1].severity, FindingSeverity::Error);
         assert_eq!(outcomes[2].decision, GateDecision::Pass);
         assert_eq!(outcomes[2].severity, FindingSeverity::Info);
-        assert_eq!(outcomes[3].decision, GateDecision::Review);
-        assert_eq!(outcomes[3].severity, FindingSeverity::Warning);
+        assert_eq!(outcomes[3].decision, GateDecision::Fail);
+        assert_eq!(outcomes[3].severity, FindingSeverity::Error);
     }
 }
