@@ -2,6 +2,7 @@ pub mod detect_missing_test;
 pub mod detect_unscoped_change;
 pub mod engine;
 pub mod verify_branch_protection;
+pub mod verify_pr_size;
 pub mod verify_release_integrity;
 
 use anyhow::Result;
