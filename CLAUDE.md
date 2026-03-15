@@ -35,6 +35,13 @@ Pure verification logic. No I/O, no unsafe.
 | `integrity.rs` | SLSA release checks (signatures, mutual approval, PR coverage) |
 | `scope.rs` | PR scope classification by connected components |
 | `union_find.rs` | Disjoint set union for call graph connectivity |
+| `coverage.rs` | LCOV parser, patch line extraction, coverage analysis |
+| `test_coverage.rs` | Test file pair heuristics (naming convention fallback) |
+| `approval.rs` | Stale approval detection (timestamp comparison) |
+| `branch_protection.rs` | Branch protection compliance checks |
+| `conventional.rs` | Conventional Commits format validation |
+| `linkage.rs` | Issue/ticket reference extraction from PR body |
+| `size.rs` | PR size classification by line/file count |
 
 ### gh-verify-verif (crates/verif/)
 
@@ -50,11 +57,17 @@ I/O layer. Delegates all judgments to core.
 |--------|---------|
 | `config.rs` | GH_TOKEN / GH_REPO env resolution |
 | `github/client.rs` | HTTP client with User-Agent |
-| `github/pr_api.rs` | PR files / metadata fetch |
+| `github/pr_api.rs` | PR files / metadata / reviews / commits fetch |
 | `github/release_api.rs` | Tag comparison, commit-PR association, reviews |
 | `rules/engine.rs` | Rule orchestration, `run_all` |
-| `rules/detect_unscoped_change.rs` | Scope rule (tree-sitter analysis) |
+| `rules/detect_unscoped_change.rs` | Scope rule (tree-sitter call graph analysis) |
+| `rules/detect_missing_test.rs` | Test coverage rule (LCOV + naming convention fallback) |
+| `rules/detect_stale_approval.rs` | Stale approval detection |
+| `rules/verify_issue_linkage.rs` | Issue/ticket linkage verification |
+| `rules/verify_pr_size.rs` | PR size threshold verification |
+| `rules/verify_conventional_commit.rs` | Conventional Commits format verification |
 | `rules/verify_release_integrity.rs` | SLSA release integrity rule |
+| `rules/verify_branch_protection.rs` | Branch protection compliance rule |
 | `output/` | human / json formatters |
 | `util/symbol_extractor.rs` | tree-sitter symbol extraction |
 

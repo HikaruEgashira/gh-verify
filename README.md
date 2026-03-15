@@ -24,20 +24,30 @@ pass / warning / error with actionable suggestions.
 
 ## Why?
 
-Large, unfocused pull requests are hard to review, easy to mis-merge, and
-a leading cause of subtle regressions. Automated scope checks catch these
-problems before a reviewer has to.
-
-ghverify enforces this at the PR level so teams get fast, consistent feedback
-without relying solely on human judgement.
+Pull requests are the primary unit of change in modern software development.
+ghverify automates SDLC health checks — scope, test coverage, approval integrity,
+commit hygiene — so teams get fast, consistent feedback without relying solely
+on human judgement.
 
 ## Rules
 
+### PR rules
+
 | Rule | Severity | Description |
 |---|---|---|
-| `detect-unscoped-change` | warning / error | Flags PRs that touch multiple unrelated domains |
-| `detect-missing-test` | warning | Warns when source changes have no matching test updates |
-| `verify-release-integrity` | error | Checks commit signatures, mutual approval, PR coverage |
+| `detect-unscoped-change` | warning / error | Flags PRs that touch multiple unrelated domains (tree-sitter call graph analysis) |
+| `detect-missing-test` | warning / error | Warns when source changes lack test coverage (LCOV) or matching test file updates (heuristic) |
+| `detect-stale-approval` | warning / error | Detects commits pushed after the last approval (four-eyes principle bypass) |
+| `verify-issue-linkage` | error | Requires PR body to reference an issue or ticket (GitHub, Jira, URL) |
+| `verify-pr-size` | warning / error | Flags oversized PRs by line count or file count |
+| `verify-conventional-commit` | warning / error | Checks PR title / commit messages against Conventional Commits spec |
+
+### Release rules
+
+| Rule | Severity | Description |
+|---|---|---|
+| `verify-release-integrity` | error | Checks commit signatures, mutual approval, PR coverage (SLSA) |
+| `verify-branch-protection` | warning / error | Verifies PRs target protected branches with review activity |
 
 Run `gh verify pr list-rules` to see all registered rules.
 
@@ -49,7 +59,10 @@ Run `gh verify pr list-rules` to see all registered rules.
 # Verify a PR
 gh verify pr 123 --repo owner/repo
 
-# Verify a PR and disable missing-test detection
+# Verify with LCOV coverage report
+gh verify pr 123 --repo owner/repo --coverage target/llvm-cov/lcov.info
+
+# Disable missing-test detection
 gh verify pr 123 --repo owner/repo --no-detect-missing-test
 
 # JSON output
@@ -93,10 +106,11 @@ See [action/check-pr](action/check-pr/README.md) for full input/output details.
 
 ## Architecture
 
-Two-crate Rust workspace:
+Three-crate Rust workspace:
 
-- **gh-verify-core** — Pure verification logic with Creusot formal specifications. No I/O, no unsafe.
+- **gh-verify-core** — Pure verification logic (serde only). No I/O, no unsafe.
 - **gh-verify** — CLI binary with GitHub API integration, tree-sitter analysis, and output formatting.
+- **gh-verify-verif** — Creusot formal verification targets. Core predicates with `#[ensures]` specs.
 
 | Extension | Create | Register |
 |---|---|---|
