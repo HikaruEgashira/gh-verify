@@ -18,12 +18,28 @@ use std::path::{Path, PathBuf};
 // ---------------------------------------------------------------------------
 
 #[derive(Debug, Clone)]
+struct ProofAttestation {
+    status: ProofStatus,
+    prover: String,
+    total_time_s: f64,
+    sub_goals: usize,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum ProofStatus {
+    Proven,
+    Partial,
+    Unverified,
+}
+
+#[derive(Debug, Clone)]
 struct VerifSpec {
     fn_name: String,
     signature: String,
     ensures: Vec<String>,
     doc: String,
     body: String,
+    proof: Option<ProofAttestation>,
 }
 
 #[derive(Debug, Clone)]
@@ -69,6 +85,69 @@ struct RuleInfo {
     source_file: String,
     specs: Vec<VerifSpec>,
     tests: Vec<TestCase>,
+}
+
+// ---------------------------------------------------------------------------
+// Parsers
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// Proof attestation parser
+// ---------------------------------------------------------------------------
+
+fn parse_proof_attestation(root: &Path, fn_name: &str) -> Option<ProofAttestation> {
+    let proof_path = root
+        .join("verif/gh_verify_verif_rlib")
+        .join(fn_name)
+        .join("proof.json");
+
+    let text = fs::read_to_string(&proof_path).ok()?;
+    let json: serde_json::Value = serde_json::from_str(&text).ok()?;
+
+    let proofs = json.get("proofs")?.get("Coma")?;
+    let vc_key = format!("vc_{fn_name}");
+    let vc_node = proofs.get(&vc_key)?;
+
+    let mut total_time = 0.0;
+    let mut sub_goals = 0usize;
+    let mut prover_name = String::new();
+
+    collect_proof_leaves(vc_node, &mut total_time, &mut sub_goals, &mut prover_name);
+
+    if sub_goals == 0 {
+        return None;
+    }
+
+    Some(ProofAttestation {
+        status: ProofStatus::Proven,
+        prover: prover_name,
+        total_time_s: total_time,
+        sub_goals,
+    })
+}
+
+fn collect_proof_leaves(
+    node: &serde_json::Value,
+    total_time: &mut f64,
+    sub_goals: &mut usize,
+    prover_name: &mut String,
+) {
+    if let Some(prover) = node.get("prover") {
+        *sub_goals += 1;
+        if let Some(t) = node.get("time").and_then(|v| v.as_f64()) {
+            *total_time += t;
+        }
+        if prover_name.is_empty() {
+            if let Some(s) = prover.as_str() {
+                *prover_name = s.to_string();
+            }
+        }
+    }
+    if let Some(children) = node.get("children").and_then(|v| v.as_array()) {
+        for child in children {
+            collect_proof_leaves(child, total_time, sub_goals, prover_name);
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -162,6 +241,7 @@ fn parse_verif_specs(path: &Path) -> Vec<VerifSpec> {
             ensures,
             doc,
             body,
+            proof: None,
         });
     }
 
@@ -463,9 +543,10 @@ fn collect_rules(root: &Path) -> BTreeMap<String, RuleInfo> {
     // 2. Build module→rule and fn→rule maps from use statements and calls
     let (module_map, fn_map) = build_module_rule_maps(root);
 
-    // 3. Collect verif specs and map to rules via fn_map
+    // 3. Collect verif specs, attach proof attestations, and map to rules
     let verif_path = root.join("crates/verif/src/lib.rs");
-    for spec in parse_verif_specs(&verif_path) {
+    for mut spec in parse_verif_specs(&verif_path) {
+        spec.proof = parse_proof_attestation(root, &spec.fn_name);
         let rule_id = fn_map.get(&spec.fn_name).cloned().unwrap_or_default();
         if let Some(rule) = rules.get_mut(&rule_id) {
             rule.specs.push(spec);
@@ -519,6 +600,11 @@ fn render_inline_md(s: &str) -> String {
 fn render_html(rules: &BTreeMap<String, RuleInfo>) -> String {
     let total_specs: usize = rules.values().map(|r| r.specs.len()).sum();
     let total_tests: usize = rules.values().map(|r| r.tests.len()).sum();
+    let proven_specs: usize = rules
+        .values()
+        .flat_map(|r| &r.specs)
+        .filter(|s| matches!(s.proof.as_ref().map(|p| p.status), Some(ProofStatus::Proven)))
+        .count();
     let timestamp = chrono_now();
 
     let mut html = String::with_capacity(64 * 1024);
@@ -559,6 +645,7 @@ formal verification specs. Source of truth is code.</p>
         r#"<div class="stats">
 <div class="stat"><span class="stat-value">{}</span><span class="stat-label">Rules</span></div>
 <div class="stat"><span class="stat-value">{total_specs}</span><span class="stat-label">Formal Specs</span></div>
+<div class="stat"><span class="stat-value">{proven_specs}</span><span class="stat-label">SMT Proven</span></div>
 <div class="stat"><span class="stat-value">{total_tests}</span><span class="stat-label">Test Cases</span></div>
 </div>
 "#,
@@ -573,11 +660,22 @@ formal verification specs. Source of truth is code.</p>
         let n_tests = rule.tests.len();
         let ctx = esc(&rule.context);
         let id = esc(&rule.rule_id);
+        let n_proven = rule
+            .specs
+            .iter()
+            .filter(|s| matches!(s.proof.as_ref().map(|p| p.status), Some(ProofStatus::Proven)))
+            .count();
+        let proven_badge = if n_proven > 0 {
+            format!("<span class=\"badge badge-proven\">{n_proven} proven</span> ")
+        } else {
+            String::new()
+        };
         html.push_str(&format!(
             "<li>\
              <a href=\"#{id}\">{id}</a> \
              <span class=\"badge badge-ctx\">{ctx}</span> \
              <span class=\"badge badge-spec\">{n_specs} specs</span> \
+             {proven_badge}\
              <span class=\"badge badge-test\">{n_tests} tests</span>\
              </li>\n"
         ));
@@ -661,6 +759,25 @@ fn render_spec(html: &mut String, spec: &VerifSpec) {
         sig = esc(&spec.signature),
     )
     .unwrap();
+
+    // Proof attestation badge
+    if let Some(proof) = &spec.proof {
+        let (cls, icon) = match proof.status {
+            ProofStatus::Proven => ("proof-proven", "&#x2713;"),
+            ProofStatus::Partial => ("proof-partial", "&#x26A0;"),
+            ProofStatus::Unverified => ("proof-unverified", "&#x2717;"),
+        };
+        html.push_str(&format!(
+            "<div class=\"proof-attestation {cls}\">\
+             <span class=\"proof-icon\">{icon}</span> \
+             <strong>Proven</strong> by {prover} \
+             <span class=\"proof-detail\">({goals} sub-goals, {time:.1}ms total)</span>\
+             </div>\n",
+            prover = esc(&proof.prover),
+            goals = proof.sub_goals,
+            time = proof.total_time_s * 1000.0,
+        ));
+    }
 
     if !spec.doc.is_empty() {
         write!(
@@ -834,6 +951,7 @@ h1 { font-size: 1.8rem; border-bottom: 1px solid var(--border); padding-bottom: 
 .badge-spec { background: rgba(88,166,255,0.15); color: var(--accent); }
 .badge-test { background: rgba(63,185,80,0.15); color: var(--green); }
 .badge-ctx { background: rgba(139,148,158,0.15); color: var(--muted); }
+.badge-proven { background: rgba(63,185,80,0.2); color: var(--green); }
 
 .sev-badge {
   display: inline-block; font-size: 0.7rem; padding: 0.1rem 0.45rem; border-radius: 4px;
@@ -884,6 +1002,26 @@ pre {
 .spec-block details summary {
   font-size: 0.8rem; color: var(--muted); cursor: pointer;
 }
+
+.proof-attestation {
+  display: flex; align-items: center; gap: 0.4rem;
+  padding: 0.4rem 0.7rem; border-radius: 4px; margin: 0.4rem 0;
+  font-size: 0.82rem;
+}
+.proof-proven {
+  background: rgba(63,185,80,0.1); border: 1px solid rgba(63,185,80,0.3);
+  color: var(--green);
+}
+.proof-partial {
+  background: rgba(210,153,34,0.1); border: 1px solid rgba(210,153,34,0.3);
+  color: var(--yellow);
+}
+.proof-unverified {
+  background: rgba(248,81,73,0.1); border: 1px solid rgba(248,81,73,0.3);
+  color: var(--red);
+}
+.proof-icon { font-size: 1.1rem; }
+.proof-detail { color: var(--muted); font-size: 0.75rem; }
 
 .decision-table {
   width: 100%; border-collapse: collapse; margin: 0.8rem 0;
