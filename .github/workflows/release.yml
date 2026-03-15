@@ -4,11 +4,6 @@ on:
   push:
     tags:
       - "v*"
-  workflow_call:
-    inputs:
-      tag:
-        required: true
-        type: string
 
 permissions:
   contents: write
@@ -37,12 +32,8 @@ jobs:
             target: x86_64-pc-windows-msvc
             asset: gh-verify-windows-amd64.exe
     runs-on: ${{ matrix.os }}
-    env:
-      RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          ref: ${{ inputs.tag || github.ref }}
 
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -53,7 +44,7 @@ jobs:
         run: cargo install cross --git https://github.com/cross-rs/cross
 
       - name: Set edge version suffix
-        if: contains(env.RELEASE_TAG, '-dev.')
+        if: contains(github.ref_name, '-dev.')
         shell: bash
         run: |
           SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
@@ -86,8 +77,6 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
-    env:
-      RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
     steps:
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
@@ -103,7 +92,7 @@ jobs:
       - name: Determine release type
         id: meta
         run: |
-          TAG="${RELEASE_TAG}"
+          TAG="${GITHUB_REF_NAME}"
           if [[ "$TAG" == *-dev.* ]]; then
             echo "prerelease=true" >> "$GITHUB_OUTPUT"
             echo "make_latest=false" >> "$GITHUB_OUTPUT"
@@ -116,7 +105,6 @@ jobs:
 
       - uses: softprops/action-gh-release@1853d73993c8ca1b2c9c1a7fede39682d0ab5c2a # v2.5.3
         with:
-          tag_name: ${{ env.RELEASE_TAG }}
           files: dist/*
           prerelease: ${{ steps.meta.outputs.prerelease }}
           make_latest: ${{ steps.meta.outputs.make_latest }}
