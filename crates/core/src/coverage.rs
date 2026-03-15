@@ -148,11 +148,9 @@ pub fn extract_changed_lines(patch: &str) -> Vec<u32> {
                 let start_str = range_str.split(',').next().unwrap_or("0");
                 new_line = start_str.parse().unwrap_or(0);
             }
-        } else if let Some(stripped) = line.strip_prefix('+') {
-            // Addition line — but skip the +++ file header
-            if !stripped.starts_with("++") {
-                result.push(new_line);
-            }
+        } else if line.starts_with('+') {
+            // Addition line
+            result.push(new_line);
             new_line += 1;
         } else if line.starts_with('-') {
             // Deletion — does not advance new-file line counter
@@ -170,7 +168,8 @@ pub fn extract_changed_lines(patch: &str) -> Vec<u32> {
 /// Returns true if `lcov_path` ends with `/<pr_path>`, or if they are
 /// equal after stripping `./` prefixes.
 pub fn resolve_path(lcov_path: &str, pr_path: &str) -> bool {
-    let lcov_normalized = lcov_path.strip_prefix("./").unwrap_or(lcov_path);
+    let lcov_replaced = lcov_path.replace('\\', "/");
+    let lcov_normalized = lcov_replaced.strip_prefix("./").unwrap_or(&lcov_replaced);
     let pr_normalized = pr_path.strip_prefix("./").unwrap_or(pr_path);
 
     if lcov_normalized == pr_normalized {
@@ -442,6 +441,16 @@ end_of_record
         assert!(lines.is_empty());
     }
 
+    /// WHY: `++i;` is valid code (C/C++ increment). The old `stripped.starts_with("++")`
+    /// check incorrectly excluded such lines. GitHub's patch field never contains
+    /// `+++ b/file` headers, so the check was unnecessary and harmful.
+    #[test]
+    fn extract_changed_lines_increment_operator() {
+        let patch = "@@ -1,2 +1,3 @@\n counter = 0;\n+    ++counter;\n other();\n";
+        let lines = extract_changed_lines(patch);
+        assert_eq!(lines, vec![2], "++counter line must be included");
+    }
+
     // --- resolve_path ---
 
     /// WHY: LCOV typically records absolute paths. The PR uses repo-relative
@@ -465,6 +474,16 @@ end_of_record
     #[test]
     fn resolve_path_no_match() {
         assert!(!resolve_path("/src/other.rs", "src/main.rs"));
+    }
+
+    /// WHY: Windows LCOV paths use backslashes. Without normalization,
+    /// suffix matching fails and changed files appear as 0% covered.
+    #[test]
+    fn resolve_path_windows_backslash() {
+        assert!(resolve_path(
+            "C:\\work\\repo\\src\\foo.rs",
+            "src/foo.rs"
+        ));
     }
 
     // --- analyze_coverage ---

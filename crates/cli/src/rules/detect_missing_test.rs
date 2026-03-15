@@ -28,6 +28,7 @@ impl DetectMissingTest {
             .iter()
             .filter(|f| f.status != "removed")
             .filter(|f| !is_non_code_file(&f.filename))
+            .filter(|f| classify_file_role(&f.filename) == FileRole::Source)
             .filter_map(|f| {
                 f.patch.as_deref().map(|patch| {
                     (f.filename.clone(), coverage::extract_changed_lines(patch))
@@ -429,6 +430,29 @@ end_of_record
                 .affected_files
                 .contains(&"src/deleted.rs".to_string())
         );
+    }
+
+    #[test]
+    /// WHY: Test/fixture-only PRs have no source files to cover. Without the
+    /// FileRole::Source filter, run_with_coverage would see 0 changed lines
+    /// mapped to coverage and report 0% → Error. This must be Pass.
+    fn coverage_report_test_only_pr_passes() {
+        let lcov = "\
+SF:tests/foo_test.rs
+DA:1,1
+LF:1
+LH:1
+end_of_record
+";
+        let files = vec![file_with_patch(
+            "tests/foo_test.rs",
+            "@@ -0,0 +1,2 @@\n+#[test]\n+fn it_works() {}\n",
+        )];
+        let ctx = make_ctx_with_coverage(files, lcov);
+
+        let results = DetectMissingTest.run(&ctx).expect("rule should run");
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].severity, Severity::Pass);
     }
 
     // --- Test helpers ---
