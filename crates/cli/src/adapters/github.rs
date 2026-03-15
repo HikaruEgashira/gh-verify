@@ -113,7 +113,7 @@ pub fn map_pull_request_evidence(
         id: ChangeRequestId::new("github_pr", format!("{repo}#{pr_number}")),
         title: pr_metadata.title.clone(),
         summary: pr_metadata.body.clone(),
-        submitted_by: None,
+        submitted_by: pr_metadata.user.as_ref().map(|u| u.login.clone()),
         changed_assets,
         approval_decisions,
         source_revisions,
@@ -218,6 +218,9 @@ mod tests {
                 number: 42,
                 title: "feat: add abstraction layer".to_string(),
                 body: Some("fixes #10".to_string()),
+                user: Some(PrUser {
+                    login: "author".to_string(),
+                }),
             },
             &[PrFile {
                 filename: "src/lib.rs".to_string(),
@@ -368,6 +371,9 @@ mod tests {
                 number: 42,
                 title: "feat: add abstraction layer".to_string(),
                 body: Some("fixes #10".to_string()),
+                user: Some(PrUser {
+                    login: "author".to_string(),
+                }),
             },
             &[],
             &[],
@@ -376,5 +382,45 @@ mod tests {
 
         assert_eq!(bundle.change_requests.len(), 1);
         assert!(bundle.promotion_batches.is_empty());
+    }
+
+    #[test]
+    fn submitted_by_populated_from_pr_user() {
+        let evidence = map_pull_request_evidence(
+            "owner/repo",
+            1,
+            &PrMetadata {
+                number: 1,
+                title: "feat: wire user".to_string(),
+                body: None,
+                user: Some(PrUser {
+                    login: "octocat".to_string(),
+                }),
+            },
+            &[],
+            &[],
+            &[],
+        );
+
+        assert_eq!(evidence.submitted_by, Some("octocat".to_string()));
+    }
+
+    #[test]
+    fn submitted_by_none_when_user_absent() {
+        let evidence = map_pull_request_evidence(
+            "owner/repo",
+            1,
+            &PrMetadata {
+                number: 1,
+                title: "feat: anonymous".to_string(),
+                body: None,
+                user: None,
+            },
+            &[],
+            &[],
+            &[],
+        );
+
+        assert_eq!(evidence.submitted_by, None);
     }
 }

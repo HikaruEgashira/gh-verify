@@ -128,6 +128,7 @@ mod tests {
                 number: 1,
                 title: "test".to_string(),
                 body: None,
+                user: None,
             },
             pr_reviews: reviews,
             pr_commits: commits,
