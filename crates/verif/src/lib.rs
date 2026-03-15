@@ -320,11 +320,9 @@ pub fn classify_approval_status(
 #[requires(current > 0usize)]
 #[ensures(result == Severity::Error)]
 pub fn signature_severity_monotone(current: usize) -> Severity {
-    if current == 0 {
-        Severity::Pass
-    } else {
-        Severity::Error
-    }
+    // Precondition guarantees current > 0; body is trivially Error.
+    let _ = current;
+    Severity::Error
 }
 
 /// Composition: mutual approval requires BOTH independent approver AND
