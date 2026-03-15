@@ -12,7 +12,7 @@ use gh_verify::output;
 use gh_verify::rules;
 use gh_verify::rules::engine;
 
-const VERSION: &str = "0.2.0";
+const VERSION: &str = env!("GH_VERIFY_VERSION");
 
 #[derive(Parser)]
 #[command(name = "gh-verify", version = VERSION, about = "SLSA-based GitHub SDLC health checker")]
