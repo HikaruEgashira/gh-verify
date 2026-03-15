@@ -1,6 +1,9 @@
+pub mod detect_missing_test;
 pub mod detect_stale_approval;
 pub mod detect_unscoped_change;
 pub mod engine;
+pub mod verify_branch_protection;
+pub mod verify_pr_size;
 pub mod verify_release_integrity;
 
 use anyhow::Result;
@@ -10,6 +13,30 @@ use crate::github::types::{
     CompareCommit, PrCommit, PrFile, PrMetadata, PullRequestSummary, Review,
 };
 
+#[derive(Debug, Clone)]
+pub struct PrRuleOptions {
+    pub detect_missing_test: bool,
+    pub test_patterns: Vec<String>,
+}
+
+impl Default for PrRuleOptions {
+    fn default() -> Self {
+        Self {
+            detect_missing_test: true,
+            test_patterns: vec![],
+        }
+    }
+}
+
+impl PrRuleOptions {
+    pub fn for_benchmark() -> Self {
+        Self {
+            detect_missing_test: false,
+            test_patterns: vec![],
+        }
+    }
+}
+
 /// Context payload for rule execution.
 #[allow(dead_code)]
 pub enum RuleContext {
@@ -18,6 +45,7 @@ pub enum RuleContext {
         pr_metadata: PrMetadata,
         pr_reviews: Vec<Review>,
         pr_commits: Vec<PrCommit>,
+        options: PrRuleOptions,
     },
     Release {
         base_tag: String,

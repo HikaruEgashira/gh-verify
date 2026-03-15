@@ -1,0 +1,19 @@
+{
+  "id": "jquery-ajax-binary-data-ie-tests",
+  "description": "jQuery re-enables AJAX binary data tests by editing one unit test file",
+  "repo": "jquery/jquery",
+  "pr_number": 5795,
+  "expected": "pass",
+  "rationale": "Only test/unit/ajax.js changes. A single-file test correction should remain scoped and pass.",
+  "category": "single-file",
+  "domains_expected": [],
+  "ecosystem": "javascript",
+  "notes": "Legacy jQuery control case from OSS Insight with one code file and no unrelated churn.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 10005,
+    "collection_name": "Javascript Framework",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-03-15T01:17:08Z"
+  }
+}

@@ -59,6 +59,29 @@ pub fn signature_severity(unsigned_count: usize) -> Severity {
     }
 }
 
+/// Branch protection: protected branch membership check.
+///
+/// Models `is_protected_branch` as a boolean predicate. Since Creusot
+/// cannot handle `&str` / `String`, we abstract the membership test to
+/// a pre-computed boolean `is_member` that the caller resolves.
+///
+/// The postcondition is trivially `result == is_member`, ensuring the
+/// runtime implementation faithfully forwards the membership answer.
+#[ensures(result == is_member)]
+pub fn is_protected_branch(is_member: bool) -> bool {
+    is_member
+}
+
+/// Branch protection: admin merge detection.
+///
+/// A PR merged with zero reviews indicates an admin bypass of branch
+/// protection rules. Returns `true` when `review_count == 0`.
+#[ensures(review_count == 0usize ==> result == true)]
+#[ensures(review_count > 0usize ==> result == false)]
+pub fn is_admin_merge(review_count: usize) -> bool {
+    review_count == 0
+}
+
 /// Scope classification.
 ///
 /// Exhaustive postconditions covering all input combinations.
@@ -84,5 +107,32 @@ pub fn classify_scope(code_files_count: usize, components: usize) -> Severity {
         0 | 1 => Severity::Pass,
         2 => Severity::Warning,
         _ => Severity::Error,
+    }
+}
+
+/// PR size classification.
+///
+/// Returns `Error` when either dimension exceeds its error threshold,
+/// `Warning` when either exceeds its warning threshold, `Pass` otherwise.
+/// Uses strict greater-than: exactly at the threshold does NOT trigger.
+#[ensures(total_lines > error_lines || total_files > error_files ==> result == Severity::Error)]
+#[ensures(!(total_lines > error_lines || total_files > error_files)
+    && (total_lines > warn_lines || total_files > warn_files) ==> result == Severity::Warning)]
+#[ensures(!(total_lines > error_lines || total_files > error_files)
+    && !(total_lines > warn_lines || total_files > warn_files) ==> result == Severity::Pass)]
+pub fn classify_pr_size(
+    total_lines: usize,
+    total_files: usize,
+    warn_lines: usize,
+    warn_files: usize,
+    error_lines: usize,
+    error_files: usize,
+) -> Severity {
+    if total_lines > error_lines || total_files > error_files {
+        Severity::Error
+    } else if total_lines > warn_lines || total_files > warn_files {
+        Severity::Warning
+    } else {
+        Severity::Pass
     }
 }

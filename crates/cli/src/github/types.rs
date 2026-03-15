@@ -88,6 +88,14 @@ pub struct PullRequestSummary {
     pub state: String,
     pub merged_at: Option<String>,
     pub user: PrUser,
+    pub base: Option<PrBranchRef>,
+}
+
+/// Branch reference in a PR (base or head).
+#[derive(Debug, Clone, Deserialize)]
+pub struct PrBranchRef {
+    #[serde(rename = "ref")]
+    pub ref_name: String,
 }
 
 #[derive(Debug, Clone, Deserialize)]

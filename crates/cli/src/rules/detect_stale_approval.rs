@@ -131,6 +131,7 @@ mod tests {
             },
             pr_reviews: reviews,
             pr_commits: commits,
+            options: crate::rules::PrRuleOptions::default(),
         }
     }
 
