@@ -14,6 +14,15 @@ pub struct GitHubCommitPullAssociation {
     pub pull_requests: Vec<PullRequestSummary>,
 }
 
+impl From<crate::rules::CommitPrAssociation> for GitHubCommitPullAssociation {
+    fn from(assoc: crate::rules::CommitPrAssociation) -> Self {
+        Self {
+            commit_sha: assoc.commit_sha,
+            pull_requests: assoc.prs,
+        }
+    }
+}
+
 /// Builds an evidence bundle from a single pull request's metadata and reviews.
 pub fn build_pull_request_bundle(
     repo: &str,
