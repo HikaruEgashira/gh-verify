@@ -1,5 +1,6 @@
 pub mod branch_protection;
 pub mod integrity;
+pub mod linkage;
 pub mod scope;
 pub mod size;
 pub mod test_coverage;

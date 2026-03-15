@@ -59,6 +59,15 @@ pub fn signature_severity(unsigned_count: usize) -> Severity {
     }
 }
 
+/// Issue linkage predicate.
+///
+/// Returns true iff there is at least one issue reference.
+/// Mirrors `gh-verify-core::linkage::has_issue_linkage`.
+#[ensures(result == (ref_count > 0usize))]
+pub fn has_linkage(ref_count: usize) -> bool {
+    ref_count > 0
+}
+
 /// Branch protection: protected branch membership check.
 ///
 /// Models `is_protected_branch` as a boolean predicate. Since Creusot
