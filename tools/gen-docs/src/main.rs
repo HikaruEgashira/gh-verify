@@ -201,8 +201,8 @@ fn parse_verif_specs(path: &Path) -> Vec<VerifSpec> {
     };
 
     let mut specs = Vec::new();
-    let ensures_re = Regex::new(r"#\[ensures\((.+?)\)\]").unwrap();
-    let fn_re = Regex::new(r"pub fn (\w+)\(([^)]*)\)\s*->\s*([^\{]+)\{").unwrap();
+    let ensures_re = Regex::new(r"(?s)#\[ensures\((.+?)\)\]").unwrap();
+    let fn_re = Regex::new(r"(?s)pub fn (\w+)\(([^)]*)\)\s*->\s*([^\{]+)\{").unwrap();
 
     for fn_match in fn_re.find_iter(&text) {
         let fn_start = fn_match.start();
@@ -212,24 +212,33 @@ fn parse_verif_specs(path: &Path) -> Vec<VerifSpec> {
         let ret_type = fn_cap[3].trim().to_string();
         let signature = format!("fn {fn_name}({params}) -> {ret_type}");
 
+        // Find the attribute block by searching backwards from `pub fn` for the
+        // end of the previous item (closing `}` or another `pub` declaration).
+        // This correctly handles multi-line #[ensures(...)] attributes whose
+        // continuation lines start with `&&` or `||`.
         let prefix = &text[..fn_start];
-        let mut ensures = Vec::new();
-        for line in prefix.lines().rev() {
+        let mut attr_start = 0;
+        for (i, line) in prefix.lines().enumerate() {
             let trimmed = line.trim();
-            if trimmed.starts_with("#[ensures(") {
-                for cap in ensures_re.captures_iter(trimmed) {
-                    ensures.push(cap[1].to_string());
-                }
-            } else if trimmed.starts_with("///") || trimmed.is_empty() {
-                continue;
-            } else {
-                break;
+            if trimmed.ends_with('}') || (trimmed.starts_with("pub ") && !trimmed.contains("#[")) {
+                // Track the byte offset after this line
+                attr_start = prefix.lines().take(i + 1).map(|l| l.len() + 1).sum::<usize>();
             }
         }
+        let attr_block = &text[attr_start..fn_start];
+
+        // Extract all #[ensures(...)] from the attribute block (handles multi-line)
+        let ensures: Vec<String> = ensures_re
+            .captures_iter(attr_block)
+            .map(|cap| {
+                // Normalize whitespace in multi-line ensures
+                cap[1].split_whitespace().collect::<Vec<_>>().join(" ")
+            })
+            .collect();
+
         if ensures.is_empty() {
             continue;
         }
-        ensures.reverse();
 
         let doc = collect_doc_comment(&text, fn_start);
         let open_brace = fn_start + fn_match.end() - fn_match.start() - 1;
@@ -543,13 +552,105 @@ fn collect_rules(root: &Path) -> BTreeMap<String, RuleInfo> {
     // 2. Build module→rule and fn→rule maps from use statements and calls
     let (module_map, fn_map) = build_module_rule_maps(root);
 
-    // 3. Collect verif specs, attach proof attestations, and map to rules
+    // 3. Build core fn→module map for fallback spec mapping
+    //    Scan core .rs files for `pub fn` definitions and map fn_name → module (file stem)
+    let mut core_fn_to_module: BTreeMap<String, String> = BTreeMap::new();
+    let core_fn_re = Regex::new(r"pub fn (\w+)\(").unwrap();
+    for path in walkdir(&root.join("crates/core/src")) {
+        let text = match fs::read_to_string(&path) {
+            Ok(t) => t,
+            Err(_) => continue,
+        };
+        let non_test = text.find("#[cfg(test)]").map(|i| &text[..i]).unwrap_or(&text);
+        let stem = path.file_stem().unwrap().to_string_lossy().to_string();
+        for cap in core_fn_re.captures_iter(non_test) {
+            core_fn_to_module.insert(cap[1].to_string(), stem.clone());
+        }
+    }
+
+    // 4. Collect verif specs, attach proof attestations, and map to rules
     let verif_path = root.join("crates/verif/src/lib.rs");
     for mut spec in parse_verif_specs(&verif_path) {
         spec.proof = parse_proof_attestation(root, &spec.fn_name);
-        let rule_id = fn_map.get(&spec.fn_name).cloned().unwrap_or_default();
+
+        // Strategy 1: exact fn name match in fn_map
+        let mut rule_id = fn_map.get(&spec.fn_name).cloned().unwrap_or_default();
+        if !rule_id.is_empty() && !rules.contains_key(&rule_id) {
+            rule_id.clear();
+        }
+
+        // Strategy 2: find a core function with same name → get its module → module_map
+        if rule_id.is_empty() {
+            if let Some(module) = core_fn_to_module.get(&spec.fn_name) {
+                if let Some(rule_ids) = module_map.get(module) {
+                    if rule_ids.len() == 1 {
+                        rule_id = rule_ids[0].clone();
+                    }
+                }
+            }
+        }
+
+        // Strategy 3: substring match — verif fn name is a suffix of a core fn
+        if rule_id.is_empty() {
+            for (core_fn, module) in &core_fn_to_module {
+                if core_fn.contains(&spec.fn_name) || spec.fn_name.contains(core_fn.as_str()) {
+                    if let Some(rule_ids) = module_map.get(module) {
+                        if rule_ids.len() == 1 {
+                            rule_id = rule_ids[0].clone();
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
         if let Some(rule) = rules.get_mut(&rule_id) {
             rule.specs.push(spec);
+        } else {
+            // Strategy 4: check verif doc comment for "Mirrors `gh-verify-core::module::fn`"
+            let mirror_re = Regex::new(r"gh-verify-core::(\w+)").unwrap();
+            let mut matched = false;
+            if let Some(cap) = mirror_re.captures(&spec.doc) {
+                let module = &cap[1];
+                if let Some(rule_ids) = module_map.get(module) {
+                    if rule_ids.len() == 1 {
+                        if let Some(rule) = rules.get_mut(&rule_ids[0]) {
+                            rule.specs.push(spec.clone());
+                            matched = true;
+                        }
+                    }
+                }
+            }
+            // Strategy 5: keyword-based heuristic for verif lemmas
+            if !matched {
+                let name = &spec.fn_name;
+                let inferred = if name.contains("four_eyes") || name.contains("approver") {
+                    Some("verify-release-integrity")
+                } else if name.contains("signature") || name.contains("coverage") {
+                    Some("verify-release-integrity")
+                } else if name.contains("compliance") || name.contains("conventional") {
+                    Some("verify-conventional-commit")
+                } else if name.contains("branch") || name.contains("admin_merge") {
+                    Some("verify-branch-protection")
+                } else if name.contains("linkage") {
+                    Some("verify-issue-linkage")
+                } else if name.contains("stale") || name.contains("approval") {
+                    Some("detect-stale-approval")
+                } else if name.contains("scope") {
+                    Some("detect-unscoped-change")
+                } else {
+                    None
+                };
+                if let Some(rid) = inferred {
+                    if let Some(rule) = rules.get_mut(rid) {
+                        rule.specs.push(spec.clone());
+                        matched = true;
+                    }
+                }
+            }
+            if !matched {
+                eprintln!("  unmapped spec: {}", spec.fn_name);
+            }
         }
     }
 
