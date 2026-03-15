@@ -76,7 +76,6 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
-    continue-on-error: true  # immutable release cache from prior required_signatures rule
     steps:
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
@@ -89,17 +88,30 @@ jobs:
         with:
           subject-path: dist/*
 
+      - name: Compute tag
+        id: tag
+        run: echo "name=v0.0.0-dev.${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
       - uses: softprops/action-gh-release@1853d73993c8ca1b2c9c1a7fede39682d0ab5c2a # v2.5.3
-        continue-on-error: true  # immutable release cache from prior required_signatures rule
         with:
-          tag_name: v0.0.0-dev
-          name: "Edge (rolling)"
+          tag_name: ${{ steps.tag.outputs.name }}
+          target_commitish: ${{ github.sha }}
+          name: "Edge ${{ steps.tag.outputs.name }}"
           body: |
             Rolling build from `main` at ${{ github.sha }}.
 
             ```
-            gh extension install HikaruEgashira/gh-verify --pin v0.0.0-dev
+            gh extension install HikaruEgashira/gh-verify --pin ${{ steps.tag.outputs.name }}
             ```
           files: dist/*
           prerelease: true
           make_latest: false
+
+      - name: Prune old edge releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release list --json tagName,isPrerelease --jq '.[] | select(.isPrerelease) | select(.tagName | startswith("v0.0.0-dev.")) | .tagName' \
+            | sort -r | tail -n +4 | while read -r tag; do
+              gh release delete "$tag" --yes --cleanup-tag 2>/dev/null || true
+            done
