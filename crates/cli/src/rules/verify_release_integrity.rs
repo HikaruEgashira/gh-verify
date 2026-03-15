@@ -41,7 +41,7 @@ impl Rule for VerifyReleaseIntegrity {
         for pr_rev in pr_reviews {
             let mut commit_authors = Vec::new();
             for assoc in commit_prs {
-                for pr in &assoc.prs {
+                for pr in &assoc.pull_requests {
                     if pr.number == pr_rev.pr_number {
                         for c in commits_raw {
                             if c.sha == assoc.commit_sha {
@@ -82,7 +82,7 @@ impl Rule for VerifyReleaseIntegrity {
                     .unwrap_or(false);
                 CommitPrAssoc {
                     commit_sha: a.commit_sha.clone(),
-                    pr_numbers: a.prs.iter().map(|p| p.number).collect(),
+                    pr_numbers: a.pull_requests.iter().map(|p| p.number).collect(),
                     is_merge,
                 }
             })
