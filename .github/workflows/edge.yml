@@ -1,4 +1,4 @@
-name: edge-dispatch
+name: edge
 
 on:
   push:
@@ -6,29 +6,46 @@ on:
       - main
 
 concurrency:
-  group: edge-dispatch
+  group: edge-release
   cancel-in-progress: true
 
 permissions:
   contents: write
+  id-token: write
+  attestations: write
 
 jobs:
-  dispatch:
+  prepare:
     runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tag.outputs.name }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - name: Push edge tag
+      - name: Create edge tag
+        id: tag
         run: |
           TAG="v0.0.0-dev.${GITHUB_SHA::7}"
+          echo "name=${TAG}" >> "$GITHUB_OUTPUT"
           git tag "$TAG" "$GITHUB_SHA"
           git push origin "$TAG"
 
+  release:
+    needs: prepare
+    uses: ./.github/workflows/release.yml
+    with:
+      tag: ${{ needs.prepare.outputs.tag }}
+
+  prune:
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
       - name: Prune old edge releases
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release list --json tagName,isPrerelease --jq '.[] | select(.isPrerelease) | select(.tagName | startswith("v0.0.0-dev.")) | .tagName' \
+          gh release list -R "${{ github.repository }}" --json tagName,isPrerelease \
+            --jq '.[] | select(.isPrerelease) | select(.tagName | startswith("v0.0.0-dev.")) | .tagName' \
             | sort -r | tail -n +4 | while read -r tag; do
-              gh release delete "$tag" --yes --cleanup-tag 2>/dev/null || true
+              gh release delete "$tag" -R "${{ github.repository }}" --yes --cleanup-tag 2>/dev/null || true
             done
