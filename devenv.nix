@@ -84,6 +84,15 @@
       '';
     };
 
+    "ghverify:docs" = {
+      description = "Generate rule specification docs from tests and Creusot specs";
+      exec = ''
+        set -euo pipefail
+        cargo build --release -p gen-docs
+        "$DEVENV_ROOT/target/release/gen-docs"
+      '';
+    };
+
     "ghverify:verify" = {
       description = "Run Creusot formal verification on verif crate";
       exec = ''

@@ -15,6 +15,9 @@ result-*
 # Benchmark results
 benchmarks/results/*.json
 
+# Generated docs
+site/
+
 # devenv runtime
 .devenv/
 .devenv.flake.nix

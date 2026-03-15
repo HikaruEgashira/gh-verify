@@ -13,6 +13,7 @@ devenv tasks run ghverify:test           # Unit + integration tests (no network)
 devenv tasks run ghverify:bench          # Benchmarks (uses GitHub API)
 devenv tasks run ghverify:dist           # Build release binary for distribution
 devenv tasks run ghverify:fmt            # Format + clippy lint
+devenv tasks run ghverify:docs            # Generate rule docs from tests/specs → site/
 devenv tasks run ghverify:verify         # Creusot formal verification
 ```
 
