@@ -38,6 +38,9 @@ enum Commands {
         /// Additional test filename pattern (comma-separated, `*` placeholder)
         #[arg(long, value_delimiter = ',')]
         test_pattern: Vec<String>,
+        /// Path to LCOV coverage report file
+        #[arg(long)]
+        coverage: Option<String>,
     },
     /// Verify release integrity
     Release {
@@ -69,6 +72,7 @@ fn run() -> Result<()> {
             repo: repo_override,
             no_detect_missing_test,
             test_pattern,
+            coverage,
         } => {
             if arg == "list-rules" {
                 println!("Available rules:");
@@ -83,6 +87,11 @@ fn run() -> Result<()> {
             let cfg = Config::load()?;
             let (owner, repo_name) = resolve_repo(&cfg, repo_override.as_deref())?;
             let client = GitHubClient::new(&cfg)?;
+
+            let coverage_report = coverage
+                .map(|path| std::fs::read_to_string(&path))
+                .transpose()
+                .context("failed to read coverage report")?;
 
             let pr_files = github::pr_api::get_pr_files(&client, &owner, &repo_name, pr_number)
                 .context("failed to fetch PR files")?;
@@ -104,6 +113,7 @@ fn run() -> Result<()> {
                 options: rules::PrRuleOptions {
                     detect_missing_test: !no_detect_missing_test,
                     test_patterns: test_pattern,
+                    coverage_report,
                 },
             };
             let results = engine::run_all(&ctx)?;

@@ -19,6 +19,7 @@ use crate::github::types::{
 pub struct PrRuleOptions {
     pub detect_missing_test: bool,
     pub test_patterns: Vec<String>,
+    pub coverage_report: Option<String>,
 }
 
 impl Default for PrRuleOptions {
@@ -26,6 +27,7 @@ impl Default for PrRuleOptions {
         Self {
             detect_missing_test: true,
             test_patterns: vec![],
+            coverage_report: None,
         }
     }
 }
@@ -35,6 +37,7 @@ impl PrRuleOptions {
         Self {
             detect_missing_test: false,
             test_patterns: vec![],
+            coverage_report: None,
         }
     }
 }
