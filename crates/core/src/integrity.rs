@@ -157,7 +157,11 @@ pub fn check_mutual_approval(prs: &[PrWithReviews]) -> RuleResult {
         match has_independent_approver(pr) {
             Some(true) => {} // OK
             Some(false) => {
-                violations.push((pr.pr_number, pr.pr_author.clone(), "no independent approver"));
+                violations.push((
+                    pr.pr_number,
+                    pr.pr_author.clone(),
+                    "no independent approver",
+                ));
             }
             None => {
                 violations.push((
@@ -516,10 +520,7 @@ mod tests {
     #[test]
     fn signature_biconditional() {
         // Forward: all verified => Pass
-        let all_verified = vec![
-            make_commit("aaa", true, "a"),
-            make_commit("bbb", true, "b"),
-        ];
+        let all_verified = vec![make_commit("aaa", true, "a"), make_commit("bbb", true, "b")];
         assert_eq!(
             check_commit_signatures(&all_verified).severity,
             Severity::Pass

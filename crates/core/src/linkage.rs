@@ -18,23 +18,14 @@ pub struct IssueReference {
 
 /// GitHub closing keyword prefixes (case-insensitive matching handled by caller).
 const CLOSING_KEYWORDS: &[&str] = &[
-    "fixes",
-    "fix",
-    "fixed",
-    "closes",
-    "close",
-    "closed",
-    "resolves",
-    "resolve",
-    "resolved",
+    "fixes", "fix", "fixed", "closes", "close", "closed", "resolves", "resolve", "resolved",
 ];
 
 /// Common acronym prefixes that should NOT be treated as Jira project keys.
 const JIRA_BLOCKLIST: &[&str] = &[
-    "UTF", "HTTP", "RFC", "CVE", "ISO", "SHA", "SSL", "TLS", "TCP", "UDP",
-    "DNS", "SSH", "API", "URL", "URI", "XML", "JSON", "YAML", "TOML", "HTML",
-    "CSS", "ANSI", "ASCII", "IEEE", "IETF", "SMTP", "IMAP", "LDAP", "SAML",
-    "CORS", "CSRF", "ECDSA", "HMAC",
+    "UTF", "HTTP", "RFC", "CVE", "ISO", "SHA", "SSL", "TLS", "TCP", "UDP", "DNS", "SSH", "API",
+    "URL", "URI", "XML", "JSON", "YAML", "TOML", "HTML", "CSS", "ANSI", "ASCII", "IEEE", "IETF",
+    "SMTP", "IMAP", "LDAP", "SAML", "CORS", "CSRF", "ECDSA", "HMAC",
 ];
 
 /// Extract issue references from a PR body.
@@ -87,9 +78,7 @@ fn extract_github_issues(body: &str, refs: &mut Vec<IssueReference>) {
         let mut matched_keyword = false;
         for keyword in CLOSING_KEYWORDS {
             let kw_chars: Vec<char> = keyword.chars().collect();
-            if i + kw_chars.len() < chars.len()
-                && chars[i..i + kw_chars.len()] == kw_chars[..]
-            {
+            if i + kw_chars.len() < chars.len() && chars[i..i + kw_chars.len()] == kw_chars[..] {
                 let after_kw = i + kw_chars.len();
                 // Must be preceded by word boundary (start of string or non-alphanumeric)
                 if i > 0 && chars[i - 1].is_alphanumeric() {
@@ -124,8 +113,7 @@ fn extract_github_issues(body: &str, refs: &mut Vec<IssueReference>) {
 
         // Bare #N (not preceded by alphanumeric or &)
         if chars[i] == '#' {
-            let preceded_ok = i == 0
-                || (!chars[i - 1].is_alphanumeric() && chars[i - 1] != '&');
+            let preceded_ok = i == 0 || (!chars[i - 1].is_alphanumeric() && chars[i - 1] != '&');
             if preceded_ok {
                 if let Some((num_str, end)) = parse_digits(&body_chars, i + 1) {
                     refs.push(IssueReference {
@@ -249,9 +237,7 @@ fn extract_urls(body: &str, refs: &mut Vec<IssueReference>) {
     while search_start < body.len() {
         // Find next URL-like prefix
         let rest = &body[search_start..];
-        let offset = rest
-            .find("https://")
-            .or_else(|| rest.find("http://"));
+        let offset = rest.find("https://").or_else(|| rest.find("http://"));
 
         let Some(pos) = offset else { break };
         let url_start = search_start + pos;
@@ -335,18 +321,14 @@ mod tests {
 
     #[test]
     fn url_github_issues() {
-        let refs =
-            extract_issue_references("https://github.com/owner/repo/issues/1", &[]);
+        let refs = extract_issue_references("https://github.com/owner/repo/issues/1", &[]);
         assert!(has_issue_linkage(&refs));
         assert_eq!(refs[0].kind, IssueRefKind::Url);
     }
 
     #[test]
     fn url_jira_browse() {
-        let refs = extract_issue_references(
-            "See https://jira.example.com/browse/PROJ-123",
-            &[],
-        );
+        let refs = extract_issue_references("See https://jira.example.com/browse/PROJ-123", &[]);
         assert!(has_issue_linkage(&refs));
         assert_eq!(refs[0].kind, IssueRefKind::Url);
     }
@@ -434,7 +416,10 @@ mod tests {
     fn markdown_link_jira_browse() {
         let body = "Related: [ticket](https://jira.example.com/browse/PROJ-456)";
         let refs = extract_issue_references(body, &[]);
-        assert!(refs.iter().any(|r| r.kind == IssueRefKind::Url && r.value.contains("/browse/")));
+        assert!(
+            refs.iter()
+                .any(|r| r.kind == IssueRefKind::Url && r.value.contains("/browse/"))
+        );
     }
 
     // --- P3: Jira blocklist ---

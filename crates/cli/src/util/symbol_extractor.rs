@@ -233,10 +233,7 @@ fn extract_identifier(s: &str) -> Option<&str> {
     if s.is_empty() || !is_ident_start(s.as_bytes()[0]) {
         return None;
     }
-    let end = s
-        .bytes()
-        .position(|b| !is_ident_char(b))
-        .unwrap_or(s.len());
+    let end = s.bytes().position(|b| !is_ident_char(b)).unwrap_or(s.len());
     Some(&s[..end])
 }
 

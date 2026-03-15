@@ -65,9 +65,7 @@ impl Rule for VerifyPrSize {
                 "PR touches {total_lines} lines across {total_files} files (excluding generated)"
             ),
             affected_files: affected,
-            suggestion: Some(
-                "Consider splitting into smaller, focused pull requests.".to_string(),
-            ),
+            suggestion: Some("Consider splitting into smaller, focused pull requests.".to_string()),
         }])
     }
 }

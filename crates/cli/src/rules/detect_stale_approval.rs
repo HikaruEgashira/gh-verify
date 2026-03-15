@@ -75,11 +75,10 @@ impl Rule for DetectStaleApproval {
             ApprovalStatus::Stale => RuleResult {
                 rule_id: RULE_ID.to_string(),
                 severity: Severity::Error,
-                message: "Approval is stale: commits were pushed after the last approval".to_string(),
+                message: "Approval is stale: commits were pushed after the last approval"
+                    .to_string(),
                 affected_files: vec![],
-                suggestion: Some(
-                    "Request a new review to cover the latest changes".to_string(),
-                ),
+                suggestion: Some("Request a new review to cover the latest changes".to_string()),
             },
             ApprovalStatus::NoApproval => RuleResult {
                 rule_id: RULE_ID.to_string(),
@@ -99,12 +98,16 @@ impl Rule for DetectStaleApproval {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::github::types::{PrCommit, PrCommitAuthor, PrCommitInner, PrMetadata, PrUser, Review};
+    use crate::github::types::{
+        PrCommit, PrCommitAuthor, PrCommitInner, PrMetadata, PrUser, Review,
+    };
     use crate::rules::RuleContext;
 
     fn make_review(login: &str, state: &str, submitted_at: &str) -> Review {
         Review {
-            user: PrUser { login: login.to_string() },
+            user: PrUser {
+                login: login.to_string(),
+            },
             state: state.to_string(),
             submitted_at: Some(submitted_at.to_string()),
         }

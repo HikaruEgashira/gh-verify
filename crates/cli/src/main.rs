@@ -106,12 +106,10 @@ fn run() -> Result<()> {
             let pr_metadata =
                 github::pr_api::get_pr_metadata(&client, &owner, &repo_name, pr_number)
                     .context("failed to fetch PR metadata")?;
-            let pr_reviews =
-                github::pr_api::get_pr_reviews(&client, &owner, &repo_name, pr_number)
-                    .context("failed to fetch PR reviews")?;
-            let pr_commits =
-                github::pr_api::get_pr_commits(&client, &owner, &repo_name, pr_number)
-                    .context("failed to fetch PR commits")?;
+            let pr_reviews = github::pr_api::get_pr_reviews(&client, &owner, &repo_name, pr_number)
+                .context("failed to fetch PR reviews")?;
+            let pr_commits = github::pr_api::get_pr_commits(&client, &owner, &repo_name, pr_number)
+                .context("failed to fetch PR commits")?;
 
             if legacy_rules {
                 let ctx = rules::RuleContext::Pr {
@@ -206,10 +204,7 @@ fn run() -> Result<()> {
                     let pr_author = find_pr_author(&commit_prs, *pr_number);
 
                     let reviews = github::release_api::get_pr_reviews(
-                        &client,
-                        &owner,
-                        &repo_name,
-                        *pr_number,
+                        &client, &owner, &repo_name, *pr_number,
                     )
                     .unwrap_or_else(|err| {
                         eprintln!("Warning: failed to fetch reviews for PR #{pr_number}: {err}");
@@ -302,7 +297,10 @@ fn exit_if_assessment_fails(report: &gh_verify_core::assessment::AssessmentRepor
     }
 }
 
-fn find_pr_author(commit_prs: &[adapters::github::GitHubCommitPullAssociation], pr_number: u32) -> String {
+fn find_pr_author(
+    commit_prs: &[adapters::github::GitHubCommitPullAssociation],
+    pr_number: u32,
+) -> String {
     for assoc in commit_prs {
         for pr in &assoc.pull_requests {
             if pr.number == pr_number {

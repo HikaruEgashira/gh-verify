@@ -30,9 +30,9 @@ impl DetectMissingTest {
             .filter(|f| !is_non_code_file(&f.filename))
             .filter(|f| classify_file_role(&f.filename) == FileRole::Source)
             .filter_map(|f| {
-                f.patch.as_deref().map(|patch| {
-                    (f.filename.clone(), coverage::extract_changed_lines(patch))
-                })
+                f.patch
+                    .as_deref()
+                    .map(|patch| (f.filename.clone(), coverage::extract_changed_lines(patch)))
             })
             .filter(|(_, lines)| !lines.is_empty())
             .collect();
@@ -45,7 +45,8 @@ impl DetectMissingTest {
         let severity = coverage::classify_coverage_severity(
             analysis.total_covered as usize,
             analysis.total_changed as usize,
-            80, 50, // warn=80%, error=50%
+            80,
+            50, // warn=80%, error=50%
         );
 
         let affected: Vec<String> = analysis
@@ -129,8 +130,7 @@ impl DetectMissingTest {
             return Ok(vec![pass_result()]);
         }
 
-        let affected_files: Vec<String> =
-            uncovered.iter().map(|u| u.source_path.clone()).collect();
+        let affected_files: Vec<String> = uncovered.iter().map(|u| u.source_path.clone()).collect();
         let mut suggestion_lines = Vec::new();
         for entry in &uncovered {
             let first_candidate = entry
@@ -351,7 +351,11 @@ end_of_record
         let results = DetectMissingTest.run(&ctx).expect("rule should run");
         assert_eq!(results.len(), 1);
         assert_eq!(results[0].severity, Severity::Error);
-        assert!(results[0].affected_files.contains(&"src/foo.rs".to_string()));
+        assert!(
+            results[0]
+                .affected_files
+                .contains(&"src/foo.rs".to_string())
+        );
     }
 
     #[test]

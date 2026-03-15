@@ -151,10 +151,7 @@ mod tests {
                 "Unsigned",
                 vec!["github_release:owner/repo@v1.0".to_string()],
             ),
-            ControlFinding::not_applicable(
-                ControlId::ReviewIndependence,
-                "No PR context",
-            ),
+            ControlFinding::not_applicable(ControlId::ReviewIndependence, "No PR context"),
             ControlFinding::indeterminate(
                 ControlId::SourceAuthenticity,
                 "Partial evidence",

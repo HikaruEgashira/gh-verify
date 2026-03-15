@@ -12,9 +12,7 @@ use anyhow::Result;
 use gh_verify_core::verdict::RuleResult;
 
 use crate::adapters::github::GitHubCommitPullAssociation;
-use crate::github::types::{
-    CompareCommit, PrCommit, PrFile, PrMetadata, Review,
-};
+use crate::github::types::{CompareCommit, PrCommit, PrFile, PrMetadata, Review};
 
 #[derive(Debug, Clone)]
 pub struct PrRuleOptions {

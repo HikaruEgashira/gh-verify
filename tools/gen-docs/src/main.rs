@@ -222,7 +222,11 @@ fn parse_verif_specs(path: &Path) -> Vec<VerifSpec> {
             let trimmed = line.trim();
             if trimmed.ends_with('}') || (trimmed.starts_with("pub ") && !trimmed.contains("#[")) {
                 // Track the byte offset after this line
-                attr_start = prefix.lines().take(i + 1).map(|l| l.len() + 1).sum::<usize>();
+                attr_start = prefix
+                    .lines()
+                    .take(i + 1)
+                    .map(|l| l.len() + 1)
+                    .sum::<usize>();
             }
         }
         let attr_block = &text[attr_start..fn_start];
@@ -398,7 +402,10 @@ fn build_module_rule_maps(
     let use_re = Regex::new(r"use (?:gh_verify_core|crate)::(\w+)").unwrap();
     let fn_call_re = Regex::new(r"\b([a-z_]\w+)\s*\(").unwrap();
 
-    let dirs = [root.join("crates/cli/src/rules"), root.join("crates/core/src")];
+    let dirs = [
+        root.join("crates/cli/src/rules"),
+        root.join("crates/core/src"),
+    ];
 
     for dir in &dirs {
         for entry in walkdir(dir) {
@@ -561,7 +568,10 @@ fn collect_rules(root: &Path) -> BTreeMap<String, RuleInfo> {
             Ok(t) => t,
             Err(_) => continue,
         };
-        let non_test = text.find("#[cfg(test)]").map(|i| &text[..i]).unwrap_or(&text);
+        let non_test = text
+            .find("#[cfg(test)]")
+            .map(|i| &text[..i])
+            .unwrap_or(&text);
         let stem = path.file_stem().unwrap().to_string_lossy().to_string();
         for cap in core_fn_re.captures_iter(non_test) {
             core_fn_to_module.insert(cap[1].to_string(), stem.clone());
@@ -655,10 +665,7 @@ fn collect_rules(root: &Path) -> BTreeMap<String, RuleInfo> {
     }
 
     // 4. Collect tests from all .rs files with #[cfg(test)]
-    let test_dirs = [
-        root.join("crates/core/src"),
-        root.join("crates/cli/src"),
-    ];
+    let test_dirs = [root.join("crates/core/src"), root.join("crates/cli/src")];
 
     for dir in &test_dirs {
         for path in walkdir(dir) {
@@ -704,7 +711,12 @@ fn render_html(rules: &BTreeMap<String, RuleInfo>) -> String {
     let proven_specs: usize = rules
         .values()
         .flat_map(|r| &r.specs)
-        .filter(|s| matches!(s.proof.as_ref().map(|p| p.status), Some(ProofStatus::Proven)))
+        .filter(|s| {
+            matches!(
+                s.proof.as_ref().map(|p| p.status),
+                Some(ProofStatus::Proven)
+            )
+        })
         .count();
     let timestamp = chrono_now();
 
@@ -749,10 +761,17 @@ fn render_html(rules: &BTreeMap<String, RuleInfo>) -> String {
         let n_proven = rule
             .specs
             .iter()
-            .filter(|s| matches!(s.proof.as_ref().map(|p| p.status), Some(ProofStatus::Proven)))
+            .filter(|s| {
+                matches!(
+                    s.proof.as_ref().map(|p| p.status),
+                    Some(ProofStatus::Proven)
+                )
+            })
             .count();
         let proven_indicator = if n_proven > 0 {
-            format!("<span class=\"sidebar-proven\" title=\"{n_proven} SMT proven\">&#x2713;</span>")
+            format!(
+                "<span class=\"sidebar-proven\" title=\"{n_proven} SMT proven\">&#x2713;</span>"
+            )
         } else {
             String::new()
         };
@@ -925,11 +944,7 @@ fn render_decision_table(html: &mut String, tests: &[TestCase]) {
     for test in &categorized {
         let sev = test.severity.unwrap();
         let name = test.name.replace('_', " ");
-        let key_assert = test
-            .assertions
-            .first()
-            .map(|a| esc(a))
-            .unwrap_or_default();
+        let key_assert = test.assertions.first().map(|a| esc(a)).unwrap_or_default();
 
         write!(
             html,

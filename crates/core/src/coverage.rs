@@ -18,10 +18,7 @@ use crate::verdict::Severity;
 /// LCOV parse error. Explicit enum (no anyhow in core crate).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ParseError {
-    MalformedLine {
-        line_number: usize,
-        content: String,
-    },
+    MalformedLine { line_number: usize, content: String },
 }
 
 /// Per-file coverage data. Corresponds to one SF..end_of_record block in LCOV.
@@ -200,10 +197,7 @@ pub fn analyze_coverage(
         }
 
         // Find matching LCOV entry
-        let file_cov = report
-            .files
-            .iter()
-            .find(|f| resolve_path(&f.path, path));
+        let file_cov = report.files.iter().find(|f| resolve_path(&f.path, path));
 
         let mut covered: u32 = 0;
         let mut uncovered_lines = Vec::new();
@@ -335,10 +329,8 @@ mod tests {
     /// FileCoverage entries — a real LCOV report covers many files.
     #[test]
     fn parse_lcov_multiple_files() {
-        let content = make_multi_lcov(&[
-            ("/src/a.rs", &[(1, 1)]),
-            ("/src/b.rs", &[(1, 0), (2, 3)]),
-        ]);
+        let content =
+            make_multi_lcov(&[("/src/a.rs", &[(1, 1)]), ("/src/b.rs", &[(1, 0), (2, 3)])]);
         let report = parse_lcov(&content).unwrap();
         assert_eq!(report.files.len(), 2);
         assert_eq!(report.files[0].path, "/src/a.rs");
@@ -480,10 +472,7 @@ end_of_record
     /// suffix matching fails and changed files appear as 0% covered.
     #[test]
     fn resolve_path_windows_backslash() {
-        assert!(resolve_path(
-            "C:\\work\\repo\\src\\foo.rs",
-            "src/foo.rs"
-        ));
+        assert!(resolve_path("C:\\work\\repo\\src\\foo.rs", "src/foo.rs"));
     }
 
     // --- analyze_coverage ---

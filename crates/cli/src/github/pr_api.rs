@@ -84,8 +84,7 @@ pub fn get_pr_reviews(
     pr_number: u32,
 ) -> Result<Vec<Review>> {
     let mut all_reviews: Vec<Review> = Vec::new();
-    let mut current_path =
-        format!("/repos/{owner}/{repo}/pulls/{pr_number}/reviews?per_page=100");
+    let mut current_path = format!("/repos/{owner}/{repo}/pulls/{pr_number}/reviews?per_page=100");
 
     for _ in 0..MAX_PAGES {
         let (body, next_path) = client.get_with_link(&current_path)?;
@@ -110,8 +109,7 @@ pub fn get_pr_commits(
     pr_number: u32,
 ) -> Result<Vec<PrCommit>> {
     let mut all_commits: Vec<PrCommit> = Vec::new();
-    let mut current_path =
-        format!("/repos/{owner}/{repo}/pulls/{pr_number}/commits?per_page=100");
+    let mut current_path = format!("/repos/{owner}/{repo}/pulls/{pr_number}/commits?per_page=100");
 
     for _ in 0..MAX_PAGES {
         let (body, next_path) = client.get_with_link(&current_path)?;

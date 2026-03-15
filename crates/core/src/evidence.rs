@@ -73,10 +73,7 @@ pub enum EvidenceGap {
         detail: String,
     },
     /// The data was truncated by the upstream API (e.g. pagination limit).
-    Truncated {
-        source: String,
-        subject: String,
-    },
+    Truncated { source: String, subject: String },
     /// A required field was absent in the upstream response.
     MissingField {
         source: String,
@@ -84,14 +81,9 @@ pub enum EvidenceGap {
         field: String,
     },
     /// The diff content for a changed asset could not be retrieved.
-    DiffUnavailable {
-        subject: String,
-    },
+    DiffUnavailable { subject: String },
     /// The upstream source does not support the requested capability.
-    Unsupported {
-        source: String,
-        capability: String,
-    },
+    Unsupported { source: String, capability: String },
 }
 
 /// Platform-independent identifier for a change request (e.g. a pull request).

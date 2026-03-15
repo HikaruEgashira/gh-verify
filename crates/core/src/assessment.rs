@@ -40,8 +40,8 @@ mod tests {
     use super::*;
     use crate::control::{ControlId, ControlStatus};
     use crate::evidence::{
-        ApprovalDecision, ApprovalDisposition, AuthenticityEvidence, ChangeRequestId, EvidenceState,
-        GovernedChange, SourceRevision,
+        ApprovalDecision, ApprovalDisposition, AuthenticityEvidence, ChangeRequestId,
+        EvidenceState, GovernedChange, SourceRevision,
     };
     use crate::profile::{FindingSeverity, GateDecision};
 
