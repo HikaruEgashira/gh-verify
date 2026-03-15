@@ -59,6 +59,29 @@ pub fn signature_severity(unsigned_count: usize) -> Severity {
     }
 }
 
+/// Branch protection: protected branch membership check.
+///
+/// Models `is_protected_branch` as a boolean predicate. Since Creusot
+/// cannot handle `&str` / `String`, we abstract the membership test to
+/// a pre-computed boolean `is_member` that the caller resolves.
+///
+/// The postcondition is trivially `result == is_member`, ensuring the
+/// runtime implementation faithfully forwards the membership answer.
+#[ensures(result == is_member)]
+pub fn is_protected_branch(is_member: bool) -> bool {
+    is_member
+}
+
+/// Branch protection: admin merge detection.
+///
+/// A PR merged with zero reviews indicates an admin bypass of branch
+/// protection rules. Returns `true` when `review_count == 0`.
+#[ensures(review_count == 0usize ==> result == true)]
+#[ensures(review_count > 0usize ==> result == false)]
+pub fn is_admin_merge(review_count: usize) -> bool {
+    review_count == 0
+}
+
 /// Scope classification.
 ///
 /// Exhaustive postconditions covering all input combinations.

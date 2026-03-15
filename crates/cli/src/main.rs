@@ -32,6 +32,12 @@ enum Commands {
         /// Repository in OWNER/REPO format
         #[arg(long)]
         repo: Option<String>,
+        /// Disable detect-missing-test rule
+        #[arg(long)]
+        no_detect_missing_test: bool,
+        /// Additional test filename pattern (comma-separated, `*` placeholder)
+        #[arg(long, value_delimiter = ',')]
+        test_pattern: Vec<String>,
     },
     /// Verify release integrity
     Release {
@@ -61,6 +67,8 @@ fn run() -> Result<()> {
             arg,
             format,
             repo: repo_override,
+            no_detect_missing_test,
+            test_pattern,
         } => {
             if arg == "list-rules" {
                 println!("Available rules:");
@@ -85,6 +93,10 @@ fn run() -> Result<()> {
             let ctx = rules::RuleContext::Pr {
                 pr_files,
                 pr_metadata,
+                options: rules::PrRuleOptions {
+                    detect_missing_test: !no_detect_missing_test,
+                    test_patterns: test_pattern,
+                },
             };
             let results = engine::run_all(&ctx)?;
             output::print(fmt, &results)?;
@@ -107,9 +119,10 @@ fn run() -> Result<()> {
 
             println!("Checking release: {base_tag}..{head_tag}");
 
-            let commits =
-                github::release_api::compare_refs(&client, &owner, &repo_name, &base_tag, &head_tag)
-                    .context("failed to compare refs")?;
+            let commits = github::release_api::compare_refs(
+                &client, &owner, &repo_name, &base_tag, &head_tag,
+            )
+            .context("failed to compare refs")?;
 
             if commits.is_empty() {
                 println!("No commits found between {base_tag} and {head_tag}");
@@ -122,17 +135,17 @@ fn run() -> Result<()> {
             let mut seen_prs = HashSet::new();
 
             for c in &commits {
-                let prs = github::release_api::get_commit_pulls(
-                    &client,
-                    &owner,
-                    &repo_name,
-                    &c.sha,
-                )
-                .unwrap_or_else(|err| {
-                    let short = if c.sha.len() >= 7 { &c.sha[..7] } else { &c.sha };
-                    eprintln!("Warning: failed to fetch PRs for commit {short}: {err}");
-                    vec![]
-                });
+                let prs =
+                    github::release_api::get_commit_pulls(&client, &owner, &repo_name, &c.sha)
+                        .unwrap_or_else(|err| {
+                            let short = if c.sha.len() >= 7 {
+                                &c.sha[..7]
+                            } else {
+                                &c.sha
+                            };
+                            eprintln!("Warning: failed to fetch PRs for commit {short}: {err}");
+                            vec![]
+                        });
 
                 for pr in &prs {
                     seen_prs.insert(pr.number);
@@ -150,16 +163,14 @@ fn run() -> Result<()> {
                 // Find PR author
                 let pr_author = find_pr_author(&commit_prs, *pr_number);
 
-                let reviews = github::release_api::get_pr_reviews(
-                    &client,
-                    &owner,
-                    &repo_name,
-                    *pr_number,
-                )
-                .unwrap_or_else(|err| {
-                    eprintln!("Warning: failed to fetch reviews for PR #{pr_number}: {err}");
-                    vec![]
-                });
+                let reviews =
+                    github::release_api::get_pr_reviews(&client, &owner, &repo_name, *pr_number)
+                        .unwrap_or_else(|err| {
+                            eprintln!(
+                                "Warning: failed to fetch reviews for PR #{pr_number}: {err}"
+                            );
+                            vec![]
+                        });
 
                 pr_reviews.push(rules::PrReviewSet {
                     pr_number: *pr_number,

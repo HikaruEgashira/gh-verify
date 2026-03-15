@@ -100,6 +100,7 @@ mod tests {
                 title: "test".to_string(),
                 body: None,
             },
+            options: crate::rules::PrRuleOptions::default(),
         }
     }
 

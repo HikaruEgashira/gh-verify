@@ -438,6 +438,7 @@ fn actual_from_rule_results(
     let ctx = RuleContext::Pr {
         pr_files,
         pr_metadata,
+        options: rules::PrRuleOptions::for_benchmark(),
     };
 
     match rules::engine::run_all(&ctx) {
