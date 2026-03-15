@@ -83,6 +83,15 @@ CLI の exit code を決定する（Error → exit 1）。Ord を実装し `Pass
 
 `FindingSeverity::to_verdict_severity()` がこの写像を提供する。
 
+### Profile ごとの Indeterminate 写像
+
+`ControlStatus::Indeterminate` の gate decision は profile が決定する。
+SLSA Foundation profile は security baseline であり、証跡不足は違反と同等に扱う。
+Creusot の `four_eyes_gate` 証明が `known_author_count == 0 ==> result == false` を
+保証しているため、Indeterminate → `Fail / Error` と写像する。
+これは control 層で `Indeterminate` と `Violated` を区別する設計と矛盾しない。
+profile が異なれば（例: advisory profile）Indeterminate → Review も許容される。
+
 ### 分離の理由
 
 - rule は platform 語彙（PR, Review）を直接扱い、pass/fail の二値的判定を行う
