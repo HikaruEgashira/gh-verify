@@ -43,13 +43,6 @@ jobs:
         if: matrix.cross
         run: cargo install cross --git https://github.com/cross-rs/cross
 
-      - name: Set edge version suffix
-        if: contains(github.ref_name, '-dev.')
-        shell: bash
-        run: |
-          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
-          echo "GH_VERIFY_VERSION_SUFFIX=dev+${SHORT_SHA}" >> "$GITHUB_ENV"
-
       - name: Build
         run: |
           if [ "${{ matrix.cross }}" = "true" ]; then
@@ -89,26 +82,8 @@ jobs:
         with:
           subject-path: dist/*
 
-      - name: Determine release type
-        id: meta
-        run: |
-          TAG="${GITHUB_REF_NAME}"
-          if [[ "$TAG" == *-dev.* ]]; then
-            echo "prerelease=true" >> "$GITHUB_OUTPUT"
-            echo "make_latest=false" >> "$GITHUB_OUTPUT"
-            echo "name=Edge ${TAG}" >> "$GITHUB_OUTPUT"
-          else
-            echo "prerelease=false" >> "$GITHUB_OUTPUT"
-            echo "make_latest=true" >> "$GITHUB_OUTPUT"
-            echo "name=${TAG}" >> "$GITHUB_OUTPUT"
-          fi
-
       - uses: softprops/action-gh-release@1853d73993c8ca1b2c9c1a7fede39682d0ab5c2a # v2.5.3
-        # TODO: remove continue-on-error after GitHub clears immutable release cache
-        # (caused by prior required_signatures ruleset). Tracked via GitHub Support.
-        continue-on-error: ${{ steps.meta.outputs.prerelease == 'true' }}
         with:
           files: dist/*
-          prerelease: ${{ steps.meta.outputs.prerelease }}
-          make_latest: ${{ steps.meta.outputs.make_latest }}
-          name: ${{ steps.meta.outputs.name }}
+          prerelease: false
+          make_latest: true
