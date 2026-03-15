@@ -92,14 +92,14 @@ jobs:
 
       - uses: softprops/action-gh-release@1853d73993c8ca1b2c9c1a7fede39682d0ab5c2a # v2.5.3
         with:
-          tag_name: edge
+          tag_name: v0.0.0-edge
           target_commitish: ${{ github.sha }}
           name: "Edge (rolling)"
           body: |
             Rolling build from `main` at ${{ github.sha }}.
 
             ```
-            gh extension install HikaruEgashira/gh-verify --pin edge
+            gh extension install HikaruEgashira/gh-verify --pin v0.0.0-edge
             ```
           files: dist/*
           prerelease: true
