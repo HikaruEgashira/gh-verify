@@ -3,7 +3,7 @@ name: release
 on:
   push:
     tags:
-      - "v[0-9]+.[0-9]+.[0-9]+"
+      - "v*"
 
 permissions:
   contents: write
@@ -42,6 +42,12 @@ jobs:
       - name: Install cross
         if: matrix.cross
         run: cargo install cross --git https://github.com/cross-rs/cross
+
+      - name: Set edge version suffix
+        if: contains(github.ref_name, '-dev.')
+        run: |
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          echo "GH_VERIFY_VERSION_SUFFIX=dev+${SHORT_SHA}" >> "$GITHUB_ENV"
 
       - name: Build
         run: |
@@ -82,8 +88,23 @@ jobs:
         with:
           subject-path: dist/*
 
+      - name: Determine release type
+        id: meta
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          if [[ "$TAG" == *-dev.* ]]; then
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+            echo "make_latest=false" >> "$GITHUB_OUTPUT"
+            echo "name=Edge ${TAG}" >> "$GITHUB_OUTPUT"
+          else
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+            echo "make_latest=true" >> "$GITHUB_OUTPUT"
+            echo "name=${TAG}" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: softprops/action-gh-release@1853d73993c8ca1b2c9c1a7fede39682d0ab5c2a # v2.5.3
         with:
           files: dist/*
-          prerelease: false
-          make_latest: true
+          prerelease: ${{ steps.meta.outputs.prerelease }}
+          make_latest: ${{ steps.meta.outputs.make_latest }}
+          name: ${{ steps.meta.outputs.name }}
