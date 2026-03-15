@@ -81,7 +81,7 @@ CLI の exit code を決定する（Error → exit 1）。Ord を実装し `Pass
 | `Warning` | `Warning` | 要レビュー。ブロックしない |
 | `Error` | `Error` | 違反。ゲートを通過できない |
 
-`FindingSeverity::to_verdict_severity()` がこの写像を提供する。
+この写像は概念的な対応関係であり、両型系は独立して使用される。
 
 ### Profile ごとの Indeterminate 写像
 

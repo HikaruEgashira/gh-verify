@@ -14,20 +14,6 @@ pub enum FindingSeverity {
     Error,
 }
 
-impl FindingSeverity {
-    /// Converts to `verdict::Severity` for backward compatibility with the rule-based system.
-    ///
-    /// Mapping: `Info → Pass`, `Warning → Warning`, `Error → Error`.
-    /// This bridge exists only during migration; see ADR-0001 "Severity Model".
-    pub fn to_verdict_severity(&self) -> crate::verdict::Severity {
-        match self {
-            FindingSeverity::Info => crate::verdict::Severity::Pass,
-            FindingSeverity::Warning => crate::verdict::Severity::Warning,
-            FindingSeverity::Error => crate::verdict::Severity::Error,
-        }
-    }
-}
-
 /// Gate outcome that determines whether a pipeline stage may proceed.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -150,21 +136,6 @@ mod tests {
         assert_eq!(outcome.severity, FindingSeverity::Info);
         assert_eq!(outcome.decision, GateDecision::Pass);
         assert_eq!(outcome.control_id, ControlId::SourceAuthenticity);
-    }
-
-    #[test]
-    fn finding_severity_to_verdict_severity_mapping() {
-        use crate::verdict::Severity;
-
-        assert_eq!(FindingSeverity::Info.to_verdict_severity(), Severity::Pass);
-        assert_eq!(
-            FindingSeverity::Warning.to_verdict_severity(),
-            Severity::Warning
-        );
-        assert_eq!(
-            FindingSeverity::Error.to_verdict_severity(),
-            Severity::Error
-        );
     }
 
     #[test]

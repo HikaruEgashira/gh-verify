@@ -11,8 +11,9 @@ pub mod verify_release_integrity;
 use anyhow::Result;
 use gh_verify_core::verdict::RuleResult;
 
+use crate::adapters::github::GitHubCommitPullAssociation;
 use crate::github::types::{
-    CompareCommit, PrCommit, PrFile, PrMetadata, PullRequestSummary, Review,
+    CompareCommit, PrCommit, PrFile, PrMetadata, Review,
 };
 
 #[derive(Debug, Clone)]
@@ -53,15 +54,9 @@ pub enum RuleContext {
         base_tag: String,
         head_tag: String,
         commits: Vec<CompareCommit>,
-        commit_prs: Vec<CommitPrAssociation>,
+        commit_prs: Vec<GitHubCommitPullAssociation>,
         pr_reviews: Vec<PrReviewSet>,
     },
-}
-
-/// Per-commit PR association for release context.
-pub struct CommitPrAssociation {
-    pub commit_sha: String,
-    pub prs: Vec<PullRequestSummary>,
 }
 
 /// Per-PR review set for release context.

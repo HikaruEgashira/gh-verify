@@ -27,7 +27,7 @@ impl Rule for VerifyBranchProtection {
         let mut prs: Vec<PrBranchInfo> = Vec::new();
 
         for assoc in commit_prs {
-            for pr_summary in &assoc.prs {
+            for pr_summary in &assoc.pull_requests {
                 if seen.contains(&pr_summary.number) {
                     continue;
                 }
