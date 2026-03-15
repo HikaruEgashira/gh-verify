@@ -9,17 +9,70 @@ permissions:
   contents: write
 
 jobs:
-  release:
-    runs-on: ubuntu-latest
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            asset: gh-verify-linux-amd64
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            asset: gh-verify-linux-arm64
+            cross: true
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            asset: gh-verify-darwin-amd64
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            asset: gh-verify-darwin-arm64
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            asset: gh-verify-windows-amd64.exe
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - uses: DeterminateSystems/nix-installer-action@e50d5f73bfe71c2dd0aa4218de8f4afa59f8f669 # v16
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
 
-      - uses: cachix/devenv-install-action@6b11d2f44dc6b1109fef47c25f0b37b7f5091eea # v0
+      - name: Install cross
+        if: matrix.cross
+        run: cargo install cross --git https://github.com/cross-rs/cross
 
-      - name: Build cross-platform binaries
-        run: devenv tasks run ghverify:dist ${{ github.ref_name }}
+      - name: Build
+        run: |
+          if [ "${{ matrix.cross }}" = "true" ]; then
+            cross build --release --target ${{ matrix.target }} -p gh-verify
+          else
+            cargo build --release --target ${{ matrix.target }} -p gh-verify
+          fi
+        shell: bash
+
+      - name: Package binary
+        run: |
+          mkdir -p dist
+          if [[ "${{ matrix.asset }}" == *.exe ]]; then
+            cp "target/${{ matrix.target }}/release/gh-verify.exe" "dist/${{ matrix.asset }}"
+          else
+            cp "target/${{ matrix.target }}/release/gh-verify" "dist/${{ matrix.asset }}"
+          fi
+        shell: bash
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ matrix.asset }}
+          path: dist/${{ matrix.asset }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          path: dist
+          merge-multiple: true
 
       - uses: softprops/action-gh-release@c95fe1489396fe8a6f36d0f87a8b4e7df4bb07a2 # v2
         with:

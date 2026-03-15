@@ -61,17 +61,23 @@
     };
 
     "ghverify:dist" = {
-      description = "Build release binaries using cargo";
+      description = "Build release binary for gh extension (gh-verify-{os}-{arch})";
       exec = ''
         set -euo pipefail
-        TAG="''${1:-dev}"
-        EXT_NAME="gh-verify"
+        OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+        ARCH=$(uname -m)
+        case "$ARCH" in
+          x86_64)  ARCH="amd64" ;;
+          aarch64) ARCH="arm64" ;;
+          arm64)   ARCH="arm64" ;;
+        esac
+        ASSET="gh-verify-''${OS}-''${ARCH}"
         mkdir -p dist
 
         echo "Building release binary..."
         cargo build --release -p gh-verify
-        cp "target/release/''${EXT_NAME}" "dist/''${EXT_NAME}_''${TAG}_$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m)"
-        echo "Build complete."
+        cp "target/release/gh-verify" "dist/''${ASSET}"
+        echo "Built: dist/''${ASSET}"
       '';
     };
 
