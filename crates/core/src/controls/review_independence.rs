@@ -87,7 +87,10 @@ fn evaluate_change(change: &GovernedChange) -> ControlFinding {
         );
     }
 
-    let requester = change.submitted_by.as_deref().unwrap_or_default();
+    let requester = change
+        .submitted_by
+        .as_deref()
+        .expect("submitted_by guaranteed Some: early return on missing field");
     let has_independent_approval = approvals.iter().any(|approval| {
         approval.disposition == ApprovalDisposition::Approved
             && approval.actor != requester
