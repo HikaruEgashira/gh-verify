@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use gh_verify_core::evidence::{
     ApprovalDecision, ApprovalDisposition, AuthenticityEvidence, ChangeRequestId, ChangedAsset,
     EvidenceBundle, EvidenceGap, EvidenceState, GovernedChange, PromotionBatch, SourceRevision,
@@ -126,9 +128,14 @@ pub fn map_promotion_batch_evidence(
     commits: &[CompareCommit],
     commit_pulls: &[GitHubCommitPullAssociation],
 ) -> PromotionBatch {
+    let commit_shas: HashSet<&str> =
+        commits.iter().map(|c| c.sha.as_str()).collect();
+    let mut seen_prs = HashSet::new();
     let linked_change_requests: Vec<ChangeRequestId> = commit_pulls
         .iter()
-        .flat_map(|association| association.pull_requests.iter())
+        .filter(|assoc| commit_shas.contains(assoc.commit_sha.as_str()))
+        .flat_map(|assoc| assoc.pull_requests.iter())
+        .filter(|pr| seen_prs.insert(pr.number))
         .map(|pr| ChangeRequestId::new("github_pr", format!("{repo}#{}", pr.number)))
         .collect();
 
@@ -282,6 +289,74 @@ mod tests {
             revisions[0].authenticity,
             EvidenceState::Complete { .. }
         ));
+    }
+
+    #[test]
+    fn promotion_batch_filters_unrelated_commits_and_deduplicates_prs() {
+        let commits = vec![CompareCommit {
+            sha: "aaa111".to_string(),
+            commit: CompareCommitInner {
+                message: "feat: in-range commit".to_string(),
+                verification: CommitVerification {
+                    verified: true,
+                    reason: "valid".to_string(),
+                },
+            },
+            author: None,
+            parents: vec![],
+        }];
+
+        let commit_pulls = vec![
+            // Association for a commit IN the range — should be included
+            GitHubCommitPullAssociation {
+                commit_sha: "aaa111".to_string(),
+                pull_requests: vec![PullRequestSummary {
+                    number: 1,
+                    state: "closed".to_string(),
+                    merged_at: Some("2026-03-15T00:00:00Z".to_string()),
+                    user: PrUser {
+                        login: "dev".to_string(),
+                    },
+                    base: None,
+                }],
+            },
+            // Association for a commit NOT in the range — should be excluded
+            GitHubCommitPullAssociation {
+                commit_sha: "bbb222".to_string(),
+                pull_requests: vec![PullRequestSummary {
+                    number: 99,
+                    state: "closed".to_string(),
+                    merged_at: Some("2026-03-15T00:00:00Z".to_string()),
+                    user: PrUser {
+                        login: "other".to_string(),
+                    },
+                    base: None,
+                }],
+            },
+            // Duplicate PR #1 on a different in-range association — should be deduped
+            GitHubCommitPullAssociation {
+                commit_sha: "aaa111".to_string(),
+                pull_requests: vec![PullRequestSummary {
+                    number: 1,
+                    state: "closed".to_string(),
+                    merged_at: Some("2026-03-15T00:00:00Z".to_string()),
+                    user: PrUser {
+                        login: "dev".to_string(),
+                    },
+                    base: None,
+                }],
+            },
+        ];
+
+        let batch =
+            map_promotion_batch_evidence("owner/repo", "v0.1.0", "v0.2.0", &commits, &commit_pulls);
+
+        let crs = match &batch.linked_change_requests {
+            EvidenceState::Complete { value } => value,
+            _ => panic!("linked_change_requests should be complete"),
+        };
+        assert_eq!(crs.len(), 1, "expected exactly 1 CR after filter+dedup");
+        assert_eq!(crs[0].value, "owner/repo#1");
     }
 
     #[test]
