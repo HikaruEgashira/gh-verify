@@ -102,6 +102,7 @@ jobs:
           subject-path: dist/*
 
       - uses: softprops/action-gh-release@1853d73993c8ca1b2c9c1a7fede39682d0ab5c2a # v2.5.3
+        continue-on-error: true  # immutable release cache from prior required_signatures rule
         with:
           tag_name: v0.0.0-dev
           name: "Edge (rolling)"
