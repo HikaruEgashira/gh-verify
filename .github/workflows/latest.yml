@@ -79,15 +79,19 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - name: Delete existing latest release
-        run: gh release delete latest --yes 2>/dev/null || true
+      - name: Delete existing latest release and update tag
         env:
           GH_TOKEN: ${{ github.token }}
-
-      - name: Force-update latest tag
         run: |
-          git tag -f latest
-          git push -f origin latest
+          gh release delete latest --yes --cleanup-tag 2>/dev/null || true
+          gh api repos/${{ github.repository }}/git/refs/tags/latest \
+            --method POST \
+            --field ref=refs/tags/latest \
+            --field sha=${{ github.sha }} 2>/dev/null \
+          || gh api repos/${{ github.repository }}/git/refs/tags/latest \
+            --method PATCH \
+            --field sha=${{ github.sha }} \
+            --field force=true
 
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
