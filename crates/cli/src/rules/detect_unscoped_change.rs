@@ -1,7 +1,7 @@
 use anyhow::Result;
 use gh_verify_core::scope::{
-    classify_scope, is_non_code_file, resolve_import, should_bridge_aux_to_source,
-    should_bridge_colocated_sources, should_bridge_fork_variants,
+    classify_scope, extract_feature_namespace, is_non_code_file, resolve_import,
+    should_bridge_aux_to_source, should_bridge_colocated_sources, should_bridge_fork_variants,
     should_bridge_test_fixture_pair,
 };
 use gh_verify_core::union_find::{NodeKind, UnionFind};
@@ -91,6 +91,20 @@ impl Rule for DetectUnscopedChange {
                     if idx_a != idx_b {
                         graph.merge(file_nodes[idx_a], file_nodes[idx_b]);
                     }
+                }
+            }
+        }
+
+        // Feature namespace pre-pass: bridge files sharing a dominant feature token.
+        let paths_for_ns: Vec<&str> = code_files
+            .iter()
+            .map(|(_, f)| f.filename.as_str())
+            .collect();
+        if let Some(ns) = extract_feature_namespace(&paths_for_ns) {
+            if ns.member_indices.len() >= 2 {
+                let anchor = file_nodes[ns.member_indices[0]];
+                for &idx in &ns.member_indices[1..] {
+                    graph.merge(anchor, file_nodes[idx]);
                 }
             }
         }

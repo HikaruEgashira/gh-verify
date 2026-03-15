@@ -3,6 +3,8 @@
 //! Determines whether a PR's changes are well-scoped (single logical unit)
 //! or spread across disconnected domains.
 
+use std::collections::{HashMap, HashSet};
+
 use crate::verdict::Severity;
 
 /// Classify the scope of a PR based on the number of connected components
@@ -42,6 +44,11 @@ pub fn is_non_code_file(filename: &str) -> bool {
         if filename.starts_with(prefix) {
             return true;
         }
+    }
+    // Dotfiles (e.g. .gitignore, .prettierignore) are infrastructure, not code.
+    let basename = filename.rsplit('/').next().unwrap_or(filename);
+    if basename.starts_with('.') {
+        return true;
     }
     for ext in NON_CODE_EXTENSIONS {
         if filename.ends_with(ext) {
@@ -232,6 +239,193 @@ pub fn should_bridge_fork_variants(path_a: &str, path_b: &str) -> bool {
     true
 }
 
+/// Result of feature namespace extraction.
+#[derive(Debug, Clone)]
+pub struct FeatureNamespace {
+    /// The dominant feature token.
+    pub token: String,
+    /// Indices into the input path slice for files that belong to this namespace.
+    pub member_indices: Vec<usize>,
+}
+
+/// Extract a dominant feature namespace from a set of changed file paths.
+///
+/// Returns `Some` if a non-generic, non-structural token of sufficient length
+/// appears in ≥ 35% of files across ≥ 2 directory subtrees, with ≥ 4 total files.
+/// After finding a namespace, runs one absorption round to pull in files that share
+/// any qualifying token with existing members.
+pub fn extract_feature_namespace(paths: &[&str]) -> Option<FeatureNamespace> {
+    let n = paths.len();
+    if n < 4 {
+        return None;
+    }
+
+    let all_tokens: Vec<Vec<String>> = paths.iter().map(|p| semantic_path_tokens(p)).collect();
+
+    // Count file indices and subtrees per qualifying token.
+    let mut token_stats: HashMap<&str, (Vec<usize>, HashSet<&str>)> = HashMap::new();
+
+    for (i, tokens) in all_tokens.iter().enumerate() {
+        let subtree = package_root(paths[i]);
+        for tok in tokens {
+            if tok.len() < 5 || is_structural_token(tok) {
+                continue;
+            }
+            let entry = token_stats.entry(tok.as_str()).or_default();
+            if entry.0.last() != Some(&i) {
+                entry.0.push(i);
+            }
+            entry.1.insert(subtree);
+        }
+    }
+
+    let threshold = (n as f64 * 0.35).ceil() as usize;
+    // Exclude project-level tokens that appear in almost every file (only for larger PRs).
+    let upper_bound = if n >= 10 {
+        (n as f64 * 0.9).ceil() as usize
+    } else {
+        n + 1 // effectively disabled for small PRs
+    };
+
+    // Solo pass: single token with len >= 6.
+    let mut best: Option<(&str, &Vec<usize>)> = None;
+    let mut best_count: usize = 0;
+
+    for (token, (indices, subtrees)) in &token_stats {
+        if token.len() < 6
+            || subtrees.len() < 2
+            || indices.len() < threshold
+            || indices.len() >= upper_bound
+        {
+            continue;
+        }
+        if indices.len() > best_count {
+            best_count = indices.len();
+            best = Some((token, indices));
+        }
+    }
+
+    if let Some((token, indices)) = best {
+        let mut ns = FeatureNamespace {
+            token: token.to_string(),
+            member_indices: indices.clone(),
+        };
+        absorb_related_files(&mut ns, &all_tokens, n);
+        return Some(ns);
+    }
+
+    // Bigram pass: two tokens each >= 5 chars whose intersection covers threshold.
+    let short_keys: Vec<&str> = token_stats
+        .keys()
+        .filter(|t| {
+            t.len() >= 5 && {
+                let (indices, subtrees) = &token_stats[**t];
+                subtrees.len() >= 2 && indices.len() >= threshold && indices.len() < upper_bound
+            }
+        })
+        .copied()
+        .collect();
+
+    let mut best_bigram: Option<(&str, Vec<usize>)> = None;
+    let mut best_bigram_count: usize = 0;
+
+    for i in 0..short_keys.len() {
+        for j in (i + 1)..short_keys.len() {
+            let set_a = &token_stats[short_keys[i]].0;
+            let set_b = &token_stats[short_keys[j]].0;
+            let intersection: Vec<usize> = set_a
+                .iter()
+                .filter(|idx| set_b.contains(idx))
+                .copied()
+                .collect();
+            if intersection.len() >= threshold && intersection.len() > best_bigram_count {
+                best_bigram_count = intersection.len();
+                let label = if short_keys[i].len() >= short_keys[j].len() {
+                    short_keys[i]
+                } else {
+                    short_keys[j]
+                };
+                best_bigram = Some((label, intersection));
+            }
+        }
+    }
+
+    best_bigram.map(|(token, member_indices)| {
+        let mut ns = FeatureNamespace {
+            token: token.to_string(),
+            member_indices,
+        };
+        absorb_related_files(&mut ns, &all_tokens, n);
+        ns
+    })
+}
+
+/// One-round absorption: pull non-member files into the namespace if they share
+/// a qualifying token with any *original* member. Uses only the token set from
+/// the initial members to prevent transitive over-expansion.
+fn absorb_related_files(ns: &mut FeatureNamespace, all_tokens: &[Vec<String>], n: usize) {
+    // Collect qualifying tokens from original members.
+    let member_tokens: HashSet<&str> = ns
+        .member_indices
+        .iter()
+        .flat_map(|&i| all_tokens[i].iter())
+        .filter(|t| t.len() >= 5 && !is_structural_token(t))
+        .map(|t| t.as_str())
+        .collect();
+
+    for i in 0..n {
+        if ns.member_indices.contains(&i) {
+            continue;
+        }
+        let shares_token = all_tokens[i]
+            .iter()
+            .any(|t| t.len() >= 5 && !is_structural_token(t) && member_tokens.contains(t.as_str()));
+        if shares_token {
+            ns.member_indices.push(i);
+        }
+    }
+}
+
+/// Check whether a token is a generic name OR a common directory-convention name
+/// that should not serve as a feature namespace anchor.
+fn is_structural_token(token: &str) -> bool {
+    is_generic_token(token)
+        || matches!(
+            token,
+            "components"
+                | "internal"
+                | "modules"
+                | "output"
+                | "targets"
+                | "config"
+                | "build"
+                | "public"
+                | "common"
+                | "shared"
+                | "vendor"
+                | "helpers"
+                | "middleware"
+                | "handlers"
+                | "services"
+                | "models"
+                | "views"
+                | "controllers"
+                | "server"
+                | "client"
+                | "scripts"
+                | "tools"
+                | "plugin"
+                | "plugins"
+                | "providers"
+                | "resolvers"
+                | "adapters"
+                | "errors"
+                | "generated"
+                | "schemas"
+                | "routes"
+        )
+}
+
 fn has_fixture_marker(path: &str) -> bool {
     path.contains("/__fixtures__/")
         || path.contains("/fixtures/")
@@ -314,7 +508,12 @@ fn parent_dir(path: &str) -> &str {
 /// Falls back to parent_dir when no boundary is found.
 fn package_root(path: &str) -> &str {
     const BOUNDARIES: &[&str] = &[
-        "/src/", "/lib/", "/test/", "/tests/", "/__tests__/", "/e2e/",
+        "/src/",
+        "/lib/",
+        "/test/",
+        "/tests/",
+        "/__tests__/",
+        "/e2e/",
     ];
     for boundary in BOUNDARIES {
         if let Some(idx) = path.find(boundary) {
@@ -377,6 +576,7 @@ fn is_generic_token(token: &str) -> bool {
             | "package"
             | "packages"
             | "private"
+            | "compiler"
     )
 }
 
@@ -416,6 +616,13 @@ mod tests {
     #[test]
     fn github_dir_is_non_code() {
         assert!(is_non_code_file(".github/workflows/ci.yml"));
+    }
+
+    #[test]
+    fn dotfiles_are_non_code() {
+        assert!(is_non_code_file(".gitignore"));
+        assert!(is_non_code_file(".prettierignore"));
+        assert!(is_non_code_file("test/wdio/.gitignore"));
     }
 
     #[test]
@@ -584,5 +791,150 @@ mod tests {
             "packages/shared/ReactFeatureFlags.js",
             "packages/shared/ReactFeatureFlags.native-oss.js"
         ));
+    }
+
+    #[test]
+    fn feature_namespace_fires_on_single_feature_rollout() {
+        // Realistic stencil PR paths (dotfiles already filtered by is_non_code_file)
+        let paths = &[
+            "src/compiler/config/outputs/validate-custom-element.ts",
+            "src/compiler/config/test/validate-output-dist-custom-element.spec.ts",
+            "src/compiler/output-targets/dist-custom-elements/custom-elements-types.ts",
+            "src/compiler/output-targets/dist-custom-elements/generate-loader-module.ts",
+            "src/compiler/output-targets/dist-custom-elements/index.ts",
+            "src/compiler/output-targets/test/output-targets-dist-custom-elements.spec.ts",
+            "src/declarations/stencil-public-compiler.ts",
+            "test/bundle-size/stencil.config.ts",
+            "test/wdio/auto-loader.stencil.config.ts",
+            "test/wdio/auto-loader/auto-loader-child.tsx",
+            "test/wdio/auto-loader/auto-loader-dynamic.tsx",
+            "test/wdio/auto-loader/auto-loader-root.tsx",
+            "test/wdio/auto-loader/cmp.test.tsx",
+            "test/wdio/auto-loader/components.d.ts",
+            "test/wdio/auto-loader/perf-dist.test.tsx",
+            "test/wdio/auto-loader/perf.test.tsx",
+            "test/wdio/stencil.config.ts",
+        ];
+        let ns = extract_feature_namespace(paths);
+        assert!(ns.is_some(), "should detect feature namespace");
+        let ns = ns.unwrap();
+        // "loader" is the dominant token bridging implementation and test harness
+        assert_eq!(ns.token, "loader", "token={}", ns.token);
+        // After absorption, all files should be covered (they all share tokens
+        // like "loader", "custom", "elements", or "stencil" with the core cluster)
+        assert!(
+            ns.member_indices.len() >= 15,
+            "expected ≥15 members after absorption, got {}",
+            ns.member_indices.len()
+        );
+    }
+
+    #[test]
+    fn feature_namespace_rejects_multi_domain_pr() {
+        // Different domains: auth, billing, docs — no shared feature token
+        let paths = &[
+            "packages/auth/src/login.ts",
+            "packages/billing/src/invoice.ts",
+            "packages/docs/src/api-reference.ts",
+            "packages/ci/scripts/deploy.sh",
+        ];
+        assert!(extract_feature_namespace(paths).is_none());
+    }
+
+    #[test]
+    fn feature_namespace_rejects_fewer_than_4_files() {
+        let paths = &[
+            "src/dist-custom-elements/index.ts",
+            "test/dist-custom-elements/test.ts",
+            "lib/dist-custom-elements/util.ts",
+        ];
+        assert!(extract_feature_namespace(paths).is_none());
+    }
+
+    #[test]
+    fn feature_namespace_rejects_single_subtree() {
+        let paths = &[
+            "src/feature/frobnicator-impl.ts",
+            "src/feature/frobnicator-types.ts",
+            "src/feature/frobnicator-config.ts",
+            "src/feature/frobnicator-utils.ts",
+            "src/feature/frobnicator-extra.ts",
+        ];
+        // All files under same tree root "src/feature" → no namespace bridge
+        assert!(extract_feature_namespace(paths).is_none());
+    }
+
+    #[test]
+    fn feature_namespace_rejects_generic_tokens() {
+        // Token "compiler" is structural, "test" is generic
+        let paths = &[
+            "packages/compiler/alpha.ts",
+            "tests/compiler/alpha.spec.ts",
+            "lib/compiler/beta.ts",
+            "tools/compiler/gamma.ts",
+        ];
+        assert!(extract_feature_namespace(paths).is_none());
+    }
+
+    #[test]
+    fn feature_namespace_solo_fires_on_6char_token() {
+        // "custom" (6 chars) appears in all files across 3 subtrees → solo match
+        let paths = &[
+            "src/components/custom-modal/index.ts",
+            "src/components/custom-modal/styles.ts",
+            "test/e2e/custom-modal/basic.spec.ts",
+            "test/e2e/custom-modal/advanced.spec.ts",
+            "docs-app/custom-modal/demo.tsx",
+        ];
+        let ns = extract_feature_namespace(paths);
+        assert!(ns.is_some(), "solo should fire for 'custom'");
+        let ns = ns.unwrap();
+        assert_eq!(ns.token, "custom", "token={}", ns.token);
+    }
+
+    #[test]
+    fn feature_namespace_bigram_fires_on_short_token_pair() {
+        // "alpha" (5) + "bravo" (5) co-occur — neither qualifies solo (< 6 chars)
+        let paths = &[
+            "src/alpha-bravo/index.ts",
+            "src/alpha-bravo/types.ts",
+            "test/alpha-bravo/basic.spec.ts",
+            "lib/alpha-bravo/util.ts",
+        ];
+        let ns = extract_feature_namespace(paths);
+        assert!(ns.is_some(), "bigram should fire for alpha+bravo");
+        let ns = ns.unwrap();
+        assert!(
+            ns.token == "alpha" || ns.token == "bravo",
+            "token={}",
+            ns.token
+        );
+    }
+
+    #[test]
+    fn feature_namespace_below_coverage_threshold() {
+        // "frobnicator" appears in only 2/7 files (29% < 35%)
+        let paths = &[
+            "src/core/frobnicator.ts",
+            "test/frobnicator.spec.ts",
+            "src/auth/login.ts",
+            "src/billing/invoice.ts",
+            "lib/config/settings.ts",
+            "pkg/analytics/tracker.ts",
+            "tools/deployment/deploy.ts",
+        ];
+        assert!(extract_feature_namespace(paths).is_none());
+    }
+
+    #[test]
+    fn is_structural_token_covers_directory_conventions() {
+        assert!(is_structural_token("compiler")); // via is_generic_token
+        assert!(is_structural_token("components"));
+        assert!(is_structural_token("config"));
+        assert!(is_structural_token("test"));
+        assert!(is_structural_token("utils"));
+        assert!(!is_structural_token("autoloader"));
+        assert!(!is_structural_token("frobnicator"));
+        assert!(!is_structural_token("elements"));
     }
 }
