@@ -66,6 +66,16 @@ pub fn signature_severity(unsigned_count: usize) -> Severity {
 #[ensures(code_files_count > 1usize && components <= 1usize ==> result == Severity::Pass)]
 #[ensures(code_files_count > 1usize && components == 2usize ==> result == Severity::Warning)]
 #[ensures(code_files_count > 1usize && components >= 3usize ==> result == Severity::Error)]
+/// Stale approval predicate.
+///
+/// An approval is stale iff the last approval timestamp is strictly before
+/// the last commit timestamp. Mirrors `gh-verify-core::approval::is_approval_stale`
+/// using integer timestamps instead of ISO 8601 strings.
+#[ensures(result == (last_approval_ts < last_commit_ts))]
+pub fn is_stale(last_approval_ts: usize, last_commit_ts: usize) -> bool {
+    last_approval_ts < last_commit_ts
+}
+
 pub fn classify_scope(code_files_count: usize, components: usize) -> Severity {
     if code_files_count <= 1 {
         return Severity::Pass;

@@ -71,6 +71,7 @@ pub fn classify_approval_status(
 mod tests {
     use super::*;
 
+    /// 承認後のforce pushで四眼原則がバイパスされる攻撃パターンの検知
     #[test]
     fn stale_when_commit_after_approval() {
         let approvals = vec![ApprovalInfo {
@@ -124,6 +125,7 @@ mod tests {
         );
     }
 
+    /// 同一タイムスタンプは「承認がコミットをカバーしている」と見なす（GitHub APIのタイムスタンプ精度はsec単位）
     #[test]
     fn fresh_when_approval_at_same_time_as_commit() {
         let approvals = vec![ApprovalInfo {
@@ -162,6 +164,40 @@ mod tests {
         assert_eq!(
             classify_approval_status(&approvals, &commits),
             ApprovalStatus::Fresh
+        );
+    }
+
+    /// Property: classify_approval_status returns Stale iff last commit > last approval.
+    #[test]
+    fn stale_biconditional() {
+        // Forward: commit after approval => Stale
+        let approvals = vec![ApprovalInfo {
+            submitted_at: "2024-01-15T12:00:00Z".to_string(),
+        }];
+        let commits = vec![CommitTimestamp {
+            sha: "a".to_string(),
+            committed_at: "2024-01-15T13:00:00Z".to_string(),
+        }];
+        assert_eq!(
+            classify_approval_status(&approvals, &commits),
+            ApprovalStatus::Stale
+        );
+
+        // Backward (contrapositive): approval after commit => not Stale
+        let approvals2 = vec![ApprovalInfo {
+            submitted_at: "2024-01-15T14:00:00Z".to_string(),
+        }];
+        assert_ne!(
+            classify_approval_status(&approvals2, &commits),
+            ApprovalStatus::Stale
+        );
+    }
+
+    #[test]
+    fn both_empty_returns_no_commits() {
+        assert_eq!(
+            classify_approval_status(&[], &[]),
+            ApprovalStatus::NoCommits
         );
     }
 
