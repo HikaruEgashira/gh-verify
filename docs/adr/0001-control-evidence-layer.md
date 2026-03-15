@@ -65,6 +65,7 @@ GitHub 固有の型と収集処理は adapter 層へ閉じ込める。
 - 互換コードが CLI 境界から削除されている
 - 旧 rule 実装が新主系の wrapper すら持たず削除されている
 - CI と Action が profile ベースの出力だけで成立している
+- 上記を検証する CI 静的チェック（`cargo test --workspace` が control/evidence 主系のみで green）が導入されている
 
 ## リスクと対応
 - リスク: 新旧レイヤがしばらく併存する

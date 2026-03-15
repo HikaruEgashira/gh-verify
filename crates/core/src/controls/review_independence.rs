@@ -3,6 +3,7 @@ use crate::evidence::{
     ApprovalDisposition, EvidenceBundle, EvidenceGap, EvidenceState, GovernedChange,
 };
 
+/// Verifies that at least one approver is independent from the change author and requester.
 pub struct ReviewIndependenceControl;
 
 impl Control for ReviewIndependenceControl {
