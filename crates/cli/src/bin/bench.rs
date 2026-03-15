@@ -435,9 +435,21 @@ fn actual_from_rule_results(
         Err(e) => return ActualResult::FetchError(format!("metadata: {e}")),
     };
 
+    let pr_reviews = match pr_api::get_pr_reviews(client, owner, repo, pr_number) {
+        Ok(r) => r,
+        Err(e) => return ActualResult::FetchError(format!("reviews: {e}")),
+    };
+
+    let pr_commits = match pr_api::get_pr_commits(client, owner, repo, pr_number) {
+        Ok(c) => c,
+        Err(e) => return ActualResult::FetchError(format!("commits: {e}")),
+    };
+
     let ctx = RuleContext::Pr {
         pr_files,
         pr_metadata,
+        pr_reviews,
+        pr_commits,
         options: rules::PrRuleOptions::for_benchmark(),
     };
 

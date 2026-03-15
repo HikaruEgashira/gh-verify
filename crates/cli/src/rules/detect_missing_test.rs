@@ -126,13 +126,19 @@ mod tests {
     use crate::github::types::{PrFile, PrMetadata};
     use crate::rules::{PrRuleOptions, RuleContext};
 
+    fn make_ctx(files: Vec<PrFile>, options: PrRuleOptions) -> RuleContext {
+        RuleContext::Pr {
+            pr_files: files,
+            pr_metadata: metadata(),
+            pr_reviews: vec![],
+            pr_commits: vec![],
+            options,
+        }
+    }
+
     #[test]
     fn warns_when_source_has_no_test_update() {
-        let ctx = RuleContext::Pr {
-            pr_files: vec![file("src/foo.rs"), file("README.md")],
-            pr_metadata: metadata(),
-            options: PrRuleOptions::default(),
-        };
+        let ctx = make_ctx(vec![file("src/foo.rs"), file("README.md")], PrRuleOptions::default());
 
         let results = DetectMissingTest.run(&ctx).expect("rule should run");
         assert_eq!(results.len(), 1);
@@ -142,11 +148,7 @@ mod tests {
 
     #[test]
     fn passes_when_test_pair_is_changed() {
-        let ctx = RuleContext::Pr {
-            pr_files: vec![file("src/foo.rs"), file("tests/foo_test.rs")],
-            pr_metadata: metadata(),
-            options: PrRuleOptions::default(),
-        };
+        let ctx = make_ctx(vec![file("src/foo.rs"), file("tests/foo_test.rs")], PrRuleOptions::default());
 
         let results = DetectMissingTest.run(&ctx).expect("rule should run");
         assert_eq!(results.len(), 1);
@@ -155,14 +157,10 @@ mod tests {
 
     #[test]
     fn can_disable_rule_with_option() {
-        let ctx = RuleContext::Pr {
-            pr_files: vec![file("src/foo.rs")],
-            pr_metadata: metadata(),
-            options: PrRuleOptions {
-                detect_missing_test: false,
-                test_patterns: vec![],
-            },
-        };
+        let ctx = make_ctx(vec![file("src/foo.rs")], PrRuleOptions {
+            detect_missing_test: false,
+            test_patterns: vec![],
+        });
 
         let results = DetectMissingTest.run(&ctx).expect("rule should run");
         assert!(results.is_empty());
@@ -170,14 +168,10 @@ mod tests {
 
     #[test]
     fn custom_pattern_covers_source() {
-        let ctx = RuleContext::Pr {
-            pr_files: vec![file("src/foo.rs"), file("spec/foo.spec.rs")],
-            pr_metadata: metadata(),
-            options: PrRuleOptions {
-                detect_missing_test: true,
-                test_patterns: vec!["*.spec.rs".to_string()],
-            },
-        };
+        let ctx = make_ctx(vec![file("src/foo.rs"), file("spec/foo.spec.rs")], PrRuleOptions {
+            detect_missing_test: true,
+            test_patterns: vec!["*.spec.rs".to_string()],
+        });
 
         let results = DetectMissingTest.run(&ctx).expect("rule should run");
         assert_eq!(results.len(), 1);

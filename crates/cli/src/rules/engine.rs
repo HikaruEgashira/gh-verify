@@ -2,6 +2,7 @@ use anyhow::Result;
 use gh_verify_core::verdict::RuleResult;
 
 use super::detect_missing_test::DetectMissingTest;
+use super::detect_stale_approval::DetectStaleApproval;
 use super::detect_unscoped_change::DetectUnscopedChange;
 use super::verify_branch_protection::VerifyBranchProtection;
 use super::verify_issue_linkage::VerifyIssueLinkage;
@@ -12,6 +13,7 @@ use super::{Rule, RuleContext};
 /// Run all registered rules and return aggregated results.
 pub fn run_all(ctx: &RuleContext) -> Result<Vec<RuleResult>> {
     let rules: Vec<Box<dyn Rule>> = vec![
+        Box::new(DetectStaleApproval),
         Box::new(DetectUnscopedChange),
         Box::new(DetectMissingTest),
         Box::new(VerifyIssueLinkage),
@@ -31,6 +33,7 @@ pub fn run_all(ctx: &RuleContext) -> Result<Vec<RuleResult>> {
 /// Return IDs of all registered rules.
 pub fn list_rule_ids() -> Vec<&'static str> {
     vec![
+        DetectStaleApproval.id(),
         DetectUnscopedChange.id(),
         DetectMissingTest.id(),
         VerifyIssueLinkage.id(),

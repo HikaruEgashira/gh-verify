@@ -1,4 +1,5 @@
 pub mod detect_missing_test;
+pub mod detect_stale_approval;
 pub mod detect_unscoped_change;
 pub mod engine;
 pub mod verify_branch_protection;
@@ -9,7 +10,9 @@ pub mod verify_release_integrity;
 use anyhow::Result;
 use gh_verify_core::verdict::RuleResult;
 
-use crate::github::types::{CompareCommit, PrFile, PrMetadata, PullRequestSummary, Review};
+use crate::github::types::{
+    CompareCommit, PrCommit, PrFile, PrMetadata, PullRequestSummary, Review,
+};
 
 #[derive(Debug, Clone)]
 pub struct PrRuleOptions {
@@ -41,6 +44,8 @@ pub enum RuleContext {
     Pr {
         pr_files: Vec<PrFile>,
         pr_metadata: PrMetadata,
+        pr_reviews: Vec<Review>,
+        pr_commits: Vec<PrCommit>,
         options: PrRuleOptions,
     },
     Release {

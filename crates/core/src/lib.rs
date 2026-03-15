@@ -1,3 +1,4 @@
+pub mod approval;
 pub mod branch_protection;
 pub mod integrity;
 pub mod linkage;

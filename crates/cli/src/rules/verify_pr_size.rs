@@ -100,6 +100,8 @@ mod tests {
                 title: "test".to_string(),
                 body: None,
             },
+            pr_reviews: vec![],
+            pr_commits: vec![],
             options: crate::rules::PrRuleOptions::default(),
         }
     }
