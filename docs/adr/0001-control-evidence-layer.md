@@ -59,6 +59,42 @@ GitHub 固有の型と収集処理は adapter 層へ閉じ込める。
 - profile 判定を CLI 出力コードへ再分散する
 - `Indeterminate` を `Violated` や空集合へ潰す
 
+## Severity Model
+
+本システムには2つの severity 型が存在する。これは意図的な設計である。
+
+### `verdict::Severity` (既存 rule 系)
+
+`Pass | Warning | Error` — rule が PR/release を直接判定した結果。
+CLI の exit code を決定する（Error → exit 1）。Ord を実装し `Pass < Warning < Error`。
+
+### `profile::FindingSeverity` (control/evidence 系)
+
+`Info | Warning | Error` — control finding を profile が重み付けした結果。
+`GateDecision` と対になり、gate の通過判定に用いる。
+
+### 写像
+
+| `FindingSeverity` | `verdict::Severity` | 意味 |
+|---|---|---|
+| `Info` | `Pass` | 情報のみ。アクション不要 |
+| `Warning` | `Warning` | 要レビュー。ブロックしない |
+| `Error` | `Error` | 違反。ゲートを通過できない |
+
+`FindingSeverity::to_verdict_severity()` がこの写像を提供する。
+
+### 分離の理由
+
+- rule は platform 語彙（PR, Review）を直接扱い、pass/fail の二値的判定を行う
+- control は証跡ベースの評価を行い、profile が severity と gate decision を付与する
+- 両者の意味論は近いが、入力と判定経路が異なるため型を分けている
+
+### 統合条件
+
+全 rule が control/evidence 主系へ移行し、`RuleResult` が不要になった時点で
+`verdict::Severity` を削除し `FindingSeverity` に一本化する。
+これは本 ADR の削除条件の一部として扱う。
+
 ## 削除条件
 - `gh-verify-core` から GitHub 固有語彙が消えている
 - CLI の評価入口が `RuleContext` ではなく `EvidenceBundle` になっている
