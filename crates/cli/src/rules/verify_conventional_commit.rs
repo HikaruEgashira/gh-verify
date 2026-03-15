@@ -6,6 +6,10 @@ use super::{Rule, RuleContext};
 
 const RULE_ID: &str = "verify-conventional-commit";
 
+// TODO: Support per-rule CLI configuration (--commit-types, --no-require-conventional-commit).
+// Currently all rules run unconditionally via engine::run_all().
+// See: https://github.com/HikaruEgashira/gh-verify/issues/11
+
 /// Empty slice means "accept any valid type matching `[a-z][a-z0-9]*`".
 const ALLOWED_TYPES: &[&str] = &[];
 
