@@ -5,6 +5,7 @@ use super::detect_missing_test::DetectMissingTest;
 use super::detect_unscoped_change::DetectUnscopedChange;
 use super::verify_branch_protection::VerifyBranchProtection;
 use super::verify_conventional_commit::VerifyConventionalCommit;
+use super::verify_issue_linkage::VerifyIssueLinkage;
 use super::verify_pr_size::VerifyPrSize;
 use super::verify_release_integrity::VerifyReleaseIntegrity;
 use super::{Rule, RuleContext};
@@ -15,6 +16,7 @@ pub fn run_all(ctx: &RuleContext) -> Result<Vec<RuleResult>> {
         Box::new(DetectUnscopedChange),
         Box::new(DetectMissingTest),
         Box::new(VerifyConventionalCommit),
+        Box::new(VerifyIssueLinkage),
         Box::new(VerifyPrSize),
         Box::new(VerifyReleaseIntegrity),
         Box::new(VerifyBranchProtection),
@@ -34,6 +36,7 @@ pub fn list_rule_ids() -> Vec<&'static str> {
         DetectUnscopedChange.id(),
         DetectMissingTest.id(),
         VerifyConventionalCommit.id(),
+        VerifyIssueLinkage.id(),
         VerifyPrSize.id(),
         VerifyReleaseIntegrity.id(),
         VerifyBranchProtection.id(),
