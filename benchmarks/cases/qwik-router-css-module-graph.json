@@ -1,0 +1,19 @@
+{
+  "id": "qwik-router-css-module-graph",
+  "description": "Qwik fixes router dev CSS module resolution by editing one buildtime middleware file",
+  "repo": "QwikDev/qwik",
+  "pr_number": 8423,
+  "expected": "pass",
+  "rationale": "Only packages/qwik-router/src/buildtime/vite/dev-middleware.ts changes in code. The changeset file is non-code release metadata and should not widen the scope.",
+  "category": "single-file",
+  "domains_expected": [],
+  "ecosystem": "typescript",
+  "notes": "Useful low-noise control case from a framework monorepo: one code file plus a changeset.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 10005,
+    "collection_name": "Javascript Framework",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-03-15T01:16:37Z"
+  }
+}
