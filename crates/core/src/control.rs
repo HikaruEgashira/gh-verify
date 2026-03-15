@@ -1,3 +1,6 @@
+use std::fmt;
+use std::str::FromStr;
+
 use serde::{Deserialize, Serialize};
 
 use crate::evidence::{EvidenceBundle, EvidenceGap};
@@ -18,6 +21,35 @@ impl ControlId {
         match self {
             Self::ReviewIndependence => "review-independence",
             Self::SourceAuthenticity => "source-authenticity",
+        }
+    }
+}
+
+impl fmt::Display for ControlId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct UnknownControlId(String);
+
+impl fmt::Display for UnknownControlId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "unknown control id: {}", self.0)
+    }
+}
+
+impl std::error::Error for UnknownControlId {}
+
+impl FromStr for ControlId {
+    type Err = UnknownControlId;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "review-independence" => Ok(Self::ReviewIndependence),
+            "source-authenticity" => Ok(Self::SourceAuthenticity),
+            _ => Err(UnknownControlId(s.to_string())),
         }
     }
 }
@@ -123,4 +155,29 @@ pub fn evaluate_all(
         findings.extend(control.evaluate(evidence));
     }
     findings
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn control_id_display_round_trip() {
+        let variants = [ControlId::ReviewIndependence, ControlId::SourceAuthenticity];
+        for id in &variants {
+            let s = id.to_string();
+            let parsed: ControlId = s.parse().unwrap();
+            assert_eq!(*id, parsed, "round-trip failed for {s}");
+        }
+    }
+
+    #[test]
+    fn control_id_from_str_unknown() {
+        let result = "nonexistent-control".parse::<ControlId>();
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "unknown control id: nonexistent-control"
+        );
+    }
 }
