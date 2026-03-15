@@ -109,6 +109,16 @@ pub fn classify_scope(code_files_count: usize, components: usize) -> Severity {
     }
 }
 
+/// Test coverage predicate.
+///
+/// A source file has test coverage iff either its own patch contains
+/// test markers OR an external test file matches.
+/// Mirrors `gh-verify-core::test_coverage::has_coverage`.
+#[ensures(result == (patch_has_test || external_test_found))]
+pub fn has_coverage(patch_has_test: bool, external_test_found: bool) -> bool {
+    patch_has_test || external_test_found
+}
+
 /// PR size classification.
 ///
 /// Returns `Error` when either dimension exceeds its error threshold,
