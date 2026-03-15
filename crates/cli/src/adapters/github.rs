@@ -8,11 +8,13 @@ use gh_verify_core::evidence::{
 
 use crate::github::types::{CompareCommit, PrCommit, PrFile, PrMetadata, PullRequestSummary, Review};
 
+/// Associates a commit SHA with the pull requests that introduced it.
 pub struct GitHubCommitPullAssociation {
     pub commit_sha: String,
     pub pull_requests: Vec<PullRequestSummary>,
 }
 
+/// Builds an evidence bundle from a single pull request's metadata and reviews.
 pub fn build_pull_request_bundle(
     repo: &str,
     pr_number: u32,
@@ -34,6 +36,7 @@ pub fn build_pull_request_bundle(
     }
 }
 
+/// Builds an evidence bundle from a release tag comparison and associated commits.
 pub fn build_release_bundle(
     repo: &str,
     base_tag: &str,
@@ -53,6 +56,7 @@ pub fn build_release_bundle(
     }
 }
 
+/// Converts GitHub PR data into a platform-neutral `GovernedChange`.
 pub fn map_pull_request_evidence(
     repo: &str,
     pr_number: u32,
@@ -121,6 +125,7 @@ pub fn map_pull_request_evidence(
     }
 }
 
+/// Converts a GitHub tag comparison into a platform-neutral `PromotionBatch`.
 pub fn map_promotion_batch_evidence(
     repo: &str,
     base_tag: &str,

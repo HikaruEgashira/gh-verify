@@ -3,6 +3,7 @@ use crate::evidence::{
     AuthenticityEvidence, EvidenceBundle, EvidenceGap, EvidenceState, SourceRevision,
 };
 
+/// Verifies that all source revisions carry valid cryptographic signatures.
 pub struct SourceAuthenticityControl;
 
 impl Control for SourceAuthenticityControl {

@@ -2,22 +2,31 @@ use serde::{Deserialize, Serialize};
 
 use crate::control::{ControlFinding, ControlId, ControlStatus};
 
+/// Severity level assigned to a control finding by a profile.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum FindingSeverity {
+    /// Informational; no action required.
     Info,
+    /// Warrants human review but does not block.
     Warning,
+    /// Blocks the gate; must be resolved.
     Error,
 }
 
+/// Gate outcome that determines whether a pipeline stage may proceed.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum GateDecision {
+    /// The control is satisfied; proceed without intervention.
     Pass,
+    /// Human review is required before proceeding.
     Review,
+    /// The control is violated; the gate must not pass.
     Fail,
 }
 
+/// The profile-mapped result for a single control finding.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ProfileOutcome {
     pub control_id: ControlId,
@@ -26,11 +35,15 @@ pub struct ProfileOutcome {
     pub rationale: String,
 }
 
+/// Maps raw control findings to severity and gate decisions for a given policy.
 pub trait ControlProfile {
+    /// Returns the human-readable profile name (e.g. "slsa-foundation").
     fn name(&self) -> &'static str;
+    /// Converts a control finding into a profile outcome with severity and gate decision.
     fn map(&self, finding: &ControlFinding) -> ProfileOutcome;
 }
 
+/// Default profile implementing SLSA Build L1 / Source L1 gate policy.
 pub struct SlsaFoundationProfile;
 
 impl ControlProfile for SlsaFoundationProfile {
@@ -56,6 +69,7 @@ impl ControlProfile for SlsaFoundationProfile {
     }
 }
 
+/// Applies a profile to all findings and returns the mapped outcomes.
 pub fn apply_profile(
     profile: &dyn ControlProfile,
     findings: &[ControlFinding],

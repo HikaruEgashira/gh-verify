@@ -5,6 +5,7 @@ use crate::controls;
 use crate::evidence::EvidenceBundle;
 use crate::profile::{ControlProfile, ProfileOutcome, SlsaFoundationProfile, apply_profile};
 
+/// Complete assessment result combining raw control findings with profile-mapped outcomes.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AssessmentReport {
     pub profile_name: String,
@@ -12,6 +13,7 @@ pub struct AssessmentReport {
     pub outcomes: Vec<ProfileOutcome>,
 }
 
+/// Evaluates all controls against evidence and maps findings through a profile.
 pub fn assess(
     evidence: &EvidenceBundle,
     controls: &[Box<dyn Control>],
@@ -27,6 +29,7 @@ pub fn assess(
     }
 }
 
+/// Convenience entry point that runs the SLSA foundation control set and profile.
 pub fn assess_with_slsa_foundation(evidence: &EvidenceBundle) -> AssessmentReport {
     let controls = controls::slsa_foundation_controls();
     assess(evidence, &controls, &SlsaFoundationProfile)
