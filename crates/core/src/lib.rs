@@ -1,4 +1,5 @@
 pub mod approval;
+pub mod assessment;
 pub mod branch_protection;
 pub mod control;
 pub mod controls;

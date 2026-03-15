@@ -24,10 +24,24 @@
 
 GitHub 固有の型と収集処理は adapter 層へ閉じ込める。
 
+互換層は永続化しない。
+新旧移行のための互換コードが必要な場合は CLI 境界に限定し、core に入れない。
+
 ## 理由
 - 意味の集約: `partial / missing / not_applicable` を `EvidenceState` に集約できる
 - インターフェース整列: control は `Violated` と `Indeterminate` を区別できる
 - 依存反転: platform DTO を core に流さず、adapter が正規化責務を持つ
+
+## 移行原則
+- 新機能は `rules` や GitHub DTO 直結の旧系へ追加しない
+- 主系の実行経路は `adapter -> EvidenceBundle -> assessment -> profile` とする
+- 互換コードは一方向変換のみを担い、判定ロジックを持たない
+- adapter は旧 `rules` 型へ依存しない
+
+## 削除条件
+- `gh-verify-core` から GitHub 固有語彙が消えている
+- CLI の評価入口が `RuleContext` ではなく `EvidenceBundle` になっている
+- 互換コードが CLI 境界から削除されている
 
 ## リスクと対応
 - リスク: 新旧レイヤがしばらく併存する

@@ -1,10 +1,55 @@
 use gh_verify_core::evidence::{
     ApprovalDecision, ApprovalDisposition, AuthenticityEvidence, ChangeRequestId, ChangedAsset,
-    EvidenceGap, EvidenceState, GovernedChange, PromotionBatch, SourceRevision, WorkItemRef,
+    EvidenceBundle, EvidenceGap, EvidenceState, GovernedChange, PromotionBatch, SourceRevision,
+    WorkItemRef,
 };
 
-use crate::github::types::{CompareCommit, PrCommit, PrFile, PrMetadata, Review};
-use crate::rules;
+use crate::github::types::{CompareCommit, PrCommit, PrFile, PrMetadata, PullRequestSummary, Review};
+
+pub struct GitHubCommitPullAssociation {
+    pub commit_sha: String,
+    pub pull_requests: Vec<PullRequestSummary>,
+}
+
+pub fn build_pull_request_bundle(
+    repo: &str,
+    pr_number: u32,
+    pr_metadata: &PrMetadata,
+    pr_files: &[PrFile],
+    pr_reviews: &[Review],
+    pr_commits: &[PrCommit],
+) -> EvidenceBundle {
+    EvidenceBundle {
+        change_requests: vec![map_pull_request_evidence(
+            repo,
+            pr_number,
+            pr_metadata,
+            pr_files,
+            pr_reviews,
+            pr_commits,
+        )],
+        promotion_batches: Vec::new(),
+    }
+}
+
+pub fn build_release_bundle(
+    repo: &str,
+    base_tag: &str,
+    head_tag: &str,
+    commits: &[CompareCommit],
+    commit_pulls: &[GitHubCommitPullAssociation],
+) -> EvidenceBundle {
+    EvidenceBundle {
+        change_requests: Vec::new(),
+        promotion_batches: vec![map_promotion_batch_evidence(
+            repo,
+            base_tag,
+            head_tag,
+            commits,
+            commit_pulls,
+        )],
+    }
+}
 
 pub fn map_pull_request_evidence(
     repo: &str,
@@ -79,11 +124,11 @@ pub fn map_promotion_batch_evidence(
     base_tag: &str,
     head_tag: &str,
     commits: &[CompareCommit],
-    commit_prs: &[rules::CommitPrAssociation],
+    commit_pulls: &[GitHubCommitPullAssociation],
 ) -> PromotionBatch {
-    let linked_change_requests: Vec<ChangeRequestId> = commit_prs
+    let linked_change_requests: Vec<ChangeRequestId> = commit_pulls
         .iter()
-        .flat_map(|association| association.prs.iter())
+        .flat_map(|association| association.pull_requests.iter())
         .map(|pr| ChangeRequestId::new("github_pr", format!("{repo}#{}", pr.number)))
         .collect();
 
@@ -222,9 +267,9 @@ mod tests {
                     sha: "parent".to_string(),
                 }],
             }],
-            &[rules::CommitPrAssociation {
+            &[GitHubCommitPullAssociation {
                 commit_sha: "deadbeef".to_string(),
-                prs: vec![],
+                pull_requests: vec![],
             }],
         );
 
@@ -237,5 +282,24 @@ mod tests {
             revisions[0].authenticity,
             EvidenceState::Complete { .. }
         ));
+    }
+
+    #[test]
+    fn pull_request_bundle_uses_new_evidence_entrypoint() {
+        let bundle = build_pull_request_bundle(
+            "owner/repo",
+            42,
+            &PrMetadata {
+                number: 42,
+                title: "feat: add abstraction layer".to_string(),
+                body: Some("fixes #10".to_string()),
+            },
+            &[],
+            &[],
+            &[],
+        );
+
+        assert_eq!(bundle.change_requests.len(), 1);
+        assert!(bundle.promotion_batches.is_empty());
     }
 }
