@@ -19,6 +19,7 @@ pub struct PrMetadata {
     pub number: u32,
     pub title: String,
     pub body: Option<String>,
+    pub user: Option<PrUser>,
 }
 
 /// Pull request summary from the list pulls endpoint.

@@ -194,6 +194,7 @@ mod tests {
             number: 1,
             title: "test".to_string(),
             body: None,
+            user: None,
         }
     }
 }
