@@ -135,3 +135,12 @@ pub fn classify_pr_size(
         Severity::Pass
     }
 }
+
+/// Test coverage: a source is covered when at least one matching test is found.
+///
+/// Mirrors `gh-verify-core::test_coverage::is_covered`.
+#[ensures(matching_test_count > 0usize ==> result == true)]
+#[ensures(matching_test_count == 0usize ==> result == false)]
+pub fn is_covered(matching_test_count: usize) -> bool {
+    matching_test_count > 0
+}

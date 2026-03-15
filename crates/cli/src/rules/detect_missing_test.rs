@@ -19,44 +19,44 @@ impl Rule for DetectMissingTest {
             RuleContext::Pr {
                 pr_files, options, ..
             } => (pr_files, options),
-            RuleContext::Release { .. } => return Ok(vec![]),
+            RuleContext::Release { .. } => return Ok(vec![pass_result()]),
         };
 
         if !options.detect_missing_test {
             return Ok(vec![]);
         }
 
-        let changed_code_files: Vec<&str> = pr_files
+        // 1. Exclude removed files
+        let active_files: Vec<&str> = pr_files
             .iter()
-            .filter(|f| f.patch.is_some())
             .filter(|f| f.status != "removed")
-            .filter(|f| !is_non_code_file(&f.filename))
             .map(|f| f.filename.as_str())
             .collect();
 
-        let source_files: Vec<&str> = changed_code_files
+        // 2. Classify: source files to check
+        let source_files: Vec<&str> = active_files
             .iter()
             .copied()
+            .filter(|p| !is_non_code_file(p))
             .filter(|p| classify_file_role(p) == FileRole::Source)
-            .collect();
-        let test_files: Vec<&str> = changed_code_files
-            .iter()
-            .copied()
-            .filter(|p| classify_file_role(p) == FileRole::Test)
             .collect();
 
         if source_files.is_empty() {
             return Ok(vec![pass_result()]);
         }
 
-        let mut uncovered = has_test_coverage(&source_files, &test_files);
+        // 3. Check coverage (pass all changed paths for test matching)
+        let mut uncovered = has_test_coverage(&source_files, &active_files);
+
+        // 3b. Apply custom test patterns if configured
         if !options.test_patterns.is_empty() {
+            let test_files: Vec<&str> = active_files
+                .iter()
+                .copied()
+                .filter(|p| classify_file_role(p) == FileRole::Test)
+                .collect();
             uncovered.retain(|entry| {
-                !is_covered_by_custom_patterns(
-                    &entry.source_path,
-                    &test_files,
-                    &options.test_patterns,
-                )
+                !is_covered_by_custom_patterns(&entry.path, &test_files, &options.test_patterns)
             });
         }
 
@@ -64,16 +64,8 @@ impl Rule for DetectMissingTest {
             return Ok(vec![pass_result()]);
         }
 
-        let affected_files: Vec<String> = uncovered.iter().map(|u| u.source_path.clone()).collect();
-        let mut suggestion_lines = Vec::new();
-        for entry in &uncovered {
-            let first_candidate = entry
-                .suggested_test_paths
-                .first()
-                .cloned()
-                .unwrap_or_else(|| "(候補なし)".to_string());
-            suggestion_lines.push(format!("{} -> {}", entry.source_path, first_candidate));
-        }
+        // 4. Warning with affected files
+        let affected_files: Vec<String> = uncovered.iter().map(|u| u.path.clone()).collect();
 
         Ok(vec![RuleResult {
             rule_id: RULE_ID.to_string(),
@@ -83,10 +75,9 @@ impl Rule for DetectMissingTest {
                 uncovered.len()
             ),
             affected_files,
-            suggestion: Some(format!(
-                "Consider updating tests for:\n{}",
-                suggestion_lines.join("\n")
-            )),
+            suggestion: Some(
+                "Consider adding or updating tests for the listed source files.".to_string(),
+            ),
         }])
     }
 }
@@ -126,24 +117,12 @@ mod tests {
     use crate::github::types::{PrFile, PrMetadata};
     use crate::rules::{PrRuleOptions, RuleContext};
 
+    /// WHY: Files with status "removed" must not be checked for test coverage.
+    /// Flagging deleted files produces noise on cleanup PRs.
     #[test]
-    fn warns_when_source_has_no_test_update() {
+    fn deleted_file_excluded() {
         let ctx = RuleContext::Pr {
-            pr_files: vec![file("src/foo.rs"), file("README.md")],
-            pr_metadata: metadata(),
-            options: PrRuleOptions::default(),
-        };
-
-        let results = DetectMissingTest.run(&ctx).expect("rule should run");
-        assert_eq!(results.len(), 1);
-        assert_eq!(results[0].severity, Severity::Warning);
-        assert_eq!(results[0].affected_files, vec!["src/foo.rs".to_string()]);
-    }
-
-    #[test]
-    fn passes_when_test_pair_is_changed() {
-        let ctx = RuleContext::Pr {
-            pr_files: vec![file("src/foo.rs"), file("tests/foo_test.rs")],
+            pr_files: vec![removed_file("src/foo.rs")],
             pr_metadata: metadata(),
             options: PrRuleOptions::default(),
         };
@@ -151,6 +130,38 @@ mod tests {
         let results = DetectMissingTest.run(&ctx).expect("rule should run");
         assert_eq!(results.len(), 1);
         assert_eq!(results[0].severity, Severity::Pass);
+    }
+
+    /// WHY: A PR changing src/parser.ts with tests/parser_test.ts -> Pass
+    #[test]
+    fn source_with_test_pair_passes() {
+        let ctx = RuleContext::Pr {
+            pr_files: vec![file("src/parser.ts"), file("tests/parser_test.ts")],
+            pr_metadata: metadata(),
+            options: PrRuleOptions::default(),
+        };
+
+        let results = DetectMissingTest.run(&ctx).expect("rule should run");
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].severity, Severity::Pass);
+    }
+
+    /// WHY: A PR changing only src/parser.ts without any test -> Warning
+    #[test]
+    fn source_without_test_warns() {
+        let ctx = RuleContext::Pr {
+            pr_files: vec![file("src/parser.ts")],
+            pr_metadata: metadata(),
+            options: PrRuleOptions::default(),
+        };
+
+        let results = DetectMissingTest.run(&ctx).expect("rule should run");
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].severity, Severity::Warning);
+        assert_eq!(
+            results[0].affected_files,
+            vec!["src/parser.ts".to_string()]
+        );
     }
 
     #[test]
@@ -166,6 +177,37 @@ mod tests {
 
         let results = DetectMissingTest.run(&ctx).expect("rule should run");
         assert!(results.is_empty());
+    }
+
+    /// WHY: Release context has no PR files, so the rule is not applicable.
+    #[test]
+    fn release_context_returns_pass() {
+        let ctx = RuleContext::Release {
+            base_tag: "v0.1.0".to_string(),
+            head_tag: "v0.2.0".to_string(),
+            commits: vec![],
+            commit_prs: vec![],
+            pr_reviews: vec![],
+        };
+
+        let results = DetectMissingTest.run(&ctx).expect("rule should run");
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].severity, Severity::Pass);
+    }
+
+    /// WHY: Config-only changes (.github/workflows/) should not trigger
+    /// test coverage warnings.
+    #[test]
+    fn config_only_changes_pass() {
+        let ctx = RuleContext::Pr {
+            pr_files: vec![file(".github/workflows/ci.yml")],
+            pr_metadata: metadata(),
+            options: PrRuleOptions::default(),
+        };
+
+        let results = DetectMissingTest.run(&ctx).expect("rule should run");
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].severity, Severity::Pass);
     }
 
     #[test]
@@ -192,6 +234,17 @@ mod tests {
             deletions: 1,
             changes: 2,
             patch: Some("@@ -1 +1 @@".to_string()),
+        }
+    }
+
+    fn removed_file(path: &str) -> PrFile {
+        PrFile {
+            filename: path.to_string(),
+            status: "removed".to_string(),
+            additions: 0,
+            deletions: 10,
+            changes: 10,
+            patch: Some("@@ -1,10 +0,0 @@".to_string()),
         }
     }
 
