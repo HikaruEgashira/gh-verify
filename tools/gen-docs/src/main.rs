@@ -740,20 +740,6 @@ formal verification specs. Source of truth is code.</p>
     )
     .unwrap();
 
-    // Stats
-    write!(
-        html,
-        r#"<div class="stats">
-<div class="stat"><span class="stat-value">{}</span><span class="stat-label">Rules</span></div>
-<div class="stat"><span class="stat-value">{total_specs}</span><span class="stat-label">Formal Specs</span></div>
-<div class="stat"><span class="stat-value">{proven_specs}</span><span class="stat-label">SMT Proven</span></div>
-<div class="stat"><span class="stat-value">{total_tests}</span><span class="stat-label">Test Cases</span></div>
-</div>
-"#,
-        rules.len()
-    )
-    .unwrap();
-
     // Sidebar TOC + main content layout
     html.push_str("<div class=\"layout\">\n");
 
