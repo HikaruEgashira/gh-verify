@@ -132,6 +132,7 @@ pub struct PrCommit {
 #[derive(Debug, Clone, Deserialize)]
 pub struct PrCommitInner {
     pub committer: Option<PrCommitAuthor>,
+    pub verification: Option<CommitVerification>,
 }
 
 /// Committer info with timestamp.

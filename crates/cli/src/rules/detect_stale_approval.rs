@@ -120,6 +120,7 @@ mod tests {
                 committer: Some(PrCommitAuthor {
                     date: Some(date.to_string()),
                 }),
+                verification: None,
             },
             author: None,
         }

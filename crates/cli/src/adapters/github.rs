@@ -91,7 +91,13 @@ pub fn map_pull_request_evidence(
                     .as_ref()
                     .and_then(|committer| committer.date.clone()),
                 merge: false,
-                authenticity: EvidenceState::not_applicable(),
+                authenticity: match &commit.commit.verification {
+                    Some(v) => EvidenceState::complete(AuthenticityEvidence::new(
+                        v.verified,
+                        Some(v.reason.clone()),
+                    )),
+                    None => EvidenceState::not_applicable(),
+                },
             })
             .collect(),
     );
@@ -244,6 +250,7 @@ mod tests {
                     committer: Some(PrCommitAuthor {
                         date: Some("2026-03-15T00:00:00Z".to_string()),
                     }),
+                    verification: None,
                 },
                 author: Some(PrUser {
                     login: "author".to_string(),
