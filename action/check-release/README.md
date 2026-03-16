@@ -1,40 +1,27 @@
 # action/check-release
 
 GitHub Action that runs `gh-verify` SDLC checks on a release.
+Designed as a pre-build gate in release workflows.
 
 ## Usage
 
 ```yaml
 on:
-  release:
-    types: [published]
+  push:
+    tags: ["v*"]
 
 jobs:
   verify:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     steps:
+      - uses: actions/checkout@v4
       - uses: HikaruEgashira/gh-verify/action/check-release@main
         with:
-          tag: ${{ github.event.release.tag_name }}
-```
+          tag: ${{ github.ref_name }}
 
-### Tag range verification
-
-```yaml
-      - uses: HikaruEgashira/gh-verify/action/check-release@main
-        with:
-          tag: "v0.9.0..v1.0.0"
-```
-
-### Pin to a specific version
-
-```yaml
-      - uses: HikaruEgashira/gh-verify/action/check-release@main
-        with:
-          tag: ${{ github.event.release.tag_name }}
-          version: "v0.3.0"
+  build:
+    needs: verify
+    # ...
 ```
 
 ## Inputs
@@ -51,8 +38,3 @@ jobs:
 | Output | Description |
 |---|---|
 | `result` | `pass`, `warning`, or `error` |
-
-## Exit Codes
-
-- `0`: all rules pass (warnings are non-fatal)
-- `1`: one or more rules returned an error

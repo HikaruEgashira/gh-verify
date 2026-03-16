@@ -121,6 +121,7 @@ mod tests {
                     date: Some(date.to_string()),
                 }),
             },
+            author: None,
         }
     }
 

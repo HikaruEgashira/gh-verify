@@ -125,6 +125,7 @@ pub struct Review {
 pub struct PrCommit {
     pub sha: String,
     pub commit: PrCommitInner,
+    pub author: Option<PrUser>,
 }
 
 /// Inner commit data for a PR commit.
