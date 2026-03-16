@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::io::{self, Write};
 use std::path::PathBuf;
 use std::process;
@@ -145,7 +145,7 @@ struct Report {
     correct: usize,
     accuracy: f64,
     macro_f1: Option<f64>,
-    per_rule: HashMap<String, RuleMetrics>,
+    per_rule: BTreeMap<String, RuleMetrics>,
     results: Vec<CaseResult>,
 }
 
@@ -546,7 +546,7 @@ fn build_report(results: Vec<CaseResult>) -> Report {
             .or_default()
             .push(r);
     }
-    let mut per_rule = HashMap::new();
+    let mut per_rule = BTreeMap::new();
     for (rule, cases) in &per_rule_cases {
         let rule_total = cases.len();
         let rule_correct = cases.iter().filter(|r| r.pass).count();
