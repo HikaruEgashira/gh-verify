@@ -15,8 +15,8 @@ inputs:
     description: "Output format: human or json"
     required: false
     default: "human"
-  rule:
-    description: "Run only a specific rule ID (empty = all rules)"
+  version:
+    description: "gh-verify version to install (e.g. v0.3.0). Empty = latest."
     required: false
     default: ""
 
@@ -30,9 +30,18 @@ runs:
   steps:
     - name: Install gh-verify
       shell: bash
+      env:
+        INPUT_VERSION: ${{ inputs.version }}
       run: |
-        gh extension install HikaruEgashira/gh-verify 2>/dev/null || \
-          gh extension upgrade gh-verify 2>/dev/null || true
+        if gh extension list | grep -q gh-verify; then
+          gh extension upgrade gh-verify
+        else
+          if [ -n "$INPUT_VERSION" ]; then
+            gh extension install HikaruEgashira/gh-verify --pin "$INPUT_VERSION"
+          else
+            gh extension install HikaruEgashira/gh-verify
+          fi
+        fi
 
     - name: Run gh-verify
       id: verify
@@ -42,19 +51,21 @@ runs:
         INPUT_TAG: ${{ inputs.tag }}
         INPUT_REPO: ${{ inputs.repo }}
         INPUT_FORMAT: ${{ inputs.format }}
-        INPUT_RULE: ${{ inputs.rule }}
       run: |
-        ARGS="$INPUT_TAG --repo $INPUT_REPO --format $INPUT_FORMAT"
-        if [ -n "$INPUT_RULE" ]; then
-          ARGS="$ARGS --rule $INPUT_RULE"
-        fi
-
         set +e
-        OUTPUT=$(gh verify release $ARGS 2>&1)
+        OUTPUT=$(gh verify release "$INPUT_TAG" --repo "$INPUT_REPO" --format "$INPUT_FORMAT" 2>&1)
         EXIT_CODE=$?
         set -e
 
         echo "$OUTPUT"
+
+        # Write to step summary
+        {
+          echo "## gh-verify: Release ${INPUT_TAG}"
+          echo '```'
+          echo "$OUTPUT"
+          echo '```'
+        } >> "$GITHUB_STEP_SUMMARY"
 
         if [ $EXIT_CODE -eq 0 ]; then
           if echo "$OUTPUT" | grep -q "warning:"; then

@@ -21,6 +21,15 @@ jobs:
           pr-number: ${{ github.event.pull_request.number }}
 ```
 
+### Pin to a specific version
+
+```yaml
+      - uses: HikaruEgashira/gh-verify/action/check-pr@main
+        with:
+          pr-number: ${{ github.event.pull_request.number }}
+          version: "v0.3.0"
+```
+
 ## Inputs
 
 | Input | Required | Default | Description |
@@ -28,7 +37,7 @@ jobs:
 | `pr-number` | yes | — | PR number to verify |
 | `repo` | no | current repo | `OWNER/REPO` format |
 | `format` | no | `human` | `human` or `json` |
-| `rule` | no | (all) | Run only a specific rule ID |
+| `version` | no | latest | gh-verify version to install |
 
 ## Outputs
 

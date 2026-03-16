@@ -28,6 +28,15 @@ jobs:
           tag: "v0.9.0..v1.0.0"
 ```
 
+### Pin to a specific version
+
+```yaml
+      - uses: HikaruEgashira/gh-verify/action/check-release@main
+        with:
+          tag: ${{ github.event.release.tag_name }}
+          version: "v0.3.0"
+```
+
 ## Inputs
 
 | Input | Required | Default | Description |
@@ -35,7 +44,7 @@ jobs:
 | `tag` | yes | — | Release tag or range (`v1.0.0` or `v0.9.0..v1.0.0`) |
 | `repo` | no | current repo | `OWNER/REPO` format |
 | `format` | no | `human` | `human` or `json` |
-| `rule` | no | (all) | Run only a specific rule ID |
+| `version` | no | latest | gh-verify version to install |
 
 ## Outputs
 
