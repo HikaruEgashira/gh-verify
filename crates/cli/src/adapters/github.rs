@@ -79,12 +79,12 @@ pub fn map_pull_request_evidence(
             .collect(),
     );
 
-    let source_revisions = EvidenceState::partial(
+    let source_revisions = EvidenceState::complete(
         pr_commits
             .iter()
             .map(|commit| SourceRevision {
                 id: commit.sha.clone(),
-                authored_by: None,
+                authored_by: commit.author.as_ref().map(|a| a.login.clone()),
                 committed_at: commit
                     .commit
                     .committer
@@ -94,11 +94,6 @@ pub fn map_pull_request_evidence(
                 authenticity: EvidenceState::not_applicable(),
             })
             .collect(),
-        vec![EvidenceGap::Unsupported {
-            source: "github".to_string(),
-            capability: "PR commit author login is not normalized in the current adapter"
-                .to_string(),
-        }],
     );
 
     let work_item_refs = EvidenceState::complete(
@@ -250,6 +245,9 @@ mod tests {
                         date: Some("2026-03-15T00:00:00Z".to_string()),
                     }),
                 },
+                author: Some(PrUser {
+                    login: "author".to_string(),
+                }),
             }],
         );
 
@@ -259,7 +257,7 @@ mod tests {
         ));
         assert!(matches!(
             evidence.source_revisions,
-            EvidenceState::Partial { .. }
+            EvidenceState::Complete { .. }
         ));
     }
 
