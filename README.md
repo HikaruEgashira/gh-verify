@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="HACKING.md">Hacking</a> · <a href="action/check-pr/README.md">GitHub Action</a> · <a href="benchmarks/README.md">Benchmarks</a>
+  <a href="HACKING.md">Hacking</a> · <a href="action/check-pr/README.md">PR Action</a> · <a href="action/check-release/README.md">Release Action</a> · <a href="benchmarks/README.md">Benchmarks</a>
 </p>
 
 ---
@@ -82,7 +82,7 @@ gh verify release v0.9.0..v1.0.0 --repo owner/repo
 
 ### GitHub Action
 
-Add to `.github/workflows/verify.yml`:
+**PR verification** — add to `.github/workflows/verify.yml`:
 
 ```yaml
 on:
@@ -101,7 +101,25 @@ jobs:
           pr-number: ${{ github.event.pull_request.number }}
 ```
 
-See [action/check-pr](action/check-pr/README.md) for full input/output details.
+**Release verification** — add to `.github/workflows/verify-release.yml`:
+
+```yaml
+on:
+  release:
+    types: [published]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: HikaruEgashira/gh-verify/action/check-release@main
+        with:
+          tag: ${{ github.event.release.tag_name }}
+```
+
+See [action/check-pr](action/check-pr/README.md) and [action/check-release](action/check-release/README.md) for full input/output details.
 
 ## Exit Codes
 
