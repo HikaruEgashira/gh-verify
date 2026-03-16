@@ -6,7 +6,13 @@
   "expected": "error",
   "rationale": "Database adapter code = database (247 lines). README.md = docs (56 lines). GitHub workflows = ci (95 lines). package.json files = config (85 lines). 4 domains = ERROR.",
   "category": "multi-domain-error",
-  "domains_expected": ["database", "docs", "ci", "config"],
+  "domains_expected": [
+    "database",
+    "docs",
+    "ci",
+    "config"
+  ],
   "ecosystem": "typescript",
-  "notes": "Port/backport PRs are inherently multi-domain. Legitimate detection."
+  "notes": "Port/backport PRs are inherently multi-domain. Legitimate detection.",
+  "target_rule": "detect-unscoped-change"
 }

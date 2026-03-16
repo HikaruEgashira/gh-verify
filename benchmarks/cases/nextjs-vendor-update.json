@@ -8,5 +8,6 @@
   "category": "multi-component",
   "domains_expected": [],
   "ecosystem": "typescript",
-  "notes": "Previously warning (ui+config = 2 domains). Call-graph analysis is stricter here: compiled type definitions and package config files have no call-graph edges connecting them, resulting in multiple disconnected components."
+  "notes": "Previously warning (ui+config = 2 domains). Call-graph analysis is stricter here: compiled type definitions and package config files have no call-graph edges connecting them, resulting in multiple disconnected components.",
+  "target_rule": "detect-unscoped-change"
 }

@@ -8,5 +8,6 @@
   "category": "test-only",
   "domains_expected": [],
   "ecosystem": "javascript",
-  "notes": "Edge case: test domain is excluded from domain count. A PR touching ONLY tests always passes regardless of scope."
+  "notes": "Edge case: test domain is excluded from domain count. A PR touching ONLY tests always passes regardless of scope.",
+  "target_rule": "detect-unscoped-change"
 }

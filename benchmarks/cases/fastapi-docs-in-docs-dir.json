@@ -6,7 +6,10 @@
   "expected": "pass",
   "rationale": "docs/en/docs/css/custom.css and docs/en/docs/js/custom.js both start with docs/ prefix, so they are classified as docs domain (not ui/unknown). Single domain = PASS.",
   "category": "single-domain",
-  "domains_expected": ["docs"],
+  "domains_expected": [
+    "docs"
+  ],
   "ecosystem": "python",
-  "notes": "Edge case: .css file normally would be ui domain, but docs/ prefix is checked first. Path prefix takes priority over file extension."
+  "notes": "Edge case: .css file normally would be ui domain, but docs/ prefix is checked first. Path prefix takes priority over file extension.",
+  "target_rule": "detect-unscoped-change"
 }

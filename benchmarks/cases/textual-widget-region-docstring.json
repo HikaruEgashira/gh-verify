@@ -15,5 +15,6 @@
     "collection_name": "TUI Framework",
     "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
     "discovered_at": "2026-03-09T00:00:00Z"
-  }
+  },
+  "target_rule": "detect-unscoped-change"
 }

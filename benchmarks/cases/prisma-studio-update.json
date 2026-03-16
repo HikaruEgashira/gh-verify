@@ -6,7 +6,11 @@
   "expected": "warning",
   "rationale": "Studio.vitest.ts under __tests__/ but not matching test path patterns = database (122 lines). package.json + pnpm-lock = config (13 lines). 2 domains = WARNING.",
   "category": "multi-domain-warn",
-  "domains_expected": ["database", "config"],
+  "domains_expected": [
+    "database",
+    "config"
+  ],
   "ecosystem": "typescript",
-  "notes": "__tests__/ directory not recognized as test path. This is a FALSE POSITIVE - the file is a test. Known gap: __tests__ pattern missing from scope analysis."
+  "notes": "__tests__/ directory not recognized as test path. This is a FALSE POSITIVE - the file is a test. Known gap: __tests__ pattern missing from scope analysis.",
+  "target_rule": "detect-unscoped-change"
 }

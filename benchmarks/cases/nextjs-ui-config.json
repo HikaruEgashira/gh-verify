@@ -8,5 +8,6 @@
   "category": "multi-component",
   "domains_expected": [],
   "ecosystem": "typescript",
-  "notes": "Known limitation: cross-cutting property/feature-flag changes that only add interface fields and config values are not connected by the call graph. A shared-identifier analysis (same property name across files) could improve this, but is not yet implemented."
+  "notes": "Known limitation: cross-cutting property/feature-flag changes that only add interface fields and config values are not connected by the call graph. A shared-identifier analysis (same property name across files) could improve this, but is not yet implemented.",
+  "target_rule": "detect-unscoped-change"
 }

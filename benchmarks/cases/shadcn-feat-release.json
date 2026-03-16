@@ -6,7 +6,14 @@
   "expected": "error",
   "rationale": "Component files = ui (117k lines). README/docs = docs (105 lines). Workflows = ci (40 lines). package.json = config (173k lines). API routes = api (5k lines). 5 domains = ERROR.",
   "category": "multi-domain-error",
-  "domains_expected": ["ui", "docs", "ci", "config", "api"],
+  "domains_expected": [
+    "ui",
+    "docs",
+    "ci",
+    "config",
+    "api"
+  ],
   "ecosystem": "typescript",
-  "notes": "Very large release PR. Legitimate multi-domain detection."
+  "notes": "Very large release PR. Legitimate multi-domain detection.",
+  "target_rule": "detect-unscoped-change"
 }

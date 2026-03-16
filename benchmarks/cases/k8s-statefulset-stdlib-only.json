@@ -6,7 +6,10 @@
   "expected": "pass",
   "rationale": "Single file changed: pkg/controller/statefulset/stateful_pod_control.go (4 additions). Changes only fmt.Errorf format verbs from %s to %w for proper error wrapping. All imports are Go standard library (fmt) and internal k8s packages. No third-party library imports that map to any domain. Path classification: pkg/controller/ could be api or unknown. Semantic analysis: only stdlib imports, no domain-specific library signals. Falls back to path classification. 1 domain = PASS.",
   "category": "path-only-fallback",
-  "domains_expected": ["api"],
+  "domains_expected": [
+    "api"
+  ],
   "ecosystem": "go",
-  "notes": "Go standard library imports (fmt, context, etc.) should not trigger any domain classification. The semantic analyzer should recognize these as domain-neutral and yield no hints, letting path-based classification decide. Tests that Go stdlib is correctly treated as non-signal."
+  "notes": "Go standard library imports (fmt, context, etc.) should not trigger any domain classification. The semantic analyzer should recognize these as domain-neutral and yield no hints, letting path-based classification decide. Tests that Go stdlib is correctly treated as non-signal.",
+  "target_rule": "detect-unscoped-change"
 }

@@ -6,7 +6,12 @@
   "expected": "error",
   "rationale": ".tsx files in docs app = ui domain (232 lines). DEVELOPERS.md = docs domain (13 lines). app/api/.../route.ts contains 'api' and 'route' = api domain (22 lines). 3 domains = ERROR.",
   "category": "multi-domain-error",
-  "domains_expected": ["ui", "docs", "api"],
+  "domains_expected": [
+    "ui",
+    "docs",
+    "api"
+  ],
   "ecosystem": "typescript",
-  "notes": "Documentation site feature adding API endpoint + UI components + markdown docs. A genuinely mixed PR that should ideally be split into: (1) API endpoint, (2) UI components, (3) docs update."
+  "notes": "Documentation site feature adding API endpoint + UI components + markdown docs. A genuinely mixed PR that should ideally be split into: (1) API endpoint, (2) UI components, (3) docs update.",
+  "target_rule": "detect-unscoped-change"
 }

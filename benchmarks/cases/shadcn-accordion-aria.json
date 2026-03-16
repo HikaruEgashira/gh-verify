@@ -8,5 +8,6 @@
   "category": "multi-component",
   "domains_expected": [],
   "ecosystem": "typescript",
-  "notes": "Previously warning (ui+config = 2 domains). Call-graph analysis finds no import/call edges between .tsx components and .json configuration files, resulting in 3+ disconnected components."
+  "notes": "Previously warning (ui+config = 2 domains). Call-graph analysis finds no import/call edges between .tsx components and .json configuration files, resulting in 3+ disconnected components.",
+  "target_rule": "detect-unscoped-change"
 }
