@@ -16,6 +16,9 @@ use gh_verify_core::scope::is_non_code_file;
 use gh_verify_core::verdict::Severity;
 use serde::Serialize;
 
+/// Default rule ID used when a benchmark case does not specify `target_rule`.
+const DEFAULT_TARGET_RULE: &str = "detect-unscoped-change";
+
 #[derive(Parser)]
 #[command(
     name = "gh-verify-bench",
@@ -69,6 +72,7 @@ struct CaseResult {
     expected: Severity,
     actual: ActualResult,
     pass: bool,
+    target_rule: String,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -128,11 +132,20 @@ impl ClassMetrics {
 }
 
 #[derive(Debug, Serialize)]
+struct RuleMetrics {
+    total: usize,
+    correct: usize,
+    accuracy: f64,
+    macro_f1: Option<f64>,
+}
+
+#[derive(Debug, Serialize)]
 struct Report {
     total: usize,
     correct: usize,
     accuracy: f64,
     macro_f1: Option<f64>,
+    per_rule: HashMap<String, RuleMetrics>,
     results: Vec<CaseResult>,
 }
 
@@ -245,6 +258,7 @@ fn run_benchmarks(cli: &Cli) -> Result<()> {
             expected: case.expected,
             actual,
             pass,
+            target_rule: case.target_rule.as_deref().unwrap_or(DEFAULT_TARGET_RULE).to_owned(),
         });
     }
 
@@ -299,6 +313,35 @@ fn run_benchmarks(cli: &Cli) -> Result<()> {
             r,
             f
         );
+    }
+
+    if report.per_rule.len() > 1 {
+        eprintln!();
+        eprintln!("Per-rule breakdown:");
+        eprintln!(
+            "{:<30} {:>6} {:>8} {:>10} {:>10}",
+            "Rule", "Total", "Correct", "Accuracy", "Macro F1"
+        );
+        eprintln!(
+            "{:<30} {:>6} {:>8} {:>10} {:>10}",
+            "----", "-----", "-------", "--------", "--------"
+        );
+        let mut rules: Vec<_> = report.per_rule.iter().collect();
+        rules.sort_by(|(a, _), (b, _)| a.cmp(b));
+        for (rule, m) in &rules {
+            let f1_str = m
+                .macro_f1
+                .map(|v| format!("{v:.4}"))
+                .unwrap_or_else(|| "N/A".into());
+            eprintln!(
+                "{:<30} {:>6} {:>8} {:>9.1}% {:>10}",
+                rule,
+                m.total,
+                m.correct,
+                m.accuracy * 100.0,
+                f1_str
+            );
+        }
     }
 
     if cli.format == "json" {
@@ -374,7 +417,7 @@ fn discover_repo(
             .map(|file| file.filename.clone())
             .collect();
         let code_files = code_paths.len();
-        let observed = actual_from_rule_results(github, owner, repo, pr.number);
+        let observed = actual_from_rule_results(github, owner, repo, pr.number, DEFAULT_TARGET_RULE);
 
         prs.push(DiscoveryPr {
             number: pr.number,
@@ -413,17 +456,16 @@ fn run_case(client: &GitHubClient, case: &BenchCase) -> ActualResult {
         None => return ActualResult::FetchError("invalid repo format".into()),
     };
 
-    actual_from_rule_results(client, owner, repo, case.pr_number)
+    let target = case.target_rule.as_deref().unwrap_or(DEFAULT_TARGET_RULE);
+    actual_from_rule_results(client, owner, repo, case.pr_number, target)
 }
-
-/// The rule ID that benchmark cases are designed to test.
-const BENCH_RULE_ID: &str = "detect-unscoped-change";
 
 fn actual_from_rule_results(
     client: &GitHubClient,
     owner: &str,
     repo: &str,
     pr_number: u32,
+    target_rule: &str,
 ) -> ActualResult {
     let pr_files = match pr_api::get_pr_files(client, owner, repo, pr_number) {
         Ok(f) => f,
@@ -459,7 +501,7 @@ fn actual_from_rule_results(
             // (e.g. verify-pr-size) don't inflate the max severity.
             let max_sev = results
                 .iter()
-                .filter(|r| r.rule_id == BENCH_RULE_ID)
+                .filter(|r| r.rule_id == target_rule)
                 .map(|r| r.severity)
                 .max()
                 .unwrap_or(Severity::Pass);
@@ -473,6 +515,19 @@ fn actual_from_rule_results(
     }
 }
 
+fn compute_macro_f1(results: &[CaseResult]) -> Option<f64> {
+    let metrics = compute_metrics(results);
+    let f1_values: Vec<f64> = [Severity::Pass, Severity::Warning, Severity::Error]
+        .iter()
+        .filter_map(|s| metrics.get(s).and_then(|m| m.f1()))
+        .collect();
+    if f1_values.is_empty() {
+        None
+    } else {
+        Some(f1_values.iter().sum::<f64>() / f1_values.len() as f64)
+    }
+}
+
 fn build_report(results: Vec<CaseResult>) -> Report {
     let total = results.len();
     let correct = results.iter().filter(|r| r.pass).count();
@@ -481,23 +536,54 @@ fn build_report(results: Vec<CaseResult>) -> Report {
     } else {
         0.0
     };
+    let macro_f1 = compute_macro_f1(&results);
 
-    let metrics = compute_metrics(&results);
-    let f1_values: Vec<f64> = [Severity::Pass, Severity::Warning, Severity::Error]
-        .iter()
-        .filter_map(|s| metrics.get(s).and_then(|m| m.f1()))
-        .collect();
-    let macro_f1 = if f1_values.is_empty() {
-        None
-    } else {
-        Some(f1_values.iter().sum::<f64>() / f1_values.len() as f64)
-    };
+    // Compute per-rule breakdown
+    let mut per_rule_cases: HashMap<String, Vec<&CaseResult>> = HashMap::new();
+    for r in &results {
+        per_rule_cases
+            .entry(r.target_rule.clone())
+            .or_default()
+            .push(r);
+    }
+    let mut per_rule = HashMap::new();
+    for (rule, cases) in &per_rule_cases {
+        let rule_total = cases.len();
+        let rule_correct = cases.iter().filter(|r| r.pass).count();
+        let rule_accuracy = if rule_total > 0 {
+            rule_correct as f64 / rule_total as f64
+        } else {
+            0.0
+        };
+        // Build temporary CaseResults slice for macro_f1 calculation
+        let owned: Vec<CaseResult> = cases
+            .iter()
+            .map(|r| CaseResult {
+                id: r.id.clone(),
+                expected: r.expected,
+                actual: r.actual.clone(),
+                pass: r.pass,
+                target_rule: r.target_rule.clone(),
+            })
+            .collect();
+        let rule_macro_f1 = compute_macro_f1(&owned);
+        per_rule.insert(
+            rule.clone(),
+            RuleMetrics {
+                total: rule_total,
+                correct: rule_correct,
+                accuracy: rule_accuracy,
+                macro_f1: rule_macro_f1,
+            },
+        );
+    }
 
     Report {
         total,
         correct,
         accuracy,
         macro_f1,
+        per_rule,
         results,
     }
 }

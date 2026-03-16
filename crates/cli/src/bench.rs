@@ -14,6 +14,8 @@ pub struct BenchCase {
     pub rationale: String,
     pub category: String,
     #[serde(default)]
+    pub target_rule: Option<String>,
+    #[serde(default)]
     pub domains_expected: Vec<String>,
     pub ecosystem: String,
     #[serde(default)]
