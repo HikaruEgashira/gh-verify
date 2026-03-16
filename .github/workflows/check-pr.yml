@@ -22,7 +22,35 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
-      - uses: ./action/check-pr
-        with:
-          pr-number: ${{ github.event.pull_request.number }}
-          format: json
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6 # v2.7.8
+
+      - name: Build gh-verify
+        run: cargo build --release -p gh-verify
+
+      - name: Run gh-verify
+        id: verify
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set +e
+          OUTPUT=$(./target/release/gh-verify pr ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --format json 2>&1)
+          EXIT_CODE=$?
+          set -e
+
+          echo "$OUTPUT"
+
+          {
+            echo "## gh-verify: PR #${{ github.event.pull_request.number }}"
+            echo '```json'
+            echo "$OUTPUT"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ $EXIT_CODE -eq 0 ]; then
+            echo "result=pass" >> "$GITHUB_OUTPUT"
+          else
+            echo "result=error" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
