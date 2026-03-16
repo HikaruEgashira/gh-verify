@@ -3,6 +3,8 @@ name: check-pr
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+  pull_request_review:
+    types: [submitted]
 
 permissions:
   contents: read
