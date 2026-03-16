@@ -1,0 +1,20 @@
+{
+  "id": "react-devtools-empty-suspended-section",
+  "description": "React DevTools suppresses an empty SuspendedBy section with a single view-layer fix",
+  "repo": "facebook/react",
+  "pr_number": 36011,
+  "expected": "pass",
+  "rationale": "The PR changes one UI component file to guard an empty groups array. A single-file fix is inherently scoped.",
+  "category": "single-file",
+  "domains_expected": [],
+  "ecosystem": "javascript",
+  "notes": "Real-world control case from OSS Insight showing the rule still passes straightforward one-file fixes.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 10005,
+    "collection_name": "Javascript Framework",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-03-16T00:00:00Z"
+  },
+  "target_rule": "detect-unscoped-change"
+}

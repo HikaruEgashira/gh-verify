@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-15T01:17:13Z",
+  "generated_at": "2026-03-16T16:47:03Z",
   "collection_id": 10005,
   "period": "past_28_days",
   "repos": [
@@ -7,7 +7,7 @@
       "repo": "angular/angular",
       "current_period_rank": "1",
       "current_period_growth": "89",
-      "total_prs": "33814",
+      "total_prs": "33818",
       "top_pr_creators": [
         {
           "id": "8604205",
@@ -34,49 +34,34 @@
           "first_pr_merged_at": "2021-01-07 20:29:21"
         },
         {
-          "id": "43554145",
-          "login": "AndrewKushnir",
-          "name": "Andrew Kushnir",
-          "prs": "928",
-          "first_pr_opened_at": "2018-09-26 20:46:59",
-          "first_pr_merged_at": "2018-09-27 18:52:08"
-        },
-        {
           "id": "4450522",
           "login": "crisbeto",
           "name": "Kristiyan Kostadinov",
           "prs": "928",
           "first_pr_opened_at": "2016-12-14 21:41:37",
           "first_pr_merged_at": "2020-06-12 22:41:25"
+        },
+        {
+          "id": "43554145",
+          "login": "AndrewKushnir",
+          "name": "Andrew Kushnir",
+          "prs": "928",
+          "first_pr_opened_at": "2018-09-26 20:46:59",
+          "first_pr_merged_at": "2018-09-27 18:52:08"
         }
       ],
       "prs": [
         {
-          "number": 67034,
-          "title": "build: update cross-repo angular dependencies (21.1.x)",
-          "merged_at": "2026-02-12T19:15:40Z",
-          "changed_files": 16,
+          "number": 67682,
+          "title": "test(devtools): fix and update flaky component-tree tests",
+          "merged_at": "2026-03-16T16:03:43Z",
+          "changed_files": 1,
           "code_files": 1,
           "changed_paths": [
-            ".github/actions/saucelabs-legacy/action.yml",
-            ".github/workflows/adev-preview-build.yml",
-            ".github/workflows/adev-preview-deploy.yml",
-            ".github/workflows/assistant-to-the-branch-manager.yml",
-            ".github/workflows/benchmark-compare.yml",
-            ".github/workflows/ci.yml",
-            ".github/workflows/dev-infra.yml",
-            ".github/workflows/google-internal-tests.yml",
-            ".github/workflows/manual.yml",
-            ".github/workflows/merge-ready-status.yml",
-            ".github/workflows/perf.yml",
-            ".github/workflows/pr.yml",
-            "MODULE.bazel",
-            "MODULE.bazel.lock",
-            "package.json",
-            "pnpm-lock.yaml"
+            "devtools/projects/ng-devtools-backend/src/lib/component-tree/component-tree.spec.ts"
           ],
           "code_paths": [
-            "MODULE.bazel"
+            "devtools/projects/ng-devtools-backend/src/lib/component-tree/component-tree.spec.ts"
           ],
           "observed": "pass",
           "source": {
@@ -84,32 +69,17 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:15:21Z"
+            "discovered_at": "2026-03-16T16:44:11Z"
           }
         },
         {
-          "number": 66988,
-          "title": "build: lock file maintenance (main)",
-          "merged_at": "2026-02-12T18:18:04Z",
-          "changed_files": 17,
+          "number": 67702,
+          "title": "build: remove resolution for `https-proxy-agent`",
+          "merged_at": "2026-03-16T16:01:40Z",
+          "changed_files": 2,
           "code_files": 0,
           "changed_paths": [
-            "integration/cli-hello-world-ivy-i18n/pnpm-lock.yaml",
-            "integration/cli-hello-world-lazy/pnpm-lock.yaml",
-            "integration/cli-hello-world/pnpm-lock.yaml",
-            "integration/cli-signal-inputs/pnpm-lock.yaml",
-            "integration/defer/pnpm-lock.yaml",
-            "integration/legacy-animations-async/pnpm-lock.yaml",
-            "integration/legacy-animations/pnpm-lock.yaml",
-            "integration/ng-add-localize/pnpm-lock.yaml",
-            "integration/ng_elements/pnpm-lock.yaml",
-            "integration/platform-server-hydration/pnpm-lock.yaml",
-            "integration/platform-server-zoneless/pnpm-lock.yaml",
-            "integration/platform-server/pnpm-lock.yaml",
-            "integration/side-effects/pnpm-lock.yaml",
-            "integration/standalone-bootstrap/pnpm-lock.yaml",
-            "integration/trusted-types/pnpm-lock.yaml",
-            "integration/typings_test_rxjs7/pnpm-lock.yaml",
+            "package.json",
             "pnpm-lock.yaml"
           ],
           "code_paths": [],
@@ -119,21 +89,24 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:15:24Z"
+            "discovered_at": "2026-03-16T16:44:13Z"
           }
         },
         {
-          "number": 67037,
-          "title": "build: update bazel dependencies (21.1.x)",
-          "merged_at": "2026-02-12T17:39:45Z",
-          "changed_files": 2,
-          "code_files": 1,
+          "number": 67689,
+          "title": "fix(core): clean up dehydrated views during HMR component replacement",
+          "merged_at": "2026-03-16T16:04:07Z",
+          "changed_files": 3,
+          "code_files": 3,
           "changed_paths": [
-            "MODULE.bazel",
-            "MODULE.bazel.lock"
+            "packages/core/src/hydration/cleanup.ts",
+            "packages/core/src/render3/hmr.ts",
+            "packages/core/test/acceptance/hmr_spec.ts"
           ],
           "code_paths": [
-            "MODULE.bazel"
+            "packages/core/src/hydration/cleanup.ts",
+            "packages/core/src/render3/hmr.ts",
+            "packages/core/test/acceptance/hmr_spec.ts"
           ],
           "observed": "pass",
           "source": {
@@ -141,53 +114,45 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:15:26Z"
+            "discovered_at": "2026-03-16T16:44:16Z"
           }
         },
         {
-          "number": 67040,
-          "title": "Revert \"refactor(compiler): Add info about unclosed element.\"",
-          "merged_at": "2026-02-12T17:30:57Z",
-          "changed_files": 2,
-          "code_files": 2,
+          "number": 67693,
+          "title": "docs(docs-infra): add spacing between reference option and description",
+          "merged_at": "2026-03-16T16:00:46Z",
+          "changed_files": 1,
+          "code_files": 0,
           "changed_paths": [
-            "packages/compiler/src/ml_parser/parser.ts",
-            "packages/compiler/test/ml_parser/html_parser_spec.ts"
+            "adev/shared-docs/styles/_reference.scss"
           ],
-          "code_paths": [
-            "packages/compiler/src/ml_parser/parser.ts",
-            "packages/compiler/test/ml_parser/html_parser_spec.ts"
-          ],
-          "observed": "warning",
+          "code_paths": [],
+          "observed": "pass",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:15:27Z"
+            "discovered_at": "2026-03-16T16:44:19Z"
           }
         },
         {
-          "number": 67039,
-          "title": "Revert \"refactor(compiler): Add info about unclosed element.\"",
-          "merged_at": "2026-02-12T16:54:40Z",
-          "changed_files": 2,
-          "code_files": 2,
+          "number": 67688,
+          "title": "docs: update uninstallation commands for Karma packages",
+          "merged_at": "2026-03-16T15:59:35Z",
+          "changed_files": 1,
+          "code_files": 0,
           "changed_paths": [
-            "packages/compiler/src/ml_parser/parser.ts",
-            "packages/compiler/test/ml_parser/html_parser_spec.ts"
+            "adev/src/content/guide/testing/migrating-to-vitest.md"
           ],
-          "code_paths": [
-            "packages/compiler/src/ml_parser/parser.ts",
-            "packages/compiler/test/ml_parser/html_parser_spec.ts"
-          ],
-          "observed": "warning",
+          "code_paths": [],
+          "observed": "pass",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:15:29Z"
+            "discovered_at": "2026-03-16T16:44:21Z"
           }
         }
       ]
@@ -195,7 +160,7 @@
     {
       "repo": "facebook/react",
       "current_period_rank": "2",
-      "current_period_growth": "48",
+      "current_period_growth": "45",
       "total_prs": "18634",
       "top_pr_creators": [
         {
@@ -241,6 +206,36 @@
       ],
       "prs": [
         {
+          "number": 35720,
+          "title": "[eslint-plugin-react-hooks] Add ESLint v10 support",
+          "merged_at": "2026-02-13T18:26:02Z",
+          "changed_files": 8,
+          "code_files": 3,
+          "changed_paths": [
+            ".github/workflows/runtime_eslint_plugin_e2e.yml",
+            "fixtures/eslint-v10/README.md",
+            "fixtures/eslint-v10/build.mjs",
+            "fixtures/eslint-v10/eslint.config.ts",
+            "fixtures/eslint-v10/index.js",
+            "fixtures/eslint-v10/package.json",
+            "fixtures/eslint-v10/tsconfig.json",
+            "packages/eslint-plugin-react-hooks/package.json"
+          ],
+          "code_paths": [
+            "fixtures/eslint-v10/build.mjs",
+            "fixtures/eslint-v10/eslint.config.ts",
+            "fixtures/eslint-v10/index.js"
+          ],
+          "observed": "error",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-16T16:44:27Z"
+          }
+        },
+        {
           "number": 36010,
           "title": "Fix focus set for delegated and already focused elements",
           "merged_at": "2026-03-12T21:36:28Z",
@@ -260,7 +255,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:15:34Z"
+            "discovered_at": "2026-03-16T16:44:30Z"
           }
         },
         {
@@ -281,7 +276,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:15:36Z"
+            "discovered_at": "2026-03-16T16:44:32Z"
           }
         },
         {
@@ -300,13 +295,13 @@
             "packages/react-server-dom-webpack/src/__tests__/ReactFlightDOM-test.js",
             "packages/react-server/src/ReactFlightReplyServer.js"
           ],
-          "observed": "error",
+          "observed": "pass",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:15:37Z"
+            "discovered_at": "2026-03-16T16:44:35Z"
           }
         },
         {
@@ -333,26 +328,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:15:39Z"
-          }
-        },
-        {
-          "number": 35512,
-          "title": "Bump undici from 6.21.2 to 6.23.0 in /compiler",
-          "merged_at": "2026-03-12T15:40:37Z",
-          "changed_files": 1,
-          "code_files": 0,
-          "changed_paths": [
-            "compiler/yarn.lock"
-          ],
-          "code_paths": [],
-          "observed": "pass",
-          "source": {
-            "provider": "ossinsight",
-            "collection_id": 10005,
-            "collection_name": null,
-            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:15:40Z"
+            "discovered_at": "2026-03-16T16:44:38Z"
           }
         }
       ]
@@ -360,7 +336,7 @@
     {
       "repo": "emberjs/ember.js",
       "current_period_rank": "3",
-      "current_period_growth": "31",
+      "current_period_growth": "30",
       "total_prs": "10238",
       "top_pr_creators": [
         {
@@ -487,7 +463,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:15:45Z"
+            "discovered_at": "2026-03-16T16:44:46Z"
           }
         },
         {
@@ -547,13 +523,13 @@
             "packages/@glimmer/program/lib/program.ts",
             "packages/@glimmer/reference/test/iterable-test.ts"
           ],
-          "observed": "error",
+          "observed": "pass",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:15:48Z"
+            "discovered_at": "2026-03-16T16:44:49Z"
           }
         },
         {
@@ -582,7 +558,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:15:49Z"
+            "discovered_at": "2026-03-16T16:44:52Z"
           }
         },
         {
@@ -601,7 +577,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:15:51Z"
+            "discovered_at": "2026-03-16T16:44:54Z"
           }
         },
         {
@@ -620,7 +596,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:15:52Z"
+            "discovered_at": "2026-03-16T16:44:57Z"
           }
         }
       ]
@@ -696,7 +672,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:15:55Z"
+            "discovered_at": "2026-03-16T16:45:01Z"
           }
         },
         {
@@ -724,7 +700,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:15:57Z"
+            "discovered_at": "2026-03-16T16:45:04Z"
           }
         },
         {
@@ -747,7 +723,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:15:58Z"
+            "discovered_at": "2026-03-16T16:45:06Z"
           }
         },
         {
@@ -771,13 +747,13 @@
             "packages/svelte/tests/runtime-runes/samples/async-pending-effect/_config.js",
             "packages/svelte/tests/runtime-runes/samples/async-pending-effect/main.svelte"
           ],
-          "observed": "error",
+          "observed": "pass",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:15:59Z"
+            "discovered_at": "2026-03-16T16:45:09Z"
           }
         },
         {
@@ -801,13 +777,13 @@
             "packages/svelte/tests/runtime-runes/samples/assignment-value-stale-lazy-rhs-async/_config.js",
             "packages/svelte/tests/runtime-runes/samples/assignment-value-stale-lazy-rhs-async/main.svelte"
           ],
-          "observed": "error",
+          "observed": "pass",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:16:01Z"
+            "discovered_at": "2026-03-16T16:45:12Z"
           }
         }
       ]
@@ -815,8 +791,8 @@
     {
       "repo": "vuejs/core",
       "current_period_rank": "5",
-      "current_period_growth": "14",
-      "total_prs": "5687",
+      "current_period_growth": "21",
+      "total_prs": "5699",
       "top_pr_creators": [
         {
           "id": "3705199",
@@ -861,41 +837,18 @@
       ],
       "prs": [
         {
-          "number": 14567,
-          "title": "fix(compiler-vapor): fix circular reference in repeated call expression cache",
-          "merged_at": "2026-03-13T12:45:53Z",
-          "changed_files": 3,
-          "code_files": 3,
+          "number": 14592,
+          "title": "fix(hydration): consume target anchors for disabled teleports",
+          "merged_at": "2026-03-16T09:52:36Z",
+          "changed_files": 2,
+          "code_files": 2,
           "changed_paths": [
-            "packages/compiler-vapor/__tests__/transforms/__snapshots__/expression.spec.ts.snap",
-            "packages/compiler-vapor/__tests__/transforms/expression.spec.ts",
-            "packages/compiler-vapor/src/generators/expression.ts"
+            "packages/runtime-vapor/__tests__/hydration.spec.ts",
+            "packages/runtime-vapor/src/components/Teleport.ts"
           ],
           "code_paths": [
-            "packages/compiler-vapor/__tests__/transforms/__snapshots__/expression.spec.ts.snap",
-            "packages/compiler-vapor/__tests__/transforms/expression.spec.ts",
-            "packages/compiler-vapor/src/generators/expression.ts"
-          ],
-          "observed": "error",
-          "source": {
-            "provider": "ossinsight",
-            "collection_id": 10005,
-            "collection_name": null,
-            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:16:05Z"
-          }
-        },
-        {
-          "number": 14566,
-          "title": "chore: add jsdoc for defineSlots",
-          "merged_at": "2026-03-13T12:57:41Z",
-          "changed_files": 1,
-          "code_files": 1,
-          "changed_paths": [
-            "packages/runtime-core/src/apiSetupHelpers.ts"
-          ],
-          "code_paths": [
-            "packages/runtime-core/src/apiSetupHelpers.ts"
+            "packages/runtime-vapor/__tests__/hydration.spec.ts",
+            "packages/runtime-vapor/src/components/Teleport.ts"
           ],
           "observed": "pass",
           "source": {
@@ -903,45 +856,22 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:16:06Z"
+            "discovered_at": "2026-03-16T16:45:16Z"
           }
         },
         {
-          "number": 14568,
-          "title": "fix(compiler-vapor): avoid cache name collisions in expression dedupe",
-          "merged_at": "2026-03-13T12:54:47Z",
-          "changed_files": 3,
-          "code_files": 3,
+          "number": 14591,
+          "title": "fix(runtime-vapor): reuse teleport anchors when keyed roots reorder",
+          "merged_at": "2026-03-16T09:37:46Z",
+          "changed_files": 2,
+          "code_files": 2,
           "changed_paths": [
-            "packages/compiler-vapor/__tests__/transforms/__snapshots__/expression.spec.ts.snap",
-            "packages/compiler-vapor/__tests__/transforms/expression.spec.ts",
-            "packages/compiler-vapor/src/generators/expression.ts"
+            "packages/runtime-vapor/__tests__/components/Teleport.spec.ts",
+            "packages/runtime-vapor/src/components/Teleport.ts"
           ],
           "code_paths": [
-            "packages/compiler-vapor/__tests__/transforms/__snapshots__/expression.spec.ts.snap",
-            "packages/compiler-vapor/__tests__/transforms/expression.spec.ts",
-            "packages/compiler-vapor/src/generators/expression.ts"
-          ],
-          "observed": "error",
-          "source": {
-            "provider": "ossinsight",
-            "collection_id": 10005,
-            "collection_name": null,
-            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:16:08Z"
-          }
-        },
-        {
-          "number": 14565,
-          "title": "refactor(runtime-vapor): only restore current instance for deferred branches",
-          "merged_at": "2026-03-13T10:01:13Z",
-          "changed_files": 1,
-          "code_files": 1,
-          "changed_paths": [
-            "packages/runtime-vapor/src/fragment.ts"
-          ],
-          "code_paths": [
-            "packages/runtime-vapor/src/fragment.ts"
+            "packages/runtime-vapor/__tests__/components/Teleport.spec.ts",
+            "packages/runtime-vapor/src/components/Teleport.ts"
           ],
           "observed": "pass",
           "source": {
@@ -949,59 +879,216 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:16:09Z"
+            "discovered_at": "2026-03-16T16:45:19Z"
           }
         },
         {
-          "number": 14556,
-          "title": "chore: migrate to VitePlus",
-          "merged_at": "2026-03-13T03:09:09Z",
-          "changed_files": 29,
-          "code_files": 12,
+          "number": 14590,
+          "title": "fix(runtime-vapor): TransitionGroup with v-for + v-if not applying transition hooks",
+          "merged_at": "2026-03-16T09:15:33Z",
+          "changed_files": 3,
+          "code_files": 3,
           "changed_paths": [
-            ".github/contributing.md",
-            ".github/renovate.json5",
-            ".github/workflows/autofix.yml",
-            ".github/workflows/ci.yml",
-            ".github/workflows/release.yml",
-            ".github/workflows/size-data.yml",
-            ".github/workflows/size-report.yml",
-            ".github/workflows/test.yml",
-            ".oxfmtrc.jsonc",
-            ".oxlintrc.json",
-            ".vite-hooks/.gitignore",
-            ".vite-hooks/commit-msg",
-            ".vite-hooks/pre-commit",
-            ".vscode/extensions.json",
-            ".vscode/launch.json",
-            ".vscode/settings.json",
-            "package.json",
-            "packages-private/sfc-playground/package.json",
-            "packages-private/sfc-playground/src/download/template/vite.config.js",
-            "packages-private/sfc-playground/vite.config.ts",
-            "packages-private/vapor-e2e-test/package.json",
-            "packages-private/vapor-e2e-test/vite.config.ts",
-            "packages-private/vite-debug/vite.config.ts",
-            "pnpm-lock.yaml",
-            "pnpm-workspace.yaml",
-            "scripts/release.js",
-            "scripts/verify-treeshaking.js",
-            "vite.config.ts",
-            "vitest.config.ts"
+            "packages-private/vapor-e2e-test/__tests__/transition-group.spec.ts",
+            "packages-private/vapor-e2e-test/transition-group/cases/vapor-transition-group/for-if-enter.vue",
+            "packages/runtime-vapor/src/components/Transition.ts"
           ],
           "code_paths": [
-            ".oxfmtrc.jsonc",
-            ".vite-hooks/.gitignore",
-            ".vite-hooks/commit-msg",
-            ".vite-hooks/pre-commit",
-            "packages-private/sfc-playground/src/download/template/vite.config.js",
-            "packages-private/sfc-playground/vite.config.ts",
-            "packages-private/vapor-e2e-test/vite.config.ts",
-            "packages-private/vite-debug/vite.config.ts",
-            "scripts/release.js",
-            "scripts/verify-treeshaking.js",
-            "vite.config.ts",
-            "vitest.config.ts"
+            "packages-private/vapor-e2e-test/__tests__/transition-group.spec.ts",
+            "packages-private/vapor-e2e-test/transition-group/cases/vapor-transition-group/for-if-enter.vue",
+            "packages/runtime-vapor/src/components/Transition.ts"
+          ],
+          "observed": "pass",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-16T16:45:21Z"
+          }
+        },
+        {
+          "number": 14589,
+          "title": "fix(hydration): avoid setting targetStart to placeholder when target is null",
+          "merged_at": "2026-03-16T08:33:07Z",
+          "changed_files": 2,
+          "code_files": 2,
+          "changed_paths": [
+            "packages/runtime-vapor/__tests__/hydration.spec.ts",
+            "packages/runtime-vapor/src/components/Teleport.ts"
+          ],
+          "code_paths": [
+            "packages/runtime-vapor/__tests__/hydration.spec.ts",
+            "packages/runtime-vapor/src/components/Teleport.ts"
+          ],
+          "observed": "pass",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-16T16:45:24Z"
+          }
+        },
+        {
+          "number": 14588,
+          "title": "fix(teleport): clean up old anchors when teleport target changes",
+          "merged_at": "2026-03-16T08:24:24Z",
+          "changed_files": 2,
+          "code_files": 2,
+          "changed_paths": [
+            "packages/runtime-vapor/__tests__/components/Teleport.spec.ts",
+            "packages/runtime-vapor/src/components/Teleport.ts"
+          ],
+          "code_paths": [
+            "packages/runtime-vapor/__tests__/components/Teleport.spec.ts",
+            "packages/runtime-vapor/src/components/Teleport.ts"
+          ],
+          "observed": "pass",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-16T16:45:26Z"
+          }
+        }
+      ]
+    },
+    {
+      "repo": "QwikDev/qwik",
+      "current_period_rank": "6",
+      "current_period_growth": "10",
+      "total_prs": "5367",
+      "top_pr_creators": [
+        {
+          "id": "127379",
+          "login": "manucorporat",
+          "name": "Manu MA",
+          "prs": "883",
+          "first_pr_opened_at": "2021-11-11 15:14:12",
+          "first_pr_merged_at": "2021-11-11 16:36:10"
+        },
+        {
+          "id": "452425",
+          "login": "adamdbradley",
+          "name": "Adam Bradley",
+          "prs": "531",
+          "first_pr_opened_at": "2021-06-11 15:04:35",
+          "first_pr_merged_at": "2021-06-18 01:41:19"
+        },
+        {
+          "id": "54934",
+          "login": "wmertens",
+          "name": "Wout Mertens",
+          "prs": "423",
+          "first_pr_opened_at": "2022-09-29 13:56:10",
+          "first_pr_merged_at": "2022-09-29 14:56:59"
+        },
+        {
+          "id": "111951",
+          "login": "mhevery",
+          "name": "Miško Hevery",
+          "prs": "351",
+          "first_pr_opened_at": "2021-06-01 21:34:48",
+          "first_pr_merged_at": "2021-06-01 22:04:07"
+        },
+        {
+          "id": "78650133",
+          "login": "Varixo",
+          "name": "",
+          "prs": "285",
+          "first_pr_opened_at": "2022-09-27 15:11:50",
+          "first_pr_merged_at": "2022-09-27 15:41:08"
+        }
+      ],
+      "prs": [
+        {
+          "number": 8427,
+          "title": "V2 Version Packages (beta)",
+          "merged_at": "2026-03-15T20:53:04Z",
+          "changed_files": 11,
+          "code_files": 0,
+          "changed_paths": [
+            ".changeset/pre.json",
+            "packages/create-qwik/CHANGELOG.md",
+            "packages/create-qwik/package.json",
+            "packages/eslint-plugin-qwik/CHANGELOG.md",
+            "packages/eslint-plugin-qwik/package.json",
+            "packages/qwik-react/CHANGELOG.md",
+            "packages/qwik-react/package.json",
+            "packages/qwik-router/CHANGELOG.md",
+            "packages/qwik-router/package.json",
+            "packages/qwik/CHANGELOG.md",
+            "packages/qwik/package.json"
+          ],
+          "code_paths": [],
+          "observed": "pass",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-16T16:45:31Z"
+          }
+        },
+        {
+          "number": 8413,
+          "title": "React: allow Qwik components inside React",
+          "merged_at": "2026-03-15T20:15:52Z",
+          "changed_files": 25,
+          "code_files": 23,
+          "changed_paths": [
+            ".changeset/old-plants-smile.md",
+            "e2e/qwik-react-e2e/src/components/reactify/badge.tsx",
+            "e2e/qwik-react-e2e/src/components/reactify/index.tsx",
+            "e2e/qwik-react-e2e/src/routes/layout.tsx",
+            "e2e/qwik-react-e2e/src/routes/reactify/index.tsx",
+            "e2e/qwik-react-e2e/tests/reactify.spec.ts",
+            "packages/docs/src/routes/demo/react/reactify/counter.tsx",
+            "packages/docs/src/routes/demo/react/reactify/index.tsx",
+            "packages/docs/src/routes/demo/react/reactify/react.tsx",
+            "packages/docs/src/routes/docs/integrations/react/index.mdx",
+            "packages/qwik-react/src/index.qwik.ts",
+            "packages/qwik-react/src/react/qwikify.tsx",
+            "packages/qwik-react/src/react/reactify.ts",
+            "packages/qwik-react/src/react/server-render.tsx",
+            "packages/qwik-react/src/react/slot.ts",
+            "packages/qwik-react/src/react/types.ts",
+            "packages/qwik/src/core/client/process-vnode-data.ts",
+            "packages/qwik/src/core/client/types.ts",
+            "packages/qwik/src/core/client/vnode-utils.ts",
+            "packages/qwik/src/core/internal.ts",
+            "packages/qwik/src/core/qwik.core.api.md",
+            "packages/qwik/src/core/shared/component.public.ts",
+            "packages/qwik/src/core/shared/projection/external-projection.ts",
+            "packages/qwik/src/core/shared/utils/markers.ts",
+            "packages/qwik/src/core/tests/external-projection.spec.tsx"
+          ],
+          "code_paths": [
+            "e2e/qwik-react-e2e/src/components/reactify/badge.tsx",
+            "e2e/qwik-react-e2e/src/components/reactify/index.tsx",
+            "e2e/qwik-react-e2e/src/routes/layout.tsx",
+            "e2e/qwik-react-e2e/src/routes/reactify/index.tsx",
+            "e2e/qwik-react-e2e/tests/reactify.spec.ts",
+            "packages/docs/src/routes/demo/react/reactify/counter.tsx",
+            "packages/docs/src/routes/demo/react/reactify/index.tsx",
+            "packages/docs/src/routes/demo/react/reactify/react.tsx",
+            "packages/docs/src/routes/docs/integrations/react/index.mdx",
+            "packages/qwik-react/src/index.qwik.ts",
+            "packages/qwik-react/src/react/qwikify.tsx",
+            "packages/qwik-react/src/react/reactify.ts",
+            "packages/qwik-react/src/react/server-render.tsx",
+            "packages/qwik-react/src/react/slot.ts",
+            "packages/qwik-react/src/react/types.ts",
+            "packages/qwik/src/core/client/process-vnode-data.ts",
+            "packages/qwik/src/core/client/types.ts",
+            "packages/qwik/src/core/client/vnode-utils.ts",
+            "packages/qwik/src/core/internal.ts",
+            "packages/qwik/src/core/shared/component.public.ts",
+            "packages/qwik/src/core/shared/projection/external-projection.ts",
+            "packages/qwik/src/core/shared/utils/markers.ts",
+            "packages/qwik/src/core/tests/external-projection.spec.tsx"
           ],
           "observed": "error",
           "source": {
@@ -1009,16 +1096,621 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:16:12Z"
+            "discovered_at": "2026-03-16T16:45:35Z"
+          }
+        },
+        {
+          "number": 8414,
+          "title": "feat(router): 404 during dev, eTag, caching, SSG fixes",
+          "merged_at": "2026-03-15T19:59:17Z",
+          "changed_files": 84,
+          "code_files": 69,
+          "changed_paths": [
+            ".changeset/deep-pigs-cheat.md",
+            ".changeset/red-readers-battle.md",
+            ".changeset/slow-humans-raise.md",
+            ".changeset/spicy-candies-visit.md",
+            ".changeset/strong-cows-joke.md",
+            "packages/docs/src/routes/api/qwik-router-middleware-request-handler/api.json",
+            "packages/docs/src/routes/api/qwik-router-middleware-request-handler/index.mdx",
+            "packages/docs/src/routes/api/qwik-router-ssg/api.json",
+            "packages/docs/src/routes/api/qwik-router-ssg/index.mdx",
+            "packages/docs/src/routes/api/qwik-router/api.json",
+            "packages/docs/src/routes/api/qwik-router/index.mdx",
+            "packages/docs/src/routes/docs/(qwik)/advanced/containers/index.mdx",
+            "packages/docs/src/routes/docs/(qwik)/concepts/resumable/index.mdx",
+            "packages/docs/src/routes/docs/(qwik)/core/overview/index.mdx",
+            "packages/docs/src/routes/docs/(qwikrouter)/caching/index.mdx",
+            "packages/docs/src/routes/docs/(qwikrouter)/guides/static-site-generation/index.mdx",
+            "packages/docs/src/routes/docs/(qwikrouter)/pages/index.mdx",
+            "packages/docs/src/routes/docs/menu.md",
+            "packages/qwik-router/global.d.ts",
+            "packages/qwik-router/modules.d.ts",
+            "packages/qwik-router/src/adapters/shared/adapter.shared.api.md",
+            "packages/qwik-router/src/adapters/shared/vite/index.ts",
+            "packages/qwik-router/src/buildtime/build.ts",
+            "packages/qwik-router/src/buildtime/context.ts",
+            "packages/qwik-router/src/buildtime/markdown/mdx.ts",
+            "packages/qwik-router/src/buildtime/routing/resolve-source-file.ts",
+            "packages/qwik-router/src/buildtime/routing/source-file.unit.ts",
+            "packages/qwik-router/src/buildtime/routing/walk-routes-dir.ts",
+            "packages/qwik-router/src/buildtime/runtime-generation/generate-menus.ts",
+            "packages/qwik-router/src/buildtime/runtime-generation/generate-qwik-router-config.ts",
+            "packages/qwik-router/src/buildtime/runtime-generation/generate-routes.ts",
+            "packages/qwik-router/src/buildtime/runtime-generation/generate-routes.unit.ts",
+            "packages/qwik-router/src/buildtime/types.ts",
+            "packages/qwik-router/src/buildtime/vite/plugin.ts",
+            "packages/qwik-router/src/buildtime/vite/qwik-router.buildtime.api.md",
+            "packages/qwik-router/src/buildtime/vite/types.ts",
+            "packages/qwik-router/src/middleware/request-handler/etag.ts",
+            "packages/qwik-router/src/middleware/request-handler/index.ts",
+            "packages/qwik-router/src/middleware/request-handler/middleware.request-handler.api.md",
+            "packages/qwik-router/src/middleware/request-handler/request-event.ts",
+            "packages/qwik-router/src/middleware/request-handler/request-event.unit.ts",
+            "packages/qwik-router/src/middleware/request-handler/request-handler.ts",
+            "packages/qwik-router/src/middleware/request-handler/resolve-request-handlers.ts",
+            "packages/qwik-router/src/middleware/request-handler/resolve-request-handlers.unit.ts",
+            "packages/qwik-router/src/middleware/request-handler/response-page.ts",
+            "packages/qwik-router/src/middleware/request-handler/user-response.ts",
+            "packages/qwik-router/src/runtime/src/contexts.ts",
+            "packages/qwik-router/src/runtime/src/head.ts",
+            "packages/qwik-router/src/runtime/src/head.unit.ts",
+            "packages/qwik-router/src/runtime/src/http-error.tsx",
+            "packages/qwik-router/src/runtime/src/index.ts",
+            "packages/qwik-router/src/runtime/src/not-found-wrapper.ts",
+            "packages/qwik-router/src/runtime/src/qwik-router-component.tsx",
+            "packages/qwik-router/src/runtime/src/qwik-router-config.ts",
+            "packages/qwik-router/src/runtime/src/qwik-router.runtime.api.md",
+            "packages/qwik-router/src/runtime/src/route-matcher.ts",
+            "packages/qwik-router/src/runtime/src/route-matcher.unit.ts",
+            "packages/qwik-router/src/runtime/src/routing.ts",
+            "packages/qwik-router/src/runtime/src/routing.unit.ts",
+            "packages/qwik-router/src/runtime/src/spa-init.ts",
+            "packages/qwik-router/src/runtime/src/sw-component.tsx",
+            "packages/qwik-router/src/runtime/src/types.ts",
+            "packages/qwik-router/src/runtime/src/use-functions.ts",
+            "packages/qwik-router/src/ssg/index.ts",
+            "packages/qwik-router/src/ssg/node/index.ts",
+            "packages/qwik-router/src/ssg/node/node-worker.ts",
+            "packages/qwik-router/src/ssg/not-found.ts",
+            "packages/qwik-router/src/ssg/orchestrator.ts",
+            "packages/qwik-router/src/ssg/qwik-router.ssg.api.md",
+            "packages/qwik-router/src/ssg/system.ts",
+            "packages/qwik-router/src/ssg/types.ts",
+            "packages/qwik-router/src/ssg/worker-pool.ts",
+            "packages/qwik-router/src/ssg/worker-thread.ts",
+            "packages/qwik-router/src/utils/fs.ts",
+            "packages/qwik-router/src/utils/fs.unit.ts",
+            "packages/qwik/public.d.ts",
+            "starters/apps/qwikrouter-test/src/routes/(common)/[...catchall]/index.tsx",
+            "starters/apps/qwikrouter-test/src/routes/(common)/forbidden/index.tsx",
+            "starters/apps/qwikrouter-test/src/routes/404.tsx",
+            "starters/apps/qwikrouter-test/src/routes/error.tsx",
+            "starters/apps/qwikrouter-test/tsconfig.json",
+            "starters/e2e/qwikrouter/error-page.e2e.ts",
+            "starters/e2e/qwikrouter/fallback.e2e.ts",
+            "starters/e2e/qwikrouter/page.e2e.ts"
+          ],
+          "code_paths": [
+            "packages/docs/src/routes/api/qwik-router-middleware-request-handler/index.mdx",
+            "packages/docs/src/routes/api/qwik-router-ssg/index.mdx",
+            "packages/docs/src/routes/api/qwik-router/index.mdx",
+            "packages/docs/src/routes/docs/(qwik)/advanced/containers/index.mdx",
+            "packages/docs/src/routes/docs/(qwik)/concepts/resumable/index.mdx",
+            "packages/docs/src/routes/docs/(qwik)/core/overview/index.mdx",
+            "packages/docs/src/routes/docs/(qwikrouter)/caching/index.mdx",
+            "packages/docs/src/routes/docs/(qwikrouter)/guides/static-site-generation/index.mdx",
+            "packages/docs/src/routes/docs/(qwikrouter)/pages/index.mdx",
+            "packages/qwik-router/global.d.ts",
+            "packages/qwik-router/modules.d.ts",
+            "packages/qwik-router/src/adapters/shared/vite/index.ts",
+            "packages/qwik-router/src/buildtime/build.ts",
+            "packages/qwik-router/src/buildtime/context.ts",
+            "packages/qwik-router/src/buildtime/markdown/mdx.ts",
+            "packages/qwik-router/src/buildtime/routing/resolve-source-file.ts",
+            "packages/qwik-router/src/buildtime/routing/source-file.unit.ts",
+            "packages/qwik-router/src/buildtime/routing/walk-routes-dir.ts",
+            "packages/qwik-router/src/buildtime/runtime-generation/generate-menus.ts",
+            "packages/qwik-router/src/buildtime/runtime-generation/generate-qwik-router-config.ts",
+            "packages/qwik-router/src/buildtime/runtime-generation/generate-routes.ts",
+            "packages/qwik-router/src/buildtime/runtime-generation/generate-routes.unit.ts",
+            "packages/qwik-router/src/buildtime/types.ts",
+            "packages/qwik-router/src/buildtime/vite/plugin.ts",
+            "packages/qwik-router/src/buildtime/vite/types.ts",
+            "packages/qwik-router/src/middleware/request-handler/etag.ts",
+            "packages/qwik-router/src/middleware/request-handler/index.ts",
+            "packages/qwik-router/src/middleware/request-handler/request-event.ts",
+            "packages/qwik-router/src/middleware/request-handler/request-event.unit.ts",
+            "packages/qwik-router/src/middleware/request-handler/request-handler.ts",
+            "packages/qwik-router/src/middleware/request-handler/resolve-request-handlers.ts",
+            "packages/qwik-router/src/middleware/request-handler/resolve-request-handlers.unit.ts",
+            "packages/qwik-router/src/middleware/request-handler/response-page.ts",
+            "packages/qwik-router/src/middleware/request-handler/user-response.ts",
+            "packages/qwik-router/src/runtime/src/contexts.ts",
+            "packages/qwik-router/src/runtime/src/head.ts",
+            "packages/qwik-router/src/runtime/src/head.unit.ts",
+            "packages/qwik-router/src/runtime/src/http-error.tsx",
+            "packages/qwik-router/src/runtime/src/index.ts",
+            "packages/qwik-router/src/runtime/src/not-found-wrapper.ts",
+            "packages/qwik-router/src/runtime/src/qwik-router-component.tsx",
+            "packages/qwik-router/src/runtime/src/qwik-router-config.ts",
+            "packages/qwik-router/src/runtime/src/route-matcher.ts",
+            "packages/qwik-router/src/runtime/src/route-matcher.unit.ts",
+            "packages/qwik-router/src/runtime/src/routing.ts",
+            "packages/qwik-router/src/runtime/src/routing.unit.ts",
+            "packages/qwik-router/src/runtime/src/spa-init.ts",
+            "packages/qwik-router/src/runtime/src/sw-component.tsx",
+            "packages/qwik-router/src/runtime/src/types.ts",
+            "packages/qwik-router/src/runtime/src/use-functions.ts",
+            "packages/qwik-router/src/ssg/index.ts",
+            "packages/qwik-router/src/ssg/node/index.ts",
+            "packages/qwik-router/src/ssg/node/node-worker.ts",
+            "packages/qwik-router/src/ssg/not-found.ts",
+            "packages/qwik-router/src/ssg/orchestrator.ts",
+            "packages/qwik-router/src/ssg/system.ts",
+            "packages/qwik-router/src/ssg/types.ts",
+            "packages/qwik-router/src/ssg/worker-pool.ts",
+            "packages/qwik-router/src/ssg/worker-thread.ts",
+            "packages/qwik-router/src/utils/fs.ts",
+            "packages/qwik-router/src/utils/fs.unit.ts",
+            "packages/qwik/public.d.ts",
+            "starters/apps/qwikrouter-test/src/routes/(common)/[...catchall]/index.tsx",
+            "starters/apps/qwikrouter-test/src/routes/(common)/forbidden/index.tsx",
+            "starters/apps/qwikrouter-test/src/routes/404.tsx",
+            "starters/apps/qwikrouter-test/src/routes/error.tsx",
+            "starters/e2e/qwikrouter/error-page.e2e.ts",
+            "starters/e2e/qwikrouter/fallback.e2e.ts",
+            "starters/e2e/qwikrouter/page.e2e.ts"
+          ],
+          "observed": "error",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-16T16:45:41Z"
+          }
+        },
+        {
+          "number": 8432,
+          "title": "feat(optimizer): preprocess lib QRLs",
+          "merged_at": "2026-03-15T18:28:11Z",
+          "changed_files": 10,
+          "code_files": 9,
+          "changed_paths": [
+            "e2e/qwik-react-e2e/vite.config.ts",
+            "packages/qwik-router/package.json",
+            "packages/qwik-router/vite.config.ts",
+            "packages/qwik/src/optimizer/core/src/parse.rs",
+            "packages/qwik/src/optimizer/core/src/props_destructuring.rs",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_lib_mode.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__hmr.snap",
+            "packages/qwik/src/optimizer/core/src/test.rs",
+            "packages/qwik/src/optimizer/core/src/transform.rs",
+            "packages/qwik/src/optimizer/src/plugins/vite.ts"
+          ],
+          "code_paths": [
+            "e2e/qwik-react-e2e/vite.config.ts",
+            "packages/qwik-router/vite.config.ts",
+            "packages/qwik/src/optimizer/core/src/parse.rs",
+            "packages/qwik/src/optimizer/core/src/props_destructuring.rs",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_lib_mode.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__hmr.snap",
+            "packages/qwik/src/optimizer/core/src/test.rs",
+            "packages/qwik/src/optimizer/core/src/transform.rs",
+            "packages/qwik/src/optimizer/src/plugins/vite.ts"
+          ],
+          "observed": "error",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-16T16:45:44Z"
+          }
+        },
+        {
+          "number": 8429,
+          "title": "perf(core): Use cheap copies for QRL captures",
+          "merged_at": "2026-03-15T10:17:44Z",
+          "changed_files": 188,
+          "code_files": 188,
+          "changed_paths": [
+            "packages/qwik/src/core/client/dom-container.ts",
+            "packages/qwik/src/core/reactive-primitives/impl/computed-signal-impl.ts",
+            "packages/qwik/src/core/reactive-primitives/impl/signal.unit.tsx",
+            "packages/qwik/src/core/shared/qrl/qrl-class.ts",
+            "packages/qwik/src/core/shared/qrl/qrl.unit.ts",
+            "packages/qwik/src/core/shared/serdes/qrl-to-string.ts",
+            "packages/qwik/src/core/tests/use-styles-scoped.spec.tsx",
+            "packages/qwik/src/core/tests/use-styles.spec.tsx",
+            "packages/qwik/src/core/use/use-hmr.ts",
+            "packages/qwik/src/optimizer/core/src/parse.rs",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__component_level_self_referential_qrl.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__destructure_args_colon_props.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__destructure_args_colon_props2.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__destructure_args_colon_props3.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__destructure_args_inline_cmp_block_stmt.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__destructure_args_inline_cmp_block_stmt2.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__destructure_args_inline_cmp_expr_stmt.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_1.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_11.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_2.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_3.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_4.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_5.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_6.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_7.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_8.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_build_server.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_capture_imports.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_capturing_fn_class.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_class_name.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_component_with_event_listeners_inside_loop.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_custom_inlined_functions.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_dead_code.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_default_export.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_default_export_index.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_default_export_invalid_ident.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_derived_signals_children.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_derived_signals_cmp.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_derived_signals_complext_children.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_derived_signals_div.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_derived_signals_multiple_children.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_dev_mode.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_dev_mode_inlined.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_drop_side_effects.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_explicit_ext_no_transpile.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_explicit_ext_transpile.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_export_issue.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_exports.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_fix_dynamic_import.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_functional_component.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_functional_component_2.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_functional_component_capture_props.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_getter_generation.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_immutable_analysis.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_immutable_function_components.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_import_assertion.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_inlined_entry_strategy.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_input_bind.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_invalid_references.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_invalid_segment_expr1.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_issue_33443.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_issue_4438.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_jsx.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_jsx_import_source.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_jsx_keyed.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_jsx_keyed_dev.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_jsx_listeners.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_lightweight_functional.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_manual_chunks.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_multi_capture.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_mutable_children.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_noop_dev_mode.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_of_synchronous_qrl.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_optimization_issue_3542.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_optimization_issue_3561.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_optimization_issue_3795.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_optimization_issue_4386.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_parsed_inlined_qrls.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_preserve_filenames.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_preserve_filenames_segments.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_prod_node.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_props_optimization.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_props_wrapping.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_props_wrapping2.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_props_wrapping_children.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_props_wrapping_children2.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_qwik_conflict.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_qwik_react.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_qwik_react_inline.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_qwik_router_client.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_reg_ctx_name_segments.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_reg_ctx_name_segments_hoisted.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_reg_ctx_name_segments_inlined.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_renamed_exports.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_segment_variable_migration.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_self_referential_component_migration.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_server_auth.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_spread_jsx.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_strip_client_code.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_strip_exports_unused.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_strip_exports_used.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_strip_server_code.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_transpile_jsx_only.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_transpile_ts_only.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_ts_enums.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_ts_enums_issue_1341.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_ts_enums_no_transpile.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_use_client_effect.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_use_optimization.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_use_server_mount.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_with_style.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_with_tagname.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__fun_with_scopes.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__hoisted_fn_signal_in_loop.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__impure_template_fns.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__inlined_qrl_uses_identifier_reference_when_hoisted_snapshot.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__issue_150.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__issue_5008.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__issue_7216_add_test.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__issue_964.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__lib_mode_fn_signal.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__moves_captures_when_possible.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__relative_paths.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__rename_builder_io.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__root_level_self_referential_qrl.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__root_level_self_referential_qrl_inline.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_convert_jsx_events.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_convert_rest_props.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_destructure_args.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_extract_multiple_qrls_with_item_and_index.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_extract_multiple_qrls_with_item_and_index_and_capture_ref.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_extract_single_qrl.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_extract_single_qrl_2.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_extract_single_qrl_with_index.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_extract_single_qrl_with_nested_components.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_handle_dangerously_set_inner_html.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_make_component_jsx_split_with_bind.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_mark_props_as_var_props_for_inner_cmp.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_merge_attributes_with_spread_props.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_merge_attributes_with_spread_props_before_and_after.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_merge_bind_checked_and_on_input.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_merge_bind_value_and_on_input.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_merge_on_input_and_bind_checked.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_merge_on_input_and_bind_value.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_move_bind_value_to_var_props.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_move_props_related_to_iteration_variables_to_var_props.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_not_generate_conflicting_props_identifiers.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_not_transform_bind_checked_in_var_props_for_jsx_split.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_not_transform_bind_value_in_var_props_for_jsx_split.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_not_transform_events_on_non_elements.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_not_wrap_fn.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_not_wrap_ternary_function_operator_with_fn.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_not_wrap_var_template_string.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_split_spread_props.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_split_spread_props_with_additional_prop.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_split_spread_props_with_additional_prop2.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_split_spread_props_with_additional_prop3.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_split_spread_props_with_additional_prop4.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_split_spread_props_with_additional_prop5.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_transform_block_scoped_variables_and_item_index_in_loop.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_transform_block_scoped_variables_in_loop.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_transform_component_with_normal_function.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_transform_event_names_without_jsx_transpile.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_transform_handler_in_for_of_loop.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_transform_handlers_capturing_cross_scope_in_nested_loops.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_transform_loop_multiple_handler_with_different_captures.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_transform_multiple_block_scoped_variables_and_item_index_in_loop.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_transform_multiple_block_scoped_variables_in_loop.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_transform_multiple_event_handlers.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_transform_multiple_event_handlers_case2.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_transform_nested_loops.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_transform_nested_loops_handler_captures_only_inner_scope.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_transform_qrls_in_ternary_expression.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_transform_same_element_one_handler_with_captures_one_without.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_transform_three_nested_loops_handler_captures_outer_only.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_transform_two_handlers_capturing_different_block_scope_in_loop.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_work.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_wrap_inner_inline_component_prop.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_wrap_logical_expression_in_template.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_wrap_object_with_fn_signal.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_wrap_prop_from_destructured_array.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_wrap_store_expression.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_wrap_type_asserted_variables_in_template.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__support_windows_paths.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__ternary_prop.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__transform_qrl_in_regular_prop.snap",
+            "packages/qwik/src/optimizer/core/src/test.rs",
+            "packages/qwik/src/optimizer/core/src/transform.rs"
+          ],
+          "code_paths": [
+            "packages/qwik/src/core/client/dom-container.ts",
+            "packages/qwik/src/core/reactive-primitives/impl/computed-signal-impl.ts",
+            "packages/qwik/src/core/reactive-primitives/impl/signal.unit.tsx",
+            "packages/qwik/src/core/shared/qrl/qrl-class.ts",
+            "packages/qwik/src/core/shared/qrl/qrl.unit.ts",
+            "packages/qwik/src/core/shared/serdes/qrl-to-string.ts",
+            "packages/qwik/src/core/tests/use-styles-scoped.spec.tsx",
+            "packages/qwik/src/core/tests/use-styles.spec.tsx",
+            "packages/qwik/src/core/use/use-hmr.ts",
+            "packages/qwik/src/optimizer/core/src/parse.rs",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__component_level_self_referential_qrl.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__destructure_args_colon_props.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__destructure_args_colon_props2.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__destructure_args_colon_props3.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__destructure_args_inline_cmp_block_stmt.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__destructure_args_inline_cmp_block_stmt2.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__destructure_args_inline_cmp_expr_stmt.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_1.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_11.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_2.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_3.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_4.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_5.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_6.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_7.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_8.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_build_server.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_capture_imports.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_capturing_fn_class.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_class_name.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_component_with_event_listeners_inside_loop.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_custom_inlined_functions.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_dead_code.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_default_export.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_default_export_index.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_default_export_invalid_ident.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_derived_signals_children.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_derived_signals_cmp.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_derived_signals_complext_children.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_derived_signals_div.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_derived_signals_multiple_children.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_dev_mode.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_dev_mode_inlined.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_drop_side_effects.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_explicit_ext_no_transpile.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_explicit_ext_transpile.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_export_issue.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_exports.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_fix_dynamic_import.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_functional_component.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_functional_component_2.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_functional_component_capture_props.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_getter_generation.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_immutable_analysis.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_immutable_function_components.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_import_assertion.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_inlined_entry_strategy.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_input_bind.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_invalid_references.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_invalid_segment_expr1.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_issue_33443.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_issue_4438.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_jsx.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_jsx_import_source.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_jsx_keyed.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_jsx_keyed_dev.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_jsx_listeners.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_lightweight_functional.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_manual_chunks.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_multi_capture.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_mutable_children.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_noop_dev_mode.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_of_synchronous_qrl.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_optimization_issue_3542.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_optimization_issue_3561.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_optimization_issue_3795.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_optimization_issue_4386.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_parsed_inlined_qrls.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_preserve_filenames.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_preserve_filenames_segments.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_prod_node.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_props_optimization.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_props_wrapping.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_props_wrapping2.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_props_wrapping_children.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_props_wrapping_children2.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_qwik_conflict.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_qwik_react.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_qwik_react_inline.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_qwik_router_client.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_reg_ctx_name_segments.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_reg_ctx_name_segments_hoisted.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_reg_ctx_name_segments_inlined.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_renamed_exports.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_segment_variable_migration.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_self_referential_component_migration.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_server_auth.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_spread_jsx.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_strip_client_code.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_strip_exports_unused.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_strip_exports_used.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_strip_server_code.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_transpile_jsx_only.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_transpile_ts_only.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_ts_enums.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_ts_enums_issue_1341.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_ts_enums_no_transpile.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_use_client_effect.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_use_optimization.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_use_server_mount.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_with_style.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__example_with_tagname.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__fun_with_scopes.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__hoisted_fn_signal_in_loop.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__impure_template_fns.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__inlined_qrl_uses_identifier_reference_when_hoisted_snapshot.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__issue_150.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__issue_5008.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__issue_7216_add_test.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__issue_964.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__lib_mode_fn_signal.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__moves_captures_when_possible.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__relative_paths.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__rename_builder_io.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__root_level_self_referential_qrl.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__root_level_self_referential_qrl_inline.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_convert_jsx_events.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_convert_rest_props.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_destructure_args.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_extract_multiple_qrls_with_item_and_index.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_extract_multiple_qrls_with_item_and_index_and_capture_ref.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_extract_single_qrl.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_extract_single_qrl_2.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_extract_single_qrl_with_index.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_extract_single_qrl_with_nested_components.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_handle_dangerously_set_inner_html.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_make_component_jsx_split_with_bind.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_mark_props_as_var_props_for_inner_cmp.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_merge_attributes_with_spread_props.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_merge_attributes_with_spread_props_before_and_after.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_merge_bind_checked_and_on_input.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_merge_bind_value_and_on_input.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_merge_on_input_and_bind_checked.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_merge_on_input_and_bind_value.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_move_bind_value_to_var_props.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_move_props_related_to_iteration_variables_to_var_props.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_not_generate_conflicting_props_identifiers.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_not_transform_bind_checked_in_var_props_for_jsx_split.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_not_transform_bind_value_in_var_props_for_jsx_split.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_not_transform_events_on_non_elements.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_not_wrap_fn.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_not_wrap_ternary_function_operator_with_fn.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_not_wrap_var_template_string.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_split_spread_props.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_split_spread_props_with_additional_prop.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_split_spread_props_with_additional_prop2.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_split_spread_props_with_additional_prop3.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_split_spread_props_with_additional_prop4.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_split_spread_props_with_additional_prop5.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_transform_block_scoped_variables_and_item_index_in_loop.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_transform_block_scoped_variables_in_loop.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_transform_component_with_normal_function.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_transform_event_names_without_jsx_transpile.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_transform_handler_in_for_of_loop.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_transform_handlers_capturing_cross_scope_in_nested_loops.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_transform_loop_multiple_handler_with_different_captures.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_transform_multiple_block_scoped_variables_and_item_index_in_loop.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_transform_multiple_block_scoped_variables_in_loop.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_transform_multiple_event_handlers.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_transform_multiple_event_handlers_case2.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_transform_nested_loops.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_transform_nested_loops_handler_captures_only_inner_scope.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_transform_qrls_in_ternary_expression.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_transform_same_element_one_handler_with_captures_one_without.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_transform_three_nested_loops_handler_captures_outer_only.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_transform_two_handlers_capturing_different_block_scope_in_loop.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_work.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_wrap_inner_inline_component_prop.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_wrap_logical_expression_in_template.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_wrap_object_with_fn_signal.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_wrap_prop_from_destructured_array.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_wrap_store_expression.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__should_wrap_type_asserted_variables_in_template.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__support_windows_paths.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__ternary_prop.snap",
+            "packages/qwik/src/optimizer/core/src/snapshots/qwik_core__test__transform_qrl_in_regular_prop.snap",
+            "packages/qwik/src/optimizer/core/src/test.rs",
+            "packages/qwik/src/optimizer/core/src/transform.rs"
+          ],
+          "observed": "error",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-16T16:45:51Z"
           }
         }
       ]
     },
     {
       "repo": "refinedev/refine",
-      "current_period_rank": "6",
-      "current_period_growth": "11",
-      "total_prs": "4351",
+      "current_period_rank": "7",
+      "current_period_growth": "9",
+      "total_prs": "4353",
       "top_pr_creators": [
         {
           "id": "23058882",
@@ -1062,6 +1754,271 @@
         }
       ],
       "prs": [
+        {
+          "number": 7350,
+          "title": "fix(docs): blog footer refine home link",
+          "merged_at": "2026-03-16T09:11:30Z",
+          "changed_files": 1,
+          "code_files": 1,
+          "changed_paths": [
+            "documentation/src/refine-theme/blog-footer.tsx"
+          ],
+          "code_paths": [
+            "documentation/src/refine-theme/blog-footer.tsx"
+          ],
+          "observed": "pass",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-16T16:45:55Z"
+          }
+        },
+        {
+          "number": 7349,
+          "title": "ci(changesets): version packages",
+          "merged_at": "2026-03-16T08:52:05Z",
+          "changed_files": 178,
+          "code_files": 0,
+          "changed_paths": [
+            ".changeset/cuddly-steaks-leave.md",
+            ".changeset/eleven-needles-teach.md",
+            "examples/access-control-casbin/package.json",
+            "examples/access-control-cerbos/package.json",
+            "examples/access-control-permify/package.json",
+            "examples/app-crm-minimal/package.json",
+            "examples/audit-log-provider/package.json",
+            "examples/auth-antd/package.json",
+            "examples/auth-auth0/package.json",
+            "examples/auth-chakra-ui/package.json",
+            "examples/auth-google-login/package.json",
+            "examples/auth-headless/package.json",
+            "examples/auth-keycloak/package.json",
+            "examples/auth-kinde/package.json",
+            "examples/auth-mantine/package.json",
+            "examples/auth-material-ui/package.json",
+            "examples/auth-otp/package.json",
+            "examples/base-antd/package.json",
+            "examples/base-chakra-ui/package.json",
+            "examples/base-headless/package.json",
+            "examples/base-mantine/package.json",
+            "examples/base-material-ui/package.json",
+            "examples/calendar-app/package.json",
+            "examples/command-palette-kbar/package.json",
+            "examples/core-use-import/package.json",
+            "examples/core-use-menu/package.json",
+            "examples/core-use-modal/package.json",
+            "examples/core-use-select/package.json",
+            "examples/customization-footer/package.json",
+            "examples/customization-login/package.json",
+            "examples/customization-offlayout-area/package.json",
+            "examples/customization-rtl/package.json",
+            "examples/customization-sider/package.json",
+            "examples/customization-theme-antd/package.json",
+            "examples/customization-theme-chakra-ui/package.json",
+            "examples/customization-theme-mantine/package.json",
+            "examples/customization-theme-material-ui/package.json",
+            "examples/customization-top-menu-layout/package.json",
+            "examples/data-provider-airtable/package.json",
+            "examples/data-provider-appwrite-tutorial-docs/package.json",
+            "examples/data-provider-appwrite/package.json",
+            "examples/data-provider-graphql/package.json",
+            "examples/data-provider-hasura/package.json",
+            "examples/data-provider-multiple/package.json",
+            "examples/data-provider-nestjs-query/package.json",
+            "examples/data-provider-nestjsx-crud/package.json",
+            "examples/data-provider-sanity/package.json",
+            "examples/data-provider-strapi-v4/package.json",
+            "examples/data-provider-strapi/package.json",
+            "examples/data-provider-supabase/package.json",
+            "examples/field-antd-use-checkbox-group/package.json",
+            "examples/field-antd-use-radio-group/package.json",
+            "examples/field-antd-use-select-basic/package.json",
+            "examples/field-antd-use-select-infinite/package.json",
+            "examples/field-material-ui-use-autocomplete/package.json",
+            "examples/finefoods-antd/package.json",
+            "examples/finefoods-client/package.json",
+            "examples/finefoods-material-ui/package.json",
+            "examples/form-antd-custom-validation/package.json",
+            "examples/form-antd-mutation-mode/package.json",
+            "examples/form-antd-use-drawer-form/package.json",
+            "examples/form-antd-use-form/package.json",
+            "examples/form-antd-use-modal-form/package.json",
+            "examples/form-antd-use-steps-form/package.json",
+            "examples/form-chakra-ui-mutation-mode/package.json",
+            "examples/form-chakra-ui-use-drawer-form/package.json",
+            "examples/form-chakra-ui-use-form/package.json",
+            "examples/form-chakra-use-modal-form/package.json",
+            "examples/form-core-use-form/package.json",
+            "examples/form-mantine-mutation-mode/package.json",
+            "examples/form-mantine-use-drawer-form/package.json",
+            "examples/form-mantine-use-form/package.json",
+            "examples/form-mantine-use-modal-form/package.json",
+            "examples/form-mantine-use-steps-form/package.json",
+            "examples/form-material-ui-mutation-mode/package.json",
+            "examples/form-material-ui-use-drawer-form/package.json",
+            "examples/form-material-ui-use-form/package.json",
+            "examples/form-material-ui-use-modal-form/package.json",
+            "examples/form-material-ui-use-steps-form/package.json",
+            "examples/form-react-hook-form-use-form/package.json",
+            "examples/form-react-hook-form-use-modal-form/package.json",
+            "examples/form-react-hook-form-use-steps-form/package.json",
+            "examples/form-save-and-continue/package.json",
+            "examples/i18n-nextjs/package.json",
+            "examples/i18n-react/package.json",
+            "examples/import-export-antd/package.json",
+            "examples/import-export-mantine/package.json",
+            "examples/import-export-material-ui/package.json",
+            "examples/inferencer-antd/package.json",
+            "examples/inferencer-chakra-ui/package.json",
+            "examples/inferencer-graphql-hasura/package.json",
+            "examples/inferencer-headless/package.json",
+            "examples/inferencer-mantine/package.json",
+            "examples/inferencer-material-ui/package.json",
+            "examples/input-custom/package.json",
+            "examples/input-date-picker/package.json",
+            "examples/invoicer/package.json",
+            "examples/live-provider-ably/package.json",
+            "examples/loading-overtime/package.json",
+            "examples/multi-level-menu/package.json",
+            "examples/pixels-admin/package.json",
+            "examples/pixels/package.json",
+            "examples/refine-hr-ce/package.json",
+            "examples/refine-week-invoice-generator/package.json",
+            "examples/search/package.json",
+            "examples/server-side-form-validation-antd/package.json",
+            "examples/server-side-form-validation-chakra-ui/package.json",
+            "examples/server-side-form-validation-mantine/package.json",
+            "examples/server-side-form-validation-material-ui/package.json",
+            "examples/starter-vite/package.json",
+            "examples/table-antd-advanced/package.json",
+            "examples/table-antd-table-filter/package.json",
+            "examples/table-antd-use-delete-many/package.json",
+            "examples/table-antd-use-editable-table/package.json",
+            "examples/table-antd-use-table/package.json",
+            "examples/table-antd-use-update-many/package.json",
+            "examples/table-chakra-ui-advanced/package.json",
+            "examples/table-chakra-ui-basic/package.json",
+            "examples/table-handson/package.json",
+            "examples/table-mantine-advanced/package.json",
+            "examples/table-mantine-basic/package.json",
+            "examples/table-material-ui-advanced/package.json",
+            "examples/table-material-ui-cursor-pagination/package.json",
+            "examples/table-material-ui-data-grid-pro/package.json",
+            "examples/table-material-ui-table-filter/package.json",
+            "examples/table-material-ui-use-data-grid/package.json",
+            "examples/table-material-ui-use-delete-many/package.json",
+            "examples/table-material-ui-use-update-many/package.json",
+            "examples/table-react-table-advanced/package.json",
+            "examples/table-react-table-basic/package.json",
+            "examples/template-antd/package.json",
+            "examples/template-chakra-ui/package.json",
+            "examples/template-headless/package.json",
+            "examples/template-mantine/package.json",
+            "examples/template-material-ui/package.json",
+            "examples/theme-antd-demo/package.json",
+            "examples/theme-chakra-ui-demo/package.json",
+            "examples/theme-mantine-demo/package.json",
+            "examples/theme-material-ui-demo/package.json",
+            "examples/tutorial-antd/package.json",
+            "examples/tutorial-chakra-ui/package.json",
+            "examples/tutorial-headless/package.json",
+            "examples/tutorial-mantine/package.json",
+            "examples/tutorial-material-ui/package.json",
+            "examples/upload-antd-base64/package.json",
+            "examples/upload-antd-multipart/package.json",
+            "examples/upload-chakra-ui-basic64/package.json",
+            "examples/upload-chakra-ui-multipart/package.json",
+            "examples/upload-mantine-base64/package.json",
+            "examples/upload-mantine-multipart/package.json",
+            "examples/upload-material-ui-base64/package.json",
+            "examples/upload-material-ui-multipart/package.json",
+            "examples/use-infinite-list/package.json",
+            "examples/use-modal-antd/package.json",
+            "examples/use-simple-list-antd/package.json",
+            "examples/win95/package.json",
+            "examples/with-custom-pages/package.json",
+            "examples/with-javascript/package.json",
+            "examples/with-material-ui-vite/package.json",
+            "examples/with-meta-properties/package.json",
+            "examples/with-nextjs-next-auth/package.json",
+            "examples/with-nextjs/package.json",
+            "examples/with-persist-query/package.json",
+            "examples/with-react-toastify/package.json",
+            "examples/with-remix-antd/package.json",
+            "examples/with-remix-auth/package.json",
+            "examples/with-remix-headless/package.json",
+            "examples/with-remix-material-ui/package.json",
+            "examples/with-remix-vite-headless/package.json",
+            "examples/with-web3/package.json",
+            "packages/airtable/package.json",
+            "packages/cli/CHANGELOG.md",
+            "packages/cli/package.json",
+            "packages/core/CHANGELOG.md",
+            "packages/core/package.json",
+            "packages/devtools/CHANGELOG.md",
+            "packages/devtools/package.json",
+            "pnpm-lock.yaml"
+          ],
+          "code_paths": [],
+          "observed": "pass",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-16T16:46:00Z"
+          }
+        },
+        {
+          "number": 7315,
+          "title": "fix(cli): resolve bin path from cwd to support monorepo workspace hoisting",
+          "merged_at": "2026-03-16T07:36:24Z",
+          "changed_files": 3,
+          "code_files": 2,
+          "changed_paths": [
+            ".changeset/eleven-needles-teach.md",
+            "packages/cli/src/commands/runner/projectScripts.test.ts",
+            "packages/cli/src/commands/runner/projectScripts.ts"
+          ],
+          "code_paths": [
+            "packages/cli/src/commands/runner/projectScripts.test.ts",
+            "packages/cli/src/commands/runner/projectScripts.ts"
+          ],
+          "observed": "pass",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-16T16:46:03Z"
+          }
+        },
+        {
+          "number": 7289,
+          "title": "fix(core): pass meta params from useDeleteButton to useButtonCanAccess",
+          "merged_at": "2026-03-16T07:24:24Z",
+          "changed_files": 3,
+          "code_files": 2,
+          "changed_paths": [
+            ".changeset/cuddly-steaks-leave.md",
+            "packages/core/src/hooks/button/delete-button/index.spec.tsx",
+            "packages/core/src/hooks/button/delete-button/index.tsx"
+          ],
+          "code_paths": [
+            "packages/core/src/hooks/button/delete-button/index.spec.tsx",
+            "packages/core/src/hooks/button/delete-button/index.tsx"
+          ],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-03-16T16:46:06Z"
+          }
+        },
         {
           "number": 7347,
           "title": "docs: update the old blogs with last updated tag",
@@ -1252,559 +2209,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:16:18Z"
-          }
-        },
-        {
-          "number": 7348,
-          "title": "docs(blog): new blog about internal admin panels vs dashboard",
-          "merged_at": "2026-03-13T07:47:15Z",
-          "changed_files": 1,
-          "code_files": 0,
-          "changed_paths": [
-            "documentation/blog/2026-03-10-admin-panel-vs-dashboard.md"
-          ],
-          "code_paths": [],
-          "observed": "pass",
-          "source": {
-            "provider": "ossinsight",
-            "collection_id": 10005,
-            "collection_name": null,
-            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:16:19Z"
-          }
-        },
-        {
-          "number": 7336,
-          "title": "chore: migrate blog image CDN paths from blog/ to blog-yearly/{year}/",
-          "merged_at": "2026-03-13T07:47:03Z",
-          "changed_files": 278,
-          "code_files": 0,
-          "changed_paths": [
-            "documentation/blog/2021-10-4-admin-panel-with-nestjs.md",
-            "documentation/blog/2021-11-12-issue-tracker-refine.md",
-            "documentation/blog/2021-11-29-refine-vs-admin-bro.md",
-            "documentation/blog/2021-12-22-base64-upload.md",
-            "documentation/blog/2021-12-27-multipart-upload.md",
-            "documentation/blog/2022-01-18-csv-import.md",
-            "documentation/blog/2022-02-21-build-internal-tools-with-refine.md",
-            "documentation/blog/2022-02-21-react-antd-admin.md",
-            "documentation/blog/2022-02-21-top-react-frameworks.md",
-            "documentation/blog/2022-02-22-refine-invoice-generator.md",
-            "documentation/blog/2022-03-01-refine-invoice-generator-p2.md",
-            "documentation/blog/2022-03-16-internal-tool-frameworks.md",
-            "documentation/blog/2022-03-22-refine-with-react95.md",
-            "documentation/blog/2022-03-29-react-hook-form-upload.md",
-            "documentation/blog/2022-04-29-top-react-component-libraries-and-frameworks-every-developer-should-know.md",
-            "documentation/blog/2022-05-02-high-quality-free-resources.md",
-            "documentation/blog/2022-05-05-open-source-headless-cms.md",
-            "documentation/blog/2022-05-23-build-access-control-permify.md",
-            "documentation/blog/2022-06-10-weve-raised-dollar1m-seed-funding.md",
-            "documentation/blog/2022-07-20-refine-writer-program.md",
-            "documentation/blog/2022-07-21-admin-panel-with-materialui-and-strapi.md",
-            "documentation/blog/2022-08-04-mocking-api-calls.md",
-            "documentation/blog/2022-08-20-neumorphic-css.md",
-            "documentation/blog/2022-08-23-mui-usedatagrid.md",
-            "documentation/blog/2022-08-24-mui-icons.md",
-            "documentation/blog/2022-09-01-framer-text-animations.md",
-            "documentation/blog/2022-09-02-sveltekit-crud-app.md",
-            "documentation/blog/2022-09-06-nodejs-developer.md",
-            "documentation/blog/2022-09-09-react-18.md",
-            "documentation/blog/2022-09-22-refine-supabase-auth.md",
-            "documentation/blog/2022-09-23-refine-article-guideline.md",
-            "documentation/blog/2022-09-27-react-hook-form-validation.md",
-            "documentation/blog/2022-09-28-docker-build-args.md",
-            "documentation/blog/2022-10-04-hacktoberfest.md",
-            "documentation/blog/2022-10-07-responsive-navbar.md",
-            "documentation/blog/2022-10-31-next-getInitial.md",
-            "documentation/blog/2022-11-29-mui-tooltip.md",
-            "documentation/blog/2022-12-08-svelte-vs-react.md",
-            "documentation/blog/2022-12-23-dynamic-hook-form.md",
-            "documentation/blog/2022-12-28-docker-copy.md",
-            "documentation/blog/2023-01-06-hackaton-january.md",
-            "documentation/blog/2023-01-10-docker-entrypoint.md",
-            "documentation/blog/2023-01-17-airtable-crud-app.md",
-            "documentation/blog/2023-01-23-redwood-vs-refine.md",
-            "documentation/blog/2023-02-14-refine-pixels-1.md",
-            "documentation/blog/2023-02-23-refine-strapi-mantine.md",
-            "documentation/blog/2023-02-28-hackathon-january-winners.md",
-            "documentation/blog/2023-03-03-ra-chakra-tutorial.md",
-            "documentation/blog/2023-04-11-refine-invoicer-2.md",
-            "documentation/blog/2023-04-12-refine-invoicer-3.md",
-            "documentation/blog/2023-04-13-refine-invoicer-4.md",
-            "documentation/blog/2023-04-14-refine-invoicer-5.md",
-            "documentation/blog/2023-05-10-what-is-refine-new.md",
-            "documentation/blog/2023-06-06-docker-list-containers.md",
-            "documentation/blog/2023-06-14-refine-hackathon-2.md",
-            "documentation/blog/2023-06-24-docker-run-command.md",
-            "documentation/blog/2023-07-02-refine-tremor-dashboard.md",
-            "documentation/blog/2023-07-11-docker-volume.md",
-            "documentation/blog/2023-07-26-refine-primereact-dashboard.md",
-            "documentation/blog/2023-07-31-docker-compose.md",
-            "documentation/blog/2023-08-04-refine-hackathon-2-winners.md",
-            "documentation/blog/2023-08-12-react-admin-vs-refine.md",
-            "documentation/blog/2023-08-18-docker-exec.md",
-            "documentation/blog/2023-09-06-daisy-ui-panel.md",
-            "documentation/blog/2023-09-20-next-ui-panel.md",
-            "documentation/blog/2023-10-02-refine-crm-overview.md",
-            "documentation/blog/2023-10-05-docker-swarm.md",
-            "documentation/blog/2023-10-18-docker-networking.md",
-            "documentation/blog/2023-10-19-kubecti-exec.md",
-            "documentation/blog/2023-10-22-kubecti-restart-pod.md",
-            "documentation/blog/2023-10-27-kubecti-config.md",
-            "documentation/blog/2023-11-04-kubecti-image-pull.md",
-            "documentation/blog/2023-11-05-kubectl-port-forwarding.md",
-            "documentation/blog/2023-11-13-kubeclt-describe.md",
-            "documentation/blog/2023-11-20-kubeclt-delete-pod.md",
-            "documentation/blog/2023-11-22-crash-loop-back.md",
-            "documentation/blog/2023-11-29-exit-code-137.md",
-            "documentation/blog/2023-12-07-swiper-js.md",
-            "documentation/blog/2023-12-12-k8s-cronjobs.md",
-            "documentation/blog/2023-12-14-k8s-persistent-volumes.md",
-            "documentation/blog/2023-12-15-kubectl-cheat-sheet.md",
-            "documentation/blog/2023-12-20-web-development.md",
-            "documentation/blog/2023-12-25-kubectl-scale.md",
-            "documentation/blog/2023-12-26-build-an-app.md",
-            "documentation/blog/2023-12-28-kubectl-logs.md",
-            "documentation/blog/2024-01-03-k8s-image-pull.md",
-            "documentation/blog/2024-01-04-k8s-statefulset.md",
-            "documentation/blog/2024-01-05-kubectl-version.md",
-            "documentation/blog/2024-01-09-permify-access-control.md",
-            "documentation/blog/2024-01-11-react-ecosystem-2024.md",
-            "documentation/blog/2024-01-12-k8s-operators.md",
-            "documentation/blog/2024-01-22-k8s-postgres.md",
-            "documentation/blog/2024-01-26-docker-vs-kubernetes.md",
-            "documentation/blog/2024-01-26-git-stash.md",
-            "documentation/blog/2024-01-31-exit-code-1.md",
-            "documentation/blog/2024-02-05-docker-alternatives.md",
-            "documentation/blog/2024-02-12-docker-cheat-sheet.md",
-            "documentation/blog/2024-02-13-css-vertical-align.md",
-            "documentation/blog/2024-02-14-docker-swarm.md",
-            "documentation/blog/2024-02-20-css-scroll-bar.md",
-            "documentation/blog/2024-02-22-bash-script.md",
-            "documentation/blog/2024-02-26-version-control.md",
-            "documentation/blog/2024-02-28-css-box-shadow.md",
-            "documentation/blog/2024-02-29-ts-map.md",
-            "documentation/blog/2024-03-05-css-wrap-text.md",
-            "documentation/blog/2024-03-07-internal-tools-development.md",
-            "documentation/blog/2024-03-11-jwt-authentication.md",
-            "documentation/blog/2024-03-18-low-code-platforms.md",
-            "documentation/blog/2024-03-19-ts-shadcn.md",
-            "documentation/blog/2024-03-22-useeffect-cleanup.md",
-            "documentation/blog/2024-03-27-change-node-version.md",
-            "documentation/blog/2024-04-01-ts-keyof.md",
-            "documentation/blog/2024-04-03-django-rest.md",
-            "documentation/blog/2024-04-19-low-code-vendor.md",
-            "documentation/blog/2024-04-29-nest-js.md",
-            "documentation/blog/2024-05-06-investment-announce.md",
-            "documentation/blog/2024-05-07-graphql-with-django.md",
-            "documentation/blog/2024-05-10-headless-cms.md",
-            "documentation/blog/2024-05-14-react-use-id.md",
-            "documentation/blog/2024-05-21-zod.md",
-            "documentation/blog/2024-05-22-mui-grid.md",
-            "documentation/blog/2024-05-23-usestate-mistakes.md",
-            "documentation/blog/2024-05-24-google-lighthouse.md",
-            "documentation/blog/2024-05-27-js-currying-functions.md",
-            "documentation/blog/2024-05-29-next-link.md",
-            "documentation/blog/2024-06-04-playwright.md",
-            "documentation/blog/2024-06-05-using-next-image.md",
-            "documentation/blog/2024-06-10-next-typescript.md",
-            "documentation/blog/2024-06-12-forward-ref.md",
-            "documentation/blog/2024-06-13-flexbox-vs-grid.md",
-            "documentation/blog/2024-06-14-router-navigate-component.md",
-            "documentation/blog/2024-06-20-framer-motion.md",
-            "documentation/blog/2024-06-21-auth-with-nextauth.md",
-            "documentation/blog/2024-06-21-temporal-api.md",
-            "documentation/blog/2024-06-24-react-content-filtering.md",
-            "documentation/blog/2024-06-24-router-use-navigate.md",
-            "documentation/blog/2024-06-25-next-refine-pwa.md",
-            "documentation/blog/2024-06-26-react-fragments.md",
-            "documentation/blog/2024-07-02-pnpm-post.md",
-            "documentation/blog/2024-07-02-react-dangerouslyInnerhtml.md",
-            "documentation/blog/2024-07-03-mui-autocomplete.md",
-            "documentation/blog/2024-07-03-next-api-routes.md",
-            "documentation/blog/2024-07-05-nvm.md",
-            "documentation/blog/2024-07-05-turborepo.md",
-            "documentation/blog/2024-07-10-react-props.md",
-            "documentation/blog/2024-07-10-react-strict-mode.md",
-            "documentation/blog/2024-07-12-react-lazy.md",
-            "documentation/blog/2024-07-16-top-hosting.md",
-            "documentation/blog/2024-07-17-conditional-rendering.md",
-            "documentation/blog/2024-07-17-css-grid.md",
-            "documentation/blog/2024-07-18-json-error.md",
-            "documentation/blog/2024-07-19-use-swr.md",
-            "documentation/blog/2024-07-23-compare-form-libraries.md",
-            "documentation/blog/2024-07-25-refine-new-part-1.md",
-            "documentation/blog/2024-07-29-git-diff.md",
-            "documentation/blog/2024-07-30-next-redirects.md",
-            "documentation/blog/2024-07-30-vite-js.md",
-            "documentation/blog/2024-07-31-zustand.md",
-            "documentation/blog/2024-08-04-react-tooltip.md",
-            "documentation/blog/2024-08-05-react-unit-testing.md",
-            "documentation/blog/2024-08-07-next-js-server-actions.md",
-            "documentation/blog/2024-08-09-react-toastify.md",
-            "documentation/blog/2024-08-09-react-uselayouteffect.md",
-            "documentation/blog/2024-08-12-bun-vs-node.md",
-            "documentation/blog/2024-08-15-react-web-socket.md",
-            "documentation/blog/2024-08-16-react-markdown.md",
-            "documentation/blog/2024-08-19-heroicons.md",
-            "documentation/blog/2024-08-19-tailwind-flex.md",
-            "documentation/blog/2024-08-20-react-hot-toast.md",
-            "documentation/blog/2024-08-21-react-createportal.md",
-            "documentation/blog/2024-09-04-mojo.md",
-            "documentation/blog/2024-09-05-js-splice.md",
-            "documentation/blog/2024-09-05-react-patterns.md",
-            "documentation/blog/2024-09-06-htmx.md",
-            "documentation/blog/2024-09-06-react-table.md",
-            "documentation/blog/2024-09-09-mantine-ui.md",
-            "documentation/blog/2024-09-09-react-error-boundaries.md",
-            "documentation/blog/2024-09-10-js-vs-ts.md",
-            "documentation/blog/2024-09-11-pnpm-guide.md",
-            "documentation/blog/2024-09-11-react-virtual-dom.md",
-            "documentation/blog/2024-09-12-graphql-vs-rest.md",
-            "documentation/blog/2024-09-12-terraform-aws.md",
-            "documentation/blog/2024-09-16-frameworks-2024.md",
-            "documentation/blog/2024-09-16-stylex-post.md",
-            "documentation/blog/2024-09-17-chakra-ui.md",
-            "documentation/blog/2024-09-18-admin-panel-frameworks.md",
-            "documentation/blog/2024-09-18-uri-vs-url.md",
-            "documentation/blog/2024-09-19-react-memo.md",
-            "documentation/blog/2024-09-19-react-use-memo.md",
-            "documentation/blog/2024-09-24-grpc-vs-rest.md",
-            "documentation/blog/2024-09-24-tdd-vs-bdd.md",
-            "documentation/blog/2024-09-26-react-use-callback.md",
-            "documentation/blog/2024-10-07-react-server-components.md",
-            "documentation/blog/2024-10-08-js-ternary.md",
-            "documentation/blog/2024-10-16-react-useref.md",
-            "documentation/blog/2024-10-17-nextjs-vs-react.md",
-            "documentation/blog/2024-10-21-react-suspense.md",
-            "documentation/blog/2024-10-22-astro-js.md",
-            "documentation/blog/2024-10-23-css-rounded-corners.md",
-            "documentation/blog/2024-10-24-async-vs-sync.md",
-            "documentation/blog/2024-10-30-js-try-catch.md",
-            "documentation/blog/2024-10-30-react-context.md",
-            "documentation/blog/2024-10-31-drizzle.md",
-            "documentation/blog/2024-11-04-js-slice.md",
-            "documentation/blog/2024-11-04-js-some.md",
-            "documentation/blog/2024-11-05-recharts.md",
-            "documentation/blog/2024-11-05-tailwind-animations.md",
-            "documentation/blog/2024-11-06-radix-ui.md",
-            "documentation/blog/2024-11-06-react-hook-form.md",
-            "documentation/blog/2024-11-07-node-uuid.md",
-            "documentation/blog/2024-11-08-nodemon.md",
-            "documentation/blog/2024-11-08-react-usereducer.md",
-            "documentation/blog/2024-11-11-online-ide.md",
-            "documentation/blog/2024-11-11-ts-dictionary.md",
-            "documentation/blog/2024-11-12-esbuild.md",
-            "documentation/blog/2024-11-12-react-date-picker.md",
-            "documentation/blog/2024-11-21-hr-app .md",
-            "documentation/blog/2024-11-26-zsh-and-bash.md",
-            "documentation/blog/2024-11-27-git-delete.md",
-            "documentation/blog/2024-11-27-git-switch.md",
-            "documentation/blog/2024-11-28-em-vs-rem.md",
-            "documentation/blog/2024-11-28-react-query-intro.md",
-            "documentation/blog/2024-12-10-mui-button.md",
-            "documentation/blog/2024-12-10-next-env.md",
-            "documentation/blog/2024-12-12-router-use-params.md",
-            "documentation/blog/2024-12-17-typescript-omit.md",
-            "documentation/blog/2024-12-17-typescript-pick.md",
-            "documentation/blog/2024-12-18-tailwind-grid.md",
-            "documentation/blog/2024-12-18-typescript-partial.md",
-            "documentation/blog/2024-12-20-antd-dynamic-form.md",
-            "documentation/blog/2024-12-20-mui-select.md",
-            "documentation/blog/2024-12-24-react-dnd.md",
-            "documentation/blog/2024-12-25-mui-checkbox.md",
-            "documentation/blog/2024-12-26-mui-card.md",
-            "documentation/blog/2024-12-30-material-ui-modal.md",
-            "documentation/blog/2024-12-31-js-substring.md",
-            "documentation/blog/2025-01-02-react-slick.md",
-            "documentation/blog/2025-01-06-typescript-enums.md",
-            "documentation/blog/2025-01-06-typescript-record.md",
-            "documentation/blog/2025-01-07-react-svg.md",
-            "documentation/blog/2025-01-09-fast-api.md",
-            "documentation/blog/2025-01-09-typescript-decorators.md",
-            "documentation/blog/2025-01-13-ts-classes.md",
-            "documentation/blog/2025-01-14-ts-satisfies.md",
-            "documentation/blog/2025-01-17-js-every.md",
-            "documentation/blog/2025-02-05-bolt-new.md",
-            "documentation/blog/2025-02-12-lovable.md",
-            "documentation/blog/2025-02-17-replit.md",
-            "documentation/blog/2025-03-06-vercel-v0.md",
-            "documentation/blog/2025-05-26-claude4.md",
-            "documentation/blog/2025-06-02-purpose-built-ai-agents.md",
-            "documentation/blog/2025-06-05-shadcn-blog.md",
-            "documentation/blog/2025-06-12-quality-code-generation.md",
-            "documentation/blog/2025-07-09-git-merge.md",
-            "documentation/blog/2025-08-15-comments-in-code.md",
-            "documentation/blog/2025-09-18-refine-v5-blog.md",
-            "documentation/blog/2025-10-01-github-alternatives.md",
-            "documentation/blog/2025-10-08-arc-browser-journey.md",
-            "documentation/blog/2025-11-12-admin-panel-in-5-minutes.md",
-            "documentation/blog/2025-11-17-supabase-tutorial.md",
-            "documentation/blog/2025-12-01-tanstack-vs-swr.md",
-            "documentation/blog/2025-12-11-rtk-query.md",
-            "documentation/blog/2026-01-07-build-internal-tools-low-code-react-refine.md",
-            "documentation/blog/2026-01-12-refine-core-introduction.md",
-            "documentation/blog/2026-01-21-what-is-internal-tools.md",
-            "documentation/blog/2026-01-26-source-code-ownership-low-code.md",
-            "documentation/blog/2026-02-04-react-admin-dashboard.md",
-            "documentation/blog/2026-02-09-what-is-a-dashboard.md",
-            "documentation/blog/2026-02-11-how-to-create-react-admin-dashboard.md",
-            "documentation/blog/2026-02-13-crud-apps.md",
-            "documentation/blog/2026-02-16-what-is-an-admin-panel.md",
-            "documentation/blog/2026-02-18-enterprise-ai-agents.md",
-            "documentation/blog/2026-02-20-vibe-pair-programming.md",
-            "documentation/blog/2026-02-24-vibe-coding.md",
-            "documentation/blog/2026-02-26-ant-design-vs-mui.md",
-            "documentation/blog/2026-02-27-csv-to-dashboard.md",
-            "documentation/blog/2026-03-02-open-source-advantages-disadvantages.md",
-            "typos.toml"
-          ],
-          "code_paths": [],
-          "observed": "pass",
-          "source": {
-            "provider": "ossinsight",
-            "collection_id": 10005,
-            "collection_name": null,
-            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:16:25Z"
-          }
-        },
-        {
-          "number": 7344,
-          "title": "docs(blog): change image for blog",
-          "merged_at": "2026-03-11T13:43:07Z",
-          "changed_files": 1,
-          "code_files": 0,
-          "changed_paths": [
-            "documentation/blog/2026-03-10-avoid-vendor-lock-in.md"
-          ],
-          "code_paths": [],
-          "observed": "pass",
-          "source": {
-            "provider": "ossinsight",
-            "collection_id": 10005,
-            "collection_name": null,
-            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:16:26Z"
-          }
-        },
-        {
-          "number": 7342,
-          "title": "docs(blog): add  avoid vendor lock in blog",
-          "merged_at": "2026-03-10T20:33:02Z",
-          "changed_files": 1,
-          "code_files": 0,
-          "changed_paths": [
-            "documentation/blog/2026-03-10-avoid-vendor-lock-in.md"
-          ],
-          "code_paths": [],
-          "observed": "pass",
-          "source": {
-            "provider": "ossinsight",
-            "collection_id": 10005,
-            "collection_name": null,
-            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:16:28Z"
-          }
-        }
-      ]
-    },
-    {
-      "repo": "QwikDev/qwik",
-      "current_period_rank": "7",
-      "current_period_growth": "10",
-      "total_prs": "5365",
-      "top_pr_creators": [
-        {
-          "id": "127379",
-          "login": "manucorporat",
-          "name": "Manu MA",
-          "prs": "883",
-          "first_pr_opened_at": "2021-11-11 15:14:12",
-          "first_pr_merged_at": "2021-11-11 16:36:10"
-        },
-        {
-          "id": "452425",
-          "login": "adamdbradley",
-          "name": "Adam Bradley",
-          "prs": "531",
-          "first_pr_opened_at": "2021-06-11 15:04:35",
-          "first_pr_merged_at": "2021-06-18 01:41:19"
-        },
-        {
-          "id": "54934",
-          "login": "wmertens",
-          "name": "Wout Mertens",
-          "prs": "423",
-          "first_pr_opened_at": "2022-09-29 13:56:10",
-          "first_pr_merged_at": "2022-09-29 14:56:59"
-        },
-        {
-          "id": "111951",
-          "login": "mhevery",
-          "name": "Miško Hevery",
-          "prs": "351",
-          "first_pr_opened_at": "2021-06-01 21:34:48",
-          "first_pr_merged_at": "2021-06-01 22:04:07"
-        },
-        {
-          "id": "78650133",
-          "login": "Varixo",
-          "name": "",
-          "prs": "285",
-          "first_pr_opened_at": "2022-09-27 15:11:50",
-          "first_pr_merged_at": "2022-09-27 15:41:08"
-        }
-      ],
-      "prs": [
-        {
-          "number": 8428,
-          "title": "merge 1.19.2 into v2",
-          "merged_at": "2026-03-13T19:18:28Z",
-          "changed_files": 6,
-          "code_files": 6,
-          "changed_paths": [
-            "packages/docs/src/routes/tutorial/layout.tsx",
-            "packages/docs/src/routes/tutorial/tutorial-content-footer.tsx",
-            "packages/qwik-router/src/middleware/request-handler/form-parsing.unit.ts",
-            "packages/qwik-router/src/middleware/request-handler/request-event.ts",
-            "packages/qwik/src/core/shared/serdes/inflate.ts",
-            "packages/qwik/src/core/shared/serdes/inflate.unit.ts"
-          ],
-          "code_paths": [
-            "packages/docs/src/routes/tutorial/layout.tsx",
-            "packages/docs/src/routes/tutorial/tutorial-content-footer.tsx",
-            "packages/qwik-router/src/middleware/request-handler/form-parsing.unit.ts",
-            "packages/qwik-router/src/middleware/request-handler/request-event.ts",
-            "packages/qwik/src/core/shared/serdes/inflate.ts",
-            "packages/qwik/src/core/shared/serdes/inflate.unit.ts"
-          ],
-          "observed": "error",
-          "source": {
-            "provider": "ossinsight",
-            "collection_id": 10005,
-            "collection_name": null,
-            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:16:32Z"
-          }
-        },
-        {
-          "number": 8426,
-          "title": "Version Packages",
-          "merged_at": "2026-03-13T13:36:00Z",
-          "changed_files": 11,
-          "code_files": 0,
-          "changed_paths": [
-            ".changeset/breezy-items-relax.md",
-            ".changeset/small-candies-train.md",
-            ".changeset/smooth-ends-count.md",
-            "packages/create-qwik/CHANGELOG.md",
-            "packages/create-qwik/package.json",
-            "packages/eslint-plugin-qwik/CHANGELOG.md",
-            "packages/eslint-plugin-qwik/package.json",
-            "packages/qwik-city/CHANGELOG.md",
-            "packages/qwik-city/package.json",
-            "packages/qwik/CHANGELOG.md",
-            "packages/qwik/package.json"
-          ],
-          "code_paths": [],
-          "observed": "pass",
-          "source": {
-            "provider": "ossinsight",
-            "collection_id": 10005,
-            "collection_name": null,
-            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:16:34Z"
-          }
-        },
-        {
-          "number": 8422,
-          "title": "refactor(core): split QRLs in lazy ref + captures",
-          "merged_at": "2026-03-13T13:35:17Z",
-          "changed_files": 13,
-          "code_files": 12,
-          "changed_paths": [
-            "packages/qwik/src/core/client/dom-container.ts",
-            "packages/qwik/src/core/client/vnode-utils.ts",
-            "packages/qwik/src/core/qwik.core.api.md",
-            "packages/qwik/src/core/reactive-primitives/impl/signal-impl.ts",
-            "packages/qwik/src/core/shared/qrl/qrl-class.ts",
-            "packages/qwik/src/core/shared/qrl/qrl-utils.ts",
-            "packages/qwik/src/core/shared/qrl/qrl.ts",
-            "packages/qwik/src/core/shared/qrl/qrl.unit.ts",
-            "packages/qwik/src/core/shared/serdes/allocate.ts",
-            "packages/qwik/src/core/shared/serdes/qrl-to-string.ts",
-            "packages/qwik/src/core/tests/container.spec.tsx",
-            "packages/qwik/src/core/use/use-hmr.ts",
-            "packages/qwik/src/core/use/use-resource.ts"
-          ],
-          "code_paths": [
-            "packages/qwik/src/core/client/dom-container.ts",
-            "packages/qwik/src/core/client/vnode-utils.ts",
-            "packages/qwik/src/core/reactive-primitives/impl/signal-impl.ts",
-            "packages/qwik/src/core/shared/qrl/qrl-class.ts",
-            "packages/qwik/src/core/shared/qrl/qrl-utils.ts",
-            "packages/qwik/src/core/shared/qrl/qrl.ts",
-            "packages/qwik/src/core/shared/qrl/qrl.unit.ts",
-            "packages/qwik/src/core/shared/serdes/allocate.ts",
-            "packages/qwik/src/core/shared/serdes/qrl-to-string.ts",
-            "packages/qwik/src/core/tests/container.spec.tsx",
-            "packages/qwik/src/core/use/use-hmr.ts",
-            "packages/qwik/src/core/use/use-resource.ts"
-          ],
-          "observed": "error",
-          "source": {
-            "provider": "ossinsight",
-            "collection_id": 10005,
-            "collection_name": null,
-            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:16:36Z"
-          }
-        },
-        {
-          "number": 8423,
-          "title": "fix(router): make sure css gets found on the correct module graph ",
-          "merged_at": "2026-03-13T13:07:21Z",
-          "changed_files": 2,
-          "code_files": 1,
-          "changed_paths": [
-            ".changeset/tasty-parents-end.md",
-            "packages/qwik-router/src/buildtime/vite/dev-middleware.ts"
-          ],
-          "code_paths": [
-            "packages/qwik-router/src/buildtime/vite/dev-middleware.ts"
-          ],
-          "observed": "pass",
-          "source": {
-            "provider": "ossinsight",
-            "collection_id": 10005,
-            "collection_name": null,
-            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:16:37Z"
-          }
-        },
-        {
-          "number": 8412,
-          "title": "docs: \"Show Me\" button state in tutorial is not in sync with code",
-          "merged_at": "2026-03-13T12:45:17Z",
-          "changed_files": 2,
-          "code_files": 2,
-          "changed_paths": [
-            "packages/docs/src/routes/tutorial/layout.tsx",
-            "packages/docs/src/routes/tutorial/tutorial-content-footer.tsx"
-          ],
-          "code_paths": [
-            "packages/docs/src/routes/tutorial/layout.tsx",
-            "packages/docs/src/routes/tutorial/tutorial-content-footer.tsx"
-          ],
-          "observed": "pass",
-          "source": {
-            "provider": "ossinsight",
-            "collection_id": 10005,
-            "collection_name": null,
-            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:16:38Z"
+            "discovered_at": "2026-03-16T16:46:11Z"
           }
         }
       ]
@@ -1874,7 +2279,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:16:42Z"
+            "discovered_at": "2026-03-16T16:46:17Z"
           }
         },
         {
@@ -1893,7 +2298,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:16:44Z"
+            "discovered_at": "2026-03-16T16:46:19Z"
           }
         },
         {
@@ -1901,7 +2306,7 @@
           "title": "feat(dist-custom-elements): new `autoLoader` option",
           "merged_at": "2026-02-07T19:55:14Z",
           "changed_files": 23,
-          "code_files": 20,
+          "code_files": 17,
           "changed_paths": [
             ".gitignore",
             ".prettierignore",
@@ -1928,8 +2333,6 @@
             "test/wdio/tsconfig-stencil.json"
           ],
           "code_paths": [
-            ".gitignore",
-            ".prettierignore",
             "src/compiler/config/outputs/validate-custom-element.ts",
             "src/compiler/config/test/validate-output-dist-custom-element.spec.ts",
             "src/compiler/output-targets/dist-custom-elements/custom-elements-types.ts",
@@ -1938,7 +2341,6 @@
             "src/compiler/output-targets/test/output-targets-dist-custom-elements.spec.ts",
             "src/declarations/stencil-public-compiler.ts",
             "test/bundle-size/stencil.config.ts",
-            "test/wdio/.gitignore",
             "test/wdio/auto-loader.stencil.config.ts",
             "test/wdio/auto-loader/auto-loader-child.tsx",
             "test/wdio/auto-loader/auto-loader-dynamic.tsx",
@@ -1949,13 +2351,13 @@
             "test/wdio/auto-loader/perf.test.tsx",
             "test/wdio/stencil.config.ts"
           ],
-          "observed": "error",
+          "observed": "pass",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:16:46Z"
+            "discovered_at": "2026-03-16T16:46:23Z"
           }
         },
         {
@@ -1976,7 +2378,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:16:47Z"
+            "discovered_at": "2026-03-16T16:46:25Z"
           }
         },
         {
@@ -1995,7 +2397,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:16:49Z"
+            "discovered_at": "2026-03-16T16:46:27Z"
           }
         }
       ]
@@ -2003,7 +2405,7 @@
     {
       "repo": "marko-js/marko",
       "current_period_rank": "9",
-      "current_period_growth": "7",
+      "current_period_growth": "6",
       "total_prs": "1830",
       "top_pr_creators": [
         {
@@ -2070,7 +2472,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:16:52Z"
+            "discovered_at": "2026-03-16T16:46:33Z"
           }
         },
         {
@@ -2155,7 +2557,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:16:55Z"
+            "discovered_at": "2026-03-16T16:46:36Z"
           }
         },
         {
@@ -2181,7 +2583,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:16:57Z"
+            "discovered_at": "2026-03-16T16:46:39Z"
           }
         },
         {
@@ -2227,7 +2629,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:16:58Z"
+            "discovered_at": "2026-03-16T16:46:42Z"
           }
         },
         {
@@ -2285,7 +2687,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:17:01Z"
+            "discovered_at": "2026-03-16T16:46:46Z"
           }
         }
       ]
@@ -2354,7 +2756,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:17:07Z"
+            "discovered_at": "2026-03-16T16:46:52Z"
           }
         },
         {
@@ -2375,7 +2777,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:17:08Z"
+            "discovered_at": "2026-03-16T16:46:55Z"
           }
         },
         {
@@ -2396,7 +2798,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:17:10Z"
+            "discovered_at": "2026-03-16T16:46:57Z"
           }
         },
         {
@@ -2417,7 +2819,7 @@
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:17:11Z"
+            "discovered_at": "2026-03-16T16:47:00Z"
           }
         },
         {
@@ -2425,22 +2827,21 @@
           "title": "Release: Run `npm publish` in the post-release phase",
           "merged_at": "2025-08-11T16:40:09Z",
           "changed_files": 2,
-          "code_files": 2,
+          "code_files": 1,
           "changed_paths": [
             ".release-it.cjs",
             "build/release/post-release.sh"
           ],
           "code_paths": [
-            ".release-it.cjs",
             "build/release/post-release.sh"
           ],
-          "observed": "warning",
+          "observed": "pass",
           "source": {
             "provider": "ossinsight",
             "collection_id": 10005,
             "collection_name": null,
             "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
-            "discovered_at": "2026-03-15T01:17:13Z"
+            "discovered_at": "2026-03-16T16:47:03Z"
           }
         }
       ]
