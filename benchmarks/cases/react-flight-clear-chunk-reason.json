@@ -1,0 +1,20 @@
+{
+  "id": "react-flight-clear-chunk-reason",
+  "description": "React clears stale Flight chunk errors across client/server modules and a regression test",
+  "repo": "facebook/react",
+  "pr_number": 36024,
+  "expected": "pass",
+  "rationale": "The two Flight runtime edits and the ReactFlightDOM regression test all serve the same reentrant chunk-initialization bug fix. This is one semantic change, not three unrelated clusters.",
+  "category": "semantic-bridge",
+  "domains_expected": [],
+  "ecosystem": "javascript",
+  "notes": "Current engine reports error because cross-package Flight source files and the DOM regression test do not produce enough patch-local call/import edges to stay connected.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 10005,
+    "collection_name": "Javascript Framework",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-03-16T00:00:00Z"
+  },
+  "target_rule": "detect-unscoped-change"
+}

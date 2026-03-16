@@ -1,0 +1,20 @@
+{
+  "id": "svelte-untrack-allows-writes",
+  "description": "Svelte adds one runtime-runes sample and its test config for untrack write behavior",
+  "repo": "sveltejs/svelte",
+  "pr_number": 17930,
+  "expected": "pass",
+  "rationale": "Both changed files live in the same sample fixture and jointly define one regression test scenario. This is a cohesive test-only change.",
+  "category": "test-only",
+  "domains_expected": [],
+  "ecosystem": "javascript",
+  "notes": "Control case covering sample-fixture additions without production source edits.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 10005,
+    "collection_name": "Javascript Framework",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-03-16T00:00:00Z"
+  },
+  "target_rule": "detect-unscoped-change"
+}

@@ -7,8 +7,8 @@
   "properties": {
     "id": {
       "type": "string",
-      "pattern": "^(pass|warn|error)-\\d{3}$",
-      "description": "Unique ID in format: pass-001, warn-002, error-003"
+      "pattern": "^((pass|warn|error)-\\d{3}|[a-z0-9]+(?:-[a-z0-9]+)*)$",
+      "description": "Stable case ID. Legacy severity-prefixed IDs remain valid, but new cases should use descriptive slugs."
     },
     "description": {
       "type": "string",
@@ -41,6 +41,8 @@
         "disconnected-test",
         "disconnected-components",
         "multi-component",
+        "semantic-bridge",
+        "fork-sync",
         "non-code-only",
         "single-domain",
         "ci-only",
