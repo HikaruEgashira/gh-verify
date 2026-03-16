@@ -6,7 +6,10 @@
   "expected": "pass",
   "rationale": "fastapi/routing.py contains 'route' substring, classified as api domain. Single domain = PASS.",
   "category": "single-domain",
-  "domains_expected": ["api"],
+  "domains_expected": [
+    "api"
+  ],
   "ecosystem": "python",
-  "notes": "Bug fix in router. Classic single api-domain change."
+  "notes": "Bug fix in router. Classic single api-domain change.",
+  "target_rule": "detect-unscoped-change"
 }

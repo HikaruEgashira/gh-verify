@@ -8,5 +8,6 @@
   "category": "multi-component",
   "domains_expected": [],
   "ecosystem": "typescript",
-  "notes": "Previously warning (auth+ui = 2 domains). Call-graph analysis identifies 3+ disconnected clusters: docs files, UI components, and any supporting files without shared import chains."
+  "notes": "Previously warning (auth+ui = 2 domains). Call-graph analysis identifies 3+ disconnected clusters: docs files, UI components, and any supporting files without shared import chains.",
+  "target_rule": "detect-unscoped-change"
 }

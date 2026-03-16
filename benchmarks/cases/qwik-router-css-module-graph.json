@@ -15,5 +15,6 @@
     "collection_name": "Javascript Framework",
     "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
     "discovered_at": "2026-03-15T01:16:37Z"
-  }
+  },
+  "target_rule": "detect-unscoped-change"
 }

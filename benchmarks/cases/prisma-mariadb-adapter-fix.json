@@ -8,5 +8,6 @@
   "category": "disconnected-test",
   "domains_expected": [],
   "ecosystem": "typescript",
-  "notes": "Previously pass (single database domain). Call-graph analysis identifies the test file as disconnected from production code, forming 2 components. This is a stricter but defensible interpretation: test and production code are separate scoping concerns."
+  "notes": "Previously pass (single database domain). Call-graph analysis identifies the test file as disconnected from production code, forming 2 components. This is a stricter but defensible interpretation: test and production code are separate scoping concerns.",
+  "target_rule": "detect-unscoped-change"
 }

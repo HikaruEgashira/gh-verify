@@ -8,5 +8,6 @@
   "category": "connected-calls",
   "domains_expected": [],
   "ecosystem": "typescript",
-  "notes": "Improvement over domain-based classification. Previously flagged as warning (auth+api domains), but call-graph analysis correctly identifies that all files are connected through shared function calls (getIP). Test file importing production types is a natural call-graph edge."
+  "notes": "Improvement over domain-based classification. Previously flagged as warning (auth+api domains), but call-graph analysis correctly identifies that all files are connected through shared function calls (getIP). Test file importing production types is a natural call-graph edge.",
+  "target_rule": "detect-unscoped-change"
 }

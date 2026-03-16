@@ -8,5 +8,6 @@
   "category": "multi-component",
   "domains_expected": [],
   "ecosystem": "typescript",
-  "notes": "Previously pass under domain-based classification (all files mapped to single UI domain). Call-graph approach reveals these files are structurally independent despite being in the same visual domain."
+  "notes": "Previously pass under domain-based classification (all files mapped to single UI domain). Call-graph approach reveals these files are structurally independent despite being in the same visual domain.",
+  "target_rule": "detect-unscoped-change"
 }

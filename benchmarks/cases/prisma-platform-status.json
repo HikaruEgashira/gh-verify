@@ -8,5 +8,6 @@
   "category": "multi-component",
   "domains_expected": [],
   "ecosystem": "typescript",
-  "notes": "Previously warning (ui+database = 2 domains). Call-graph connectivity reveals 3+ independent clusters of files, escalating from warning to error."
+  "notes": "Previously warning (ui+database = 2 domains). Call-graph connectivity reveals 3+ independent clusters of files, escalating from warning to error.",
+  "target_rule": "detect-unscoped-change"
 }

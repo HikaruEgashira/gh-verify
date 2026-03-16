@@ -6,7 +6,12 @@
   "expected": "error",
   "rationale": "Test files classified as database (111 lines, __tests__/ not in test patterns). README = docs (51 lines). Workflows = ci (91 lines). 3 domains = ERROR.",
   "category": "multi-domain-error",
-  "domains_expected": ["database", "docs", "ci"],
+  "domains_expected": [
+    "database",
+    "docs",
+    "ci"
+  ],
   "ecosystem": "typescript",
-  "notes": "FALSE POSITIVE: test files under __tests__/ should be test domain (ignored). Without this bug, would be docs+ci = WARNING. Known gap: __tests__ pattern."
+  "notes": "FALSE POSITIVE: test files under __tests__/ should be test domain (ignored). Without this bug, would be docs+ci = WARNING. Known gap: __tests__ pattern.",
+  "target_rule": "detect-unscoped-change"
 }

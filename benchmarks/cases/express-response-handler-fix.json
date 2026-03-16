@@ -6,7 +6,10 @@
   "expected": "pass",
   "rationale": "Two files changed: lib/response.js (core Express response handler) and History.md (changelog/docs). Path classification: lib/response.js = api domain (Express web framework core). History.md = docs domain but is changelog noise. Semantic analysis: response.js has no new imports (modifies existing code flow). With noise threshold applied, docs contribution from History.md (5 lines) is negligible vs api code (6+13 lines). Effective single domain = PASS.",
   "category": "clean-single-domain",
-  "domains_expected": ["api"],
+  "domains_expected": [
+    "api"
+  ],
   "ecosystem": "javascript",
-  "notes": "Tests that clean single-domain import detection works for CommonJS/no-import patterns. The response.js file uses require() style but is clearly API domain by path. History.md changelog should be filtered by noise threshold."
+  "notes": "Tests that clean single-domain import detection works for CommonJS/no-import patterns. The response.js file uses require() style but is clearly API domain by path. History.md changelog should be filtered by noise threshold.",
+  "target_rule": "detect-unscoped-change"
 }

@@ -6,7 +6,12 @@
   "expected": "error",
   "rationale": "conversion.ts and query-interpreter.ts import @prisma/ packages → semantic analysis correctly classifies as database (133 lines). README.md = docs (10 lines). package.json files = config (84 lines). 3 domains above noise threshold = ERROR.",
   "category": "multi-domain-error",
-  "domains_expected": ["database", "docs", "config"],
+  "domains_expected": [
+    "database",
+    "docs",
+    "config"
+  ],
   "ecosystem": "typescript",
-  "notes": "Tree-sitter semantic analysis correctly identifies @prisma/ imports → database domain. This PR is genuinely multi-domain: adapter code + docs + config."
+  "notes": "Tree-sitter semantic analysis correctly identifies @prisma/ imports → database domain. This PR is genuinely multi-domain: adapter code + docs + config.",
+  "target_rule": "detect-unscoped-change"
 }
