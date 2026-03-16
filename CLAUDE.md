@@ -85,6 +85,23 @@ I/O layer. Delegates all judgments to core.
 - File name: snake_case (`detect_unscoped_change.rs`)
 - Crate name: kebab-case (`gh-verify-core`)
 
+## Reusable Actions
+
+Two composite actions under `action/` for use in GitHub Actions workflows:
+
+| Action | Trigger | Purpose |
+|---|---|---|
+| `action/check-pr` | `pull_request` + `pull_request_review` | Run SDLC checks on a PR |
+| `action/check-release` | `push: tags: v*` (via `release.yml`) | Gate release build on SDLC checks |
+
+Usage from other repositories:
+
+```yaml
+- uses: HikaruEgashira/gh-verify/action/check-pr@main
+  with:
+    pr-number: ${{ github.event.pull_request.number }}
+```
+
 ## Exit Codes
 
 - `0`: all rules pass / warnings only
