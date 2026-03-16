@@ -97,7 +97,7 @@ Two composite actions under `action/` for use in GitHub Actions workflows:
 Usage from other repositories:
 
 ```yaml
-- uses: HikaruEgashira/gh-verify/action/check-pr@main
+- uses: HikaruEgashira/gh-verify/action/check-pr@v0.3.1
   with:
     pr-number: ${{ github.event.pull_request.number }}
 ```
