@@ -11,6 +11,7 @@ pub struct FileSymbols {
     pub definitions: Vec<String>,
     pub calls: Vec<String>,
     pub imports: Vec<String>,
+    pub identifiers: Vec<String>,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -119,6 +120,77 @@ fn run_query(
     Ok(results)
 }
 
+fn extract_semantic_tokens(source: &str) -> Vec<String> {
+    let mut out = Vec::new();
+    let mut buf = String::new();
+    for ch in source.chars() {
+        if ch.is_ascii_alphanumeric() || ch == '_' {
+            buf.push(ch.to_ascii_lowercase());
+        } else if !buf.is_empty() {
+            push_semantic_token(&buf, &mut out);
+            buf.clear();
+        }
+    }
+    if !buf.is_empty() {
+        push_semantic_token(&buf, &mut out);
+    }
+
+    out.sort();
+    out.dedup();
+    out
+}
+
+fn push_semantic_token(token: &str, out: &mut Vec<String>) {
+    if token.len() < 6 {
+        return;
+    }
+    if token.bytes().all(|b| b.is_ascii_digit()) {
+        return;
+    }
+    if is_semantic_stopword(token) {
+        return;
+    }
+    out.push(token.to_string());
+}
+
+fn is_semantic_stopword(token: &str) -> bool {
+    matches!(
+        token,
+        "import"
+            | "export"
+            | "default"
+            | "const"
+            | "let"
+            | "function"
+            | "return"
+            | "class"
+            | "interface"
+            | "extends"
+            | "implements"
+            | "public"
+            | "private"
+            | "protected"
+            | "static"
+            | "async"
+            | "await"
+            | "throws"
+            | "new"
+            | "super"
+            | "object"
+            | "string"
+            | "number"
+            | "boolean"
+            | "result"
+            | "params"
+            | "values"
+            | "option"
+            | "options"
+            | "config"
+            | "component"
+            | "components"
+    )
+}
+
 /// Extract source code from a unified diff patch.
 pub fn extract_source(patch: &str) -> String {
     let mut output = String::new();
@@ -170,12 +242,14 @@ fn extract_with_tree_sitter(filename: &str, source: &str, lang: Lang) -> Result<
     let definitions = run_query(&language, def_query(lang), source_bytes, &tree)?;
     let calls = run_query(&language, call_query(lang), source_bytes, &tree)?;
     let imports = run_query(&language, import_query(lang), source_bytes, &tree)?;
+    let identifiers = extract_semantic_tokens(source);
 
     Ok(FileSymbols {
         filename: filename.to_string(),
         definitions,
         calls,
         imports,
+        identifiers,
     })
 }
 
@@ -185,6 +259,7 @@ fn lexical_fallback(filename: &str, patch: &str) -> FileSymbols {
     let mut calls = Vec::new();
     let mut seen_defs = HashSet::new();
     let mut seen_calls = HashSet::new();
+    let identifiers = extract_semantic_tokens(&source);
 
     let keywords = ["function ", "def ", "func ", "fn "];
     for line in source.lines() {
@@ -225,6 +300,7 @@ fn lexical_fallback(filename: &str, patch: &str) -> FileSymbols {
         definitions: defs,
         calls,
         imports: vec![],
+        identifiers,
     }
 }
 

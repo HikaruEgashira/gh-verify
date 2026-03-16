@@ -165,11 +165,20 @@ pub fn should_bridge_colocated_sources(path_a: &str, path_b: &str) -> bool {
 }
 
 /// Bridge test/fixture file to a source file with semantic token overlap.
-/// Guards: aux count cap, role check, parent_dir difference, and
+/// Guards: source/aux balance, role check, parent_dir difference, and
 /// token overlap (≥5 chars, non-generic).
-pub fn should_bridge_aux_to_source(source_path: &str, aux_path: &str, aux_count: usize) -> bool {
+pub fn should_bridge_aux_to_source(
+    source_path: &str,
+    aux_path: &str,
+    source_count: usize,
+    aux_count: usize,
+) -> bool {
     // Too many aux files suggests bulk cleanup, not focused change.
     if aux_count > 6 {
+        return false;
+    }
+    // A single aux file should not absorb a broad source-only change.
+    if aux_count == 1 && source_count > 2 {
         return false;
     }
 
@@ -190,6 +199,52 @@ pub fn should_bridge_aux_to_source(source_path: &str, aux_path: &str, aux_count:
     let source_tokens = semantic_path_tokens(source_path);
     let aux_tokens = semantic_path_tokens(aux_path);
     has_token_overlap(&source_tokens, &aux_tokens, 5, true)
+}
+
+/// Bridge files by semantic overlap of changed-patch identifiers.
+///
+/// This complements call/import edges when tree-sitter cannot recover a
+/// complete AST from patch fragments, while keeping scope guards strict.
+pub fn should_bridge_patch_semantic_tokens(
+    path_a: &str,
+    path_b: &str,
+    tokens_a: &[String],
+    tokens_b: &[String],
+    source_count: usize,
+    aux_count: usize,
+) -> bool {
+    if !has_token_overlap(tokens_a, tokens_b, 6, true) {
+        return false;
+    }
+
+    let role_a = classify_file_role(path_a);
+    let role_b = classify_file_role(path_b);
+
+    match (role_a, role_b) {
+        (FileRole::Source, FileRole::Source) => {
+            // Keep source-source semantic bridging narrow: only small
+            // implementation clusters that are accompanied by tests/fixtures.
+            aux_count > 0 && source_count <= 3 && package_root(path_a) == package_root(path_b)
+        }
+        (FileRole::Source, FileRole::Test)
+        | (FileRole::Source, FileRole::Fixture)
+        | (FileRole::Test, FileRole::Source)
+        | (FileRole::Fixture, FileRole::Source) => {
+            if parent_dir(path_a) == parent_dir(path_b) {
+                return false;
+            }
+            // If there is only one aux file, avoid bridging when source side
+            // is broad. Otherwise allow focused source+aux semantic coupling.
+            aux_count > 0
+                && aux_count <= 4
+                && source_count <= 3
+                && (source_count <= 2 || aux_count >= 2)
+        }
+        (FileRole::Test, FileRole::Fixture) | (FileRole::Fixture, FileRole::Test) => {
+            aux_count > 0 && aux_count <= 6
+        }
+        _ => false,
+    }
 }
 
 /// Bridge between test and fixture files that target the same behavior.
@@ -731,6 +786,7 @@ mod tests {
             "packages/client/src/mariadb.ts",
             "packages/client/src/mariadb.test.ts",
             1,
+            1,
         ));
 
         // Same package, different dirs, token overlap → bridge
@@ -738,12 +794,14 @@ mod tests {
             "packages/compiler-vapor/src/generators/expression.ts",
             "packages/compiler-vapor/__tests__/transforms/expression.spec.ts",
             1,
+            1,
         ));
 
         // Scoped packages in monorepo → bridge
         assert!(should_bridge_aux_to_source(
             "packages/@ember/-internals/glimmer/lib/components/link-to.ts",
             "packages/@ember/-internals/glimmer/tests/integration/components/link-to/routing-angle-test.js",
+            1,
             2,
         ));
 
@@ -752,6 +810,7 @@ mod tests {
             "packages/compiler/src/ml_parser/parser.ts",
             "packages/compiler/test/ml_parser/html_parser_spec.ts",
             1,
+            1,
         ));
 
         // Cross-package with token overlap → bridge allowed
@@ -759,13 +818,67 @@ mod tests {
             "packages/runtime-core/src/apiDefineComponent.ts",
             "packages-private/dts-test/defineComponent.test-d.ts",
             1,
+            1,
         ));
 
         // Too many aux files → bulk operation, no bridge
         assert!(!should_bridge_aux_to_source(
             "packages/compiler/src/parser.ts",
             "packages/compiler/test/parser.spec.ts",
+            1,
             7,
+        ));
+    }
+
+    #[test]
+    fn aux_bridge_rejects_single_aux_for_broad_source_cluster() {
+        assert!(!should_bridge_aux_to_source(
+            "packages/cli/src/Studio.ts",
+            "packages/cli/src/__tests__/Studio.vitest.ts",
+            3,
+            1,
+        ));
+    }
+
+    #[test]
+    fn patch_semantic_bridge_connects_cross_package_source_test() {
+        let source_tokens = vec!["undefined".to_string(), "setinssrsetupstate".to_string()];
+        let test_tokens = vec!["undefined".to_string(), "withasynccontext".to_string()];
+        assert!(should_bridge_patch_semantic_tokens(
+            "packages/@glimmer/reference/lib/iterable.ts",
+            "packages/ember-template-compiler/tests/plugins/assert-array-test.js",
+            &source_tokens,
+            &test_tokens,
+            1,
+            1,
+        ));
+    }
+
+    #[test]
+    fn patch_semantic_bridge_connects_small_source_cluster_with_aux() {
+        let a = vec!["setinssrsetupstate".to_string()];
+        let b = vec!["setinssrsetupstate".to_string()];
+        assert!(should_bridge_patch_semantic_tokens(
+            "packages/runtime-core/src/component.ts",
+            "packages/runtime-core/src/apiSetupHelpers.ts",
+            &a,
+            &b,
+            2,
+            1,
+        ));
+    }
+
+    #[test]
+    fn patch_semantic_bridge_rejects_large_source_cluster_with_single_aux() {
+        let source = vec!["studio".to_string(), "userfacingerror".to_string()];
+        let aux = vec!["studio".to_string(), "userfacingerror".to_string()];
+        assert!(!should_bridge_patch_semantic_tokens(
+            "packages/cli/src/Studio.ts",
+            "packages/cli/src/__tests__/Studio.vitest.ts",
+            &source,
+            &aux,
+            3,
+            1,
         ));
     }
 

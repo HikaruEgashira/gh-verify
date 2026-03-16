@@ -2,7 +2,8 @@ use anyhow::Result;
 use gh_verify_core::scope::{
     FileRole, classify_file_role, classify_scope, extract_feature_namespace, is_non_code_file,
     resolve_import, should_bridge_aux_to_source, should_bridge_colocated_sources,
-    should_bridge_fork_variants, should_bridge_test_fixture_pair,
+    should_bridge_fork_variants, should_bridge_patch_semantic_tokens,
+    should_bridge_test_fixture_pair,
 };
 use gh_verify_core::union_find::{NodeKind, UnionFind};
 use gh_verify_core::verdict::{RuleResult, Severity};
@@ -51,6 +52,7 @@ impl Rule for DetectUnscopedChange {
             .iter()
             .filter(|(_, f)| classify_file_role(&f.filename) != FileRole::Source)
             .count();
+        let source_count = code_files.len().saturating_sub(aux_count);
 
         // Build call graph
         let mut graph = UnionFind::new();
@@ -105,11 +107,13 @@ impl Rule for DetectUnscopedChange {
             .iter()
             .map(|(_, f)| f.filename.as_str())
             .collect();
-        if let Some(ns) = extract_feature_namespace(&paths_for_ns) {
-            if ns.member_indices.len() >= 2 {
-                let anchor = file_nodes[ns.member_indices[0]];
-                for &idx in &ns.member_indices[1..] {
-                    graph.merge(anchor, file_nodes[idx]);
+        if aux_count > 0 {
+            if let Some(ns) = extract_feature_namespace(&paths_for_ns) {
+                if ns.member_indices.len() >= 2 {
+                    let anchor = file_nodes[ns.member_indices[0]];
+                    for &idx in &ns.member_indices[1..] {
+                        graph.merge(anchor, file_nodes[idx]);
+                    }
                 }
             }
         }
@@ -121,10 +125,18 @@ impl Rule for DetectUnscopedChange {
                 let path_b = &code_files[idx_b].1.filename;
 
                 let should_merge = should_bridge_colocated_sources(path_a, path_b)
-                    || should_bridge_aux_to_source(path_a, path_b, aux_count)
-                    || should_bridge_aux_to_source(path_b, path_a, aux_count)
+                    || should_bridge_aux_to_source(path_a, path_b, source_count, aux_count)
+                    || should_bridge_aux_to_source(path_b, path_a, source_count, aux_count)
                     || should_bridge_fork_variants(path_a, path_b)
-                    || should_bridge_test_fixture_pair(path_a, path_b);
+                    || should_bridge_test_fixture_pair(path_a, path_b)
+                    || should_bridge_patch_semantic_tokens(
+                        path_a,
+                        path_b,
+                        &all_symbols[idx_a].identifiers,
+                        &all_symbols[idx_b].identifiers,
+                        source_count,
+                        aux_count,
+                    );
 
                 if should_merge {
                     graph.merge(file_nodes[idx_a], file_nodes[idx_b]);
