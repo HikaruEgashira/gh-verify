@@ -1,7 +1,7 @@
 <h1 align="center">ghverify</h1>
 
 <p align="center">
-  A SLSA-based SDLC verifier for GitHub pull requests.
+  A SLSA-based SDLC verifier for GitHub repositories.
 </p>
 
 <p align="center">
@@ -14,13 +14,14 @@
 
 ---
 
-**ghverify** checks whether a pull request follows healthy software development
-lifecycle practices. It runs as a `gh` CLI extension, built in Rust with
-core verification logic formally specified via [Creusot](https://github.com/creusot-rs/creusot).
+**ghverify** verifies that pull requests and releases follow healthy software
+development lifecycle practices. It runs as a `gh` CLI extension, built in
+Rust with core verification logic formally specified via
+[Creusot](https://github.com/creusot-rs/creusot).
 
-The tool analyzes PR diffs and metadata to detect anti-patterns — such as
-changes that span too many unrelated domains — and reports them as
-pass / warning / error with actionable suggestions.
+The tool analyzes diffs, metadata, and release artifacts to detect
+anti-patterns and reports them as pass / warning / error with actionable
+suggestions.
 
 > [!NOTE]
 >
@@ -28,10 +29,9 @@ pass / warning / error with actionable suggestions.
 
 ## Why?
 
-Pull requests are the primary unit of change in modern software development.
-ghverify automates SDLC health checks — scope, test coverage, approval integrity,
-commit hygiene — so teams get fast, consistent feedback without relying solely
-on human judgement.
+ghverify automates SDLC health checks — PR scope, test coverage, approval
+integrity, commit hygiene, release provenance — so teams get fast, consistent
+feedback without relying solely on human judgement.
 
 ## Rules
 
