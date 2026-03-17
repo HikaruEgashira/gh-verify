@@ -258,7 +258,11 @@ fn run_benchmarks(cli: &Cli) -> Result<()> {
             expected: case.expected,
             actual,
             pass,
-            target_rule: case.target_rule.as_deref().unwrap_or(DEFAULT_TARGET_RULE).to_owned(),
+            target_rule: case
+                .target_rule
+                .as_deref()
+                .unwrap_or(DEFAULT_TARGET_RULE)
+                .to_owned(),
         });
     }
 
@@ -417,7 +421,8 @@ fn discover_repo(
             .map(|file| file.filename.clone())
             .collect();
         let code_files = code_paths.len();
-        let observed = actual_from_rule_results(github, owner, repo, pr.number, DEFAULT_TARGET_RULE);
+        let observed =
+            actual_from_rule_results(github, owner, repo, pr.number, DEFAULT_TARGET_RULE);
 
         prs.push(DiscoveryPr {
             number: pr.number,
