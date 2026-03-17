@@ -6,18 +6,16 @@ use std::time::Instant;
 
 use anyhow::Result;
 use clap::{Args, Parser, Subcommand};
+use gh_verify::adapters;
 use gh_verify::bench::{self, BenchCase, BenchCaseSource};
 use gh_verify::config::Config;
 use gh_verify::github::client::GitHubClient;
 use gh_verify::github::pr_api;
 use gh_verify::ossinsight::{CollectionRepoRank, OssInsightClient, PullRequestCreator};
-use gh_verify::rules::{self, RuleContext};
+use gh_verify_core::profile::GateDecision;
 use gh_verify_core::scope::is_non_code_file;
 use gh_verify_core::verdict::Severity;
 use serde::Serialize;
-
-/// Default rule ID used when a benchmark case does not specify `target_rule`.
-const DEFAULT_TARGET_RULE: &str = "detect-unscoped-change";
 
 #[derive(Parser)]
 #[command(
@@ -253,16 +251,17 @@ fn run_benchmarks(cli: &Cli) -> Result<()> {
             );
         }
 
+        let target = case
+            .target_rule
+            .as_deref()
+            .unwrap_or("assessment")
+            .to_owned();
         results.push(CaseResult {
             id: case.id.clone(),
             expected: case.expected,
             actual,
             pass,
-            target_rule: case
-                .target_rule
-                .as_deref()
-                .unwrap_or(DEFAULT_TARGET_RULE)
-                .to_owned(),
+            target_rule: target,
         });
     }
 
@@ -421,8 +420,7 @@ fn discover_repo(
             .map(|file| file.filename.clone())
             .collect();
         let code_files = code_paths.len();
-        let observed =
-            actual_from_rule_results(github, owner, repo, pr.number, DEFAULT_TARGET_RULE);
+        let observed = assess_pr(github, owner, repo, pr.number);
 
         prs.push(DiscoveryPr {
             number: pr.number,
@@ -461,16 +459,14 @@ fn run_case(client: &GitHubClient, case: &BenchCase) -> ActualResult {
         None => return ActualResult::FetchError("invalid repo format".into()),
     };
 
-    let target = case.target_rule.as_deref().unwrap_or(DEFAULT_TARGET_RULE);
-    actual_from_rule_results(client, owner, repo, case.pr_number, target)
+    assess_pr(client, owner, repo, case.pr_number)
 }
 
-fn actual_from_rule_results(
+fn assess_pr(
     client: &GitHubClient,
     owner: &str,
     repo: &str,
     pr_number: u32,
-    target_rule: &str,
 ) -> ActualResult {
     let pr_files = match pr_api::get_pr_files(client, owner, repo, pr_number) {
         Ok(f) => f,
@@ -492,31 +488,32 @@ fn actual_from_rule_results(
         Err(e) => return ActualResult::FetchError(format!("commits: {e}")),
     };
 
-    let ctx = RuleContext::Pr {
-        pr_files,
-        pr_metadata,
-        pr_reviews,
-        pr_commits,
-        options: rules::PrRuleOptions::for_benchmark(),
-    };
+    let repo_full = format!("{owner}/{repo}");
+    let bundle = adapters::github::build_pull_request_bundle(
+        &repo_full,
+        pr_number,
+        &pr_metadata,
+        &pr_files,
+        &pr_reviews,
+        &pr_commits,
+    );
+    let report = gh_verify_core::assessment::assess_with_slsa_foundation(&bundle);
 
-    match rules::engine::run_all(&ctx) {
-        Ok(results) => {
-            // Filter to only the rule under test so that other rules
-            // (e.g. verify-pr-size) don't inflate the max severity.
-            let max_sev = results
-                .iter()
-                .filter(|r| r.rule_id == target_rule)
-                .map(|r| r.severity)
-                .max()
-                .unwrap_or(Severity::Pass);
-            match max_sev {
-                Severity::Pass => ActualResult::Pass,
-                Severity::Warning => ActualResult::Warning,
-                Severity::Error => ActualResult::Error,
-            }
-        }
-        Err(e) => ActualResult::FetchError(format!("engine: {e}")),
+    let max_decision = report
+        .outcomes
+        .iter()
+        .map(|o| o.decision)
+        .max_by_key(|d| match d {
+            GateDecision::Pass => 0,
+            GateDecision::Review => 1,
+            GateDecision::Fail => 2,
+        })
+        .unwrap_or(GateDecision::Pass);
+
+    match max_decision {
+        GateDecision::Pass => ActualResult::Pass,
+        GateDecision::Review => ActualResult::Warning,
+        GateDecision::Fail => ActualResult::Error,
     }
 }
 
@@ -543,7 +540,6 @@ fn build_report(results: Vec<CaseResult>) -> Report {
     };
     let macro_f1 = compute_macro_f1(&results);
 
-    // Compute per-rule breakdown
     let mut per_rule_cases: HashMap<String, Vec<&CaseResult>> = HashMap::new();
     for r in &results {
         per_rule_cases
@@ -560,7 +556,6 @@ fn build_report(results: Vec<CaseResult>) -> Report {
         } else {
             0.0
         };
-        // Build temporary CaseResults slice for macro_f1 calculation
         let owned: Vec<CaseResult> = cases
             .iter()
             .map(|r| CaseResult {
