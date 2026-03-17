@@ -1,0 +1,20 @@
+{
+  "id": "python-frozendict-copy-critical-section",
+  "description": "CPython avoids a frozendict copy critical section in one core file",
+  "repo": "python/cpython",
+  "pr_number": 145920,
+  "expected": "pass",
+  "rationale": "The PR changes only Objects/dictobject.c. A single changed code file is one connected component and should pass.",
+  "category": "single-file",
+  "domains_expected": [],
+  "ecosystem": "c",
+  "notes": "Real-world control case sourced from the Programming Language collection.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 10024,
+    "collection_name": "Programming Language",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-03-17T13:48:30Z"
+  },
+  "target_rule": "detect-unscoped-change"
+}

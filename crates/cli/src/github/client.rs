@@ -1,10 +1,16 @@
+use std::thread;
+use std::time::Duration;
+
 use anyhow::{Context, Result, bail};
 use reqwest::blocking::Client;
-use reqwest::header::{ACCEPT, AUTHORIZATION, HeaderMap, HeaderValue, USER_AGENT};
+use reqwest::header::{ACCEPT, AUTHORIZATION, HeaderMap, HeaderValue, RETRY_AFTER, USER_AGENT};
+use reqwest::{StatusCode, blocking::Response};
 
 use crate::config::Config;
 
 const MAX_BODY_SIZE: usize = 10 * 1024 * 1024; // 10MB
+const MAX_HTTP_ATTEMPTS: usize = 3;
+const INITIAL_RETRY_DELAY_MS: u64 = 250;
 
 pub struct GitHubClient {
     client: Client,
@@ -41,59 +47,79 @@ impl GitHubClient {
 
     /// GET request returning body as string.
     pub fn get(&self, path: &str) -> Result<String> {
-        let url = format!("{}{}", self.base_url, path);
-        let resp = self
-            .client
-            .get(&url)
-            .send()
-            .context("HTTP request failed")?;
-
-        let status = resp.status();
-        if !status.is_success() {
-            bail!(
-                "GitHub API error: {} {}",
-                status.as_u16(),
-                status.canonical_reason().unwrap_or("Unknown")
-            );
-        }
-
-        let body = resp.text().context("failed to read response body")?;
-        if body.len() > MAX_BODY_SIZE {
-            bail!("response too large: {} bytes", body.len());
-        }
+        let (body, _) = self.get_internal(path)?;
         Ok(body)
     }
 
     /// GET request with pagination support. Returns (body, next_url).
     pub fn get_with_link(&self, path: &str) -> Result<(String, Option<String>)> {
-        let url = format!("{}{}", self.base_url, path);
-        let resp = self
-            .client
-            .get(&url)
-            .send()
-            .context("HTTP request failed")?;
-
-        let status = resp.status();
-        if !status.is_success() {
-            bail!(
-                "GitHub API error: {} {}",
-                status.as_u16(),
-                status.canonical_reason().unwrap_or("Unknown")
-            );
-        }
-
-        let next_url = resp
-            .headers()
-            .get("link")
-            .and_then(|v| v.to_str().ok())
-            .and_then(|link| parse_link_next(link, &self.base_url));
-
-        let body = resp.text().context("failed to read response body")?;
-        if body.len() > MAX_BODY_SIZE {
-            bail!("response too large: {} bytes", body.len());
-        }
-        Ok((body, next_url))
+        self.get_internal(path)
     }
+
+    fn get_internal(&self, path: &str) -> Result<(String, Option<String>)> {
+        let url = format!("{}{}", self.base_url, path);
+        for attempt in 0..MAX_HTTP_ATTEMPTS {
+            match self.client.get(&url).send() {
+                Ok(resp) => {
+                    let status = resp.status();
+                    let retry_after_secs = parse_retry_after_secs(resp.headers().get(RETRY_AFTER));
+
+                    if !status.is_success() {
+                        if should_retry_status(status) && attempt + 1 < MAX_HTTP_ATTEMPTS {
+                            thread::sleep(retry_delay_for(attempt, retry_after_secs));
+                            continue;
+                        }
+
+                        bail!(
+                            "GitHub API error: {} {}",
+                            status.as_u16(),
+                            status.canonical_reason().unwrap_or("Unknown")
+                        );
+                    }
+
+                    return parse_success_response(resp, &self.base_url);
+                }
+                Err(_err) if attempt + 1 < MAX_HTTP_ATTEMPTS => {
+                    thread::sleep(retry_delay_for(attempt, None));
+                }
+                Err(err) => return Err(err).context("HTTP request failed"),
+            }
+        }
+
+        bail!("GitHub API request exhausted retry attempts")
+    }
+}
+
+fn parse_success_response(resp: Response, base_url: &str) -> Result<(String, Option<String>)> {
+    let next_url = resp
+        .headers()
+        .get("link")
+        .and_then(|v| v.to_str().ok())
+        .and_then(|link| parse_link_next(link, base_url));
+
+    let body = resp.text().context("failed to read response body")?;
+    if body.len() > MAX_BODY_SIZE {
+        bail!("response too large: {} bytes", body.len());
+    }
+
+    Ok((body, next_url))
+}
+
+fn should_retry_status(status: StatusCode) -> bool {
+    status == StatusCode::TOO_MANY_REQUESTS || status.is_server_error()
+}
+
+fn parse_retry_after_secs(value: Option<&HeaderValue>) -> Option<u64> {
+    value?.to_str().ok()?.parse::<u64>().ok()
+}
+
+fn retry_delay_for(attempt: usize, retry_after_secs: Option<u64>) -> Duration {
+    if let Some(seconds) = retry_after_secs {
+        return Duration::from_secs(seconds);
+    }
+
+    let multiplier = 1u64 << attempt.min(10);
+    Duration::from_millis(INITIAL_RETRY_DELAY_MS.saturating_mul(multiplier))
 }
 
 /// Extract the path for rel="next" from a Link header.
@@ -130,5 +156,31 @@ mod tests {
         let header = r#"<https://api.github.com/repos/o/r/pulls/1/files?page=5>; rel="last""#;
         let result = parse_link_next(header, "https://api.github.com");
         assert!(result.is_none());
+    }
+
+    #[test]
+    fn should_retry_server_errors_and_rate_limits() {
+        assert!(should_retry_status(StatusCode::INTERNAL_SERVER_ERROR));
+        assert!(should_retry_status(StatusCode::SERVICE_UNAVAILABLE));
+        assert!(should_retry_status(StatusCode::TOO_MANY_REQUESTS));
+        assert!(!should_retry_status(StatusCode::NOT_FOUND));
+    }
+
+    #[test]
+    fn parse_retry_after_secs_reads_integer_seconds() {
+        let value = HeaderValue::from_static("7");
+        assert_eq!(parse_retry_after_secs(Some(&value)), Some(7));
+    }
+
+    #[test]
+    fn retry_delay_for_uses_exponential_backoff() {
+        assert_eq!(retry_delay_for(0, None), Duration::from_millis(250));
+        assert_eq!(retry_delay_for(1, None), Duration::from_millis(500));
+        assert_eq!(retry_delay_for(2, None), Duration::from_millis(1000));
+    }
+
+    #[test]
+    fn retry_delay_for_prefers_retry_after() {
+        assert_eq!(retry_delay_for(2, Some(7)), Duration::from_secs(7));
     }
 }
