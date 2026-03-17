@@ -1,0 +1,20 @@
+{
+  "id": "rust-rollup-five-prs",
+  "description": "Rust rollup combines five unrelated compiler and CI changes",
+  "repo": "rust-lang/rust",
+  "pr_number": 153984,
+  "expected": "error",
+  "rationale": "This rollup intentionally merges five separate pull requests spanning compiler diagnostics, query plumbing, Dockerfiles, and unrelated UI tests. Those edits form 3+ disconnected components and should error.",
+  "category": "multi-component",
+  "domains_expected": [],
+  "ecosystem": "rust",
+  "notes": "Real-world negative case sourced from the Programming Language collection.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 10024,
+    "collection_name": "Programming Language",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-03-17T13:48:17Z"
+  },
+  "target_rule": "detect-unscoped-change"
+}
