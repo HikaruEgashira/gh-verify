@@ -52,7 +52,7 @@ Runtime implementations in `gh-verify-core` must match these verified predicates
 
 ### gh-verify (crates/cli/)
 
-I/O layer. Delegates all judgments to core.
+I/O layer. Delegates all judgments to core via the control/evidence assessment path.
 
 | Module | Purpose |
 |--------|---------|
@@ -60,29 +60,22 @@ I/O layer. Delegates all judgments to core.
 | `github/client.rs` | HTTP client with User-Agent |
 | `github/pr_api.rs` | PR files / metadata / reviews / commits fetch |
 | `github/release_api.rs` | Tag comparison, commit-PR association, reviews |
-| `rules/engine.rs` | Rule orchestration, `run_all` |
-| `rules/detect_unscoped_change.rs` | Scope rule (tree-sitter call graph analysis) |
-| `rules/detect_missing_test.rs` | Test coverage rule (LCOV + naming convention fallback) |
-| `rules/detect_stale_approval.rs` | Stale approval detection |
-| `rules/verify_issue_linkage.rs` | Issue/ticket linkage verification |
-| `rules/verify_pr_size.rs` | PR size threshold verification |
-| `rules/verify_conventional_commit.rs` | Conventional Commits format verification |
-| `rules/verify_release_integrity.rs` | SLSA release integrity rule |
-| `rules/verify_branch_protection.rs` | Branch protection compliance rule |
-| `output/` | human / json formatters |
+| `adapters/github.rs` | GitHub API → `EvidenceBundle` mapping |
+| `output/` | human / json formatters for `AssessmentReport` |
 | `util/symbol_extractor.rs` | tree-sitter symbol extraction |
 
 | Change | Where | Registration |
 |---|---|---|
-| New rule | `crates/cli/src/rules/<name>.rs` + impl `Rule` trait | Add to `engine.rs` `run_all` Vec |
+| New control | `crates/core/src/controls/<name>.rs` + impl `Control` trait | Add to `controls/mod.rs` `slsa_foundation_controls` |
 | New subcommand | Add variant to `Commands` enum in `main.rs` | clap handles dispatch |
 | New output format | `crates/cli/src/output/<name>.rs` | Add case in `output/mod.rs` |
 | New API endpoint | `crates/cli/src/github/<name>.rs` | None |
+| New adapter | `crates/cli/src/adapters/<name>.rs` | None |
 
 ## Naming
 
-- Rule ID: kebab-case (`detect-unscoped-change`)
-- File name: snake_case (`detect_unscoped_change.rs`)
+- Control ID: PascalCase enum variant (`ReviewIndependence`)
+- File name: snake_case (`review_independence.rs`)
 - Crate name: kebab-case (`gh-verify-core`)
 
 ## Reusable Actions
@@ -97,15 +90,15 @@ Two composite actions under `action/` for use in GitHub Actions workflows:
 Usage from other repositories:
 
 ```yaml
-- uses: HikaruEgashira/gh-verify/action/check-pr@v0.3.1
+- uses: HikaruEgashira/gh-verify/action/check-pr@v0.4.0
   with:
     pr-number: ${{ github.event.pull_request.number }}
 ```
 
 ## Exit Codes
 
-- `0`: all rules pass / warnings only
-- `1`: one or more rules returned error
+- `0`: all control outcomes are Pass/Review
+- `1`: one or more control outcomes are Fail
 
 ## PR Template
 
@@ -115,8 +108,8 @@ Usage from other repositories:
 ## How
 ## Verification
 - [ ] `devenv tasks run ghverify:test` passes
-- [ ] Existing rules still work
-- [ ] For new rules: verified pass/warning/error cases
+- [ ] Existing controls still work
+- [ ] For new controls: verified pass/fail/indeterminate cases
 - [ ] `--format json` output is valid JSON
 - [ ] `devenv tasks run ghverify:verify` passes for affected predicates
 ```

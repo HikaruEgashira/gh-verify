@@ -1,4 +1,3 @@
-use std::collections::HashSet;
 use std::process;
 
 use anyhow::{Context, Result, bail};
@@ -9,8 +8,6 @@ use gh_verify::config::Config;
 use gh_verify::github;
 use gh_verify::github::client::GitHubClient;
 use gh_verify::output;
-use gh_verify::rules;
-use gh_verify::rules::engine;
 
 const VERSION: &str = env!("GH_VERIFY_VERSION");
 
@@ -25,7 +22,7 @@ struct Cli {
 enum Commands {
     /// Verify a pull request
     Pr {
-        /// PR number or "list-rules"
+        /// PR number
         arg: String,
         /// Output format (human or json)
         #[arg(long, default_value = "human")]
@@ -33,18 +30,6 @@ enum Commands {
         /// Repository in OWNER/REPO format
         #[arg(long)]
         repo: Option<String>,
-        /// Disable detect-missing-test rule
-        #[arg(long)]
-        no_detect_missing_test: bool,
-        /// Additional test filename pattern (comma-separated, `*` placeholder)
-        #[arg(long, value_delimiter = ',')]
-        test_pattern: Vec<String>,
-        /// Path to LCOV coverage report file
-        #[arg(long)]
-        coverage: Option<String>,
-        /// Use legacy rule engine instead of control/evidence assessment
-        #[arg(long)]
-        legacy_rules: bool,
     },
     /// Verify release integrity
     Release {
@@ -56,9 +41,6 @@ enum Commands {
         /// Repository in OWNER/REPO format
         #[arg(long)]
         repo: Option<String>,
-        /// Use legacy rule engine instead of control/evidence assessment
-        #[arg(long)]
-        legacy_rules: bool,
     },
 }
 
@@ -77,29 +59,12 @@ fn run() -> Result<()> {
             arg,
             format,
             repo: repo_override,
-            no_detect_missing_test,
-            test_pattern,
-            coverage,
-            legacy_rules,
         } => {
-            if arg == "list-rules" {
-                println!("Available rules:");
-                for id in engine::list_rule_ids() {
-                    println!("  {id}");
-                }
-                return Ok(());
-            }
-
             let pr_number: u32 = arg.parse().context("invalid PR number")?;
             let fmt = output::parse_format(&format)?;
             let cfg = Config::load()?;
             let (owner, repo_name) = resolve_repo(&cfg, repo_override.as_deref())?;
             let client = GitHubClient::new(&cfg)?;
-
-            let coverage_report = coverage
-                .map(|path| std::fs::read_to_string(&path))
-                .transpose()
-                .context("failed to read coverage report")?;
 
             let pr_files = github::pr_api::get_pr_files(&client, &owner, &repo_name, pr_number)
                 .context("failed to fetch PR files")?;
@@ -111,44 +76,23 @@ fn run() -> Result<()> {
             let pr_commits = github::pr_api::get_pr_commits(&client, &owner, &repo_name, pr_number)
                 .context("failed to fetch PR commits")?;
 
-            if legacy_rules {
-                let ctx = rules::RuleContext::Pr {
-                    pr_files,
-                    pr_metadata,
-                    pr_reviews,
-                    pr_commits,
-                    options: rules::PrRuleOptions {
-                        detect_missing_test: !no_detect_missing_test,
-                        test_patterns: test_pattern,
-                        coverage_report,
-                    },
-                };
-                let results = engine::run_all(&ctx)?;
-                output::print(fmt, &results)?;
-
-                if results.iter().any(|r| r.severity.is_failing()) {
-                    process::exit(1);
-                }
-            } else {
-                let repo_full = format!("{owner}/{repo_name}");
-                let bundle = adapters::github::build_pull_request_bundle(
-                    &repo_full,
-                    pr_number,
-                    &pr_metadata,
-                    &pr_files,
-                    &pr_reviews,
-                    &pr_commits,
-                );
-                let report = gh_verify_core::assessment::assess_with_slsa_foundation(&bundle);
-                output::print_assessment(fmt, &report)?;
-                exit_if_assessment_fails(&report);
-            }
+            let repo_full = format!("{owner}/{repo_name}");
+            let bundle = adapters::github::build_pull_request_bundle(
+                &repo_full,
+                pr_number,
+                &pr_metadata,
+                &pr_files,
+                &pr_reviews,
+                &pr_commits,
+            );
+            let report = gh_verify_core::assessment::assess_with_slsa_foundation(&bundle);
+            output::print(fmt, &report)?;
+            exit_if_assessment_fails(&report);
         }
         Commands::Release {
             arg,
             format,
             repo: repo_override,
-            legacy_rules,
         } => {
             let fmt = output::parse_format(&format)?;
             let cfg = Config::load()?;
@@ -170,9 +114,7 @@ fn run() -> Result<()> {
             }
             println!("Found {} commits", commits.len());
 
-            // Fetch PR associations for each commit
             let mut commit_prs = Vec::new();
-            let mut seen_prs = HashSet::new();
 
             for c in &commits {
                 let prs =
@@ -187,63 +129,23 @@ fn run() -> Result<()> {
                             vec![]
                         });
 
-                for pr in &prs {
-                    seen_prs.insert(pr.number);
-                }
-
                 commit_prs.push(adapters::github::GitHubCommitPullAssociation {
                     commit_sha: c.sha.clone(),
                     pull_requests: prs,
                 });
             }
 
-            if legacy_rules {
-                // Fetch reviews for each unique PR
-                let mut pr_reviews = Vec::new();
-                for pr_number in &seen_prs {
-                    let pr_author = find_pr_author(&commit_prs, *pr_number);
-
-                    let reviews = github::release_api::get_pr_reviews(
-                        &client, &owner, &repo_name, *pr_number,
-                    )
-                    .unwrap_or_else(|err| {
-                        eprintln!("Warning: failed to fetch reviews for PR #{pr_number}: {err}");
-                        vec![]
-                    });
-
-                    pr_reviews.push(rules::PrReviewSet {
-                        pr_number: *pr_number,
-                        pr_author,
-                        reviews,
-                    });
-                }
-
-                let ctx = rules::RuleContext::Release {
-                    base_tag,
-                    head_tag,
-                    commits,
-                    commit_prs,
-                    pr_reviews,
-                };
-                let results = engine::run_all(&ctx)?;
-                output::print(fmt, &results)?;
-
-                if results.iter().any(|r| r.severity.is_failing()) {
-                    process::exit(1);
-                }
-            } else {
-                let repo_full = format!("{owner}/{repo_name}");
-                let bundle = adapters::github::build_release_bundle(
-                    &repo_full,
-                    &base_tag,
-                    &head_tag,
-                    &commits,
-                    &commit_prs,
-                );
-                let report = gh_verify_core::assessment::assess_with_slsa_foundation(&bundle);
-                output::print_assessment(fmt, &report)?;
-                exit_if_assessment_fails(&report);
-            }
+            let repo_full = format!("{owner}/{repo_name}");
+            let bundle = adapters::github::build_release_bundle(
+                &repo_full,
+                &base_tag,
+                &head_tag,
+                &commits,
+                &commit_prs,
+            );
+            let report = gh_verify_core::assessment::assess_with_slsa_foundation(&bundle);
+            output::print(fmt, &report)?;
+            exit_if_assessment_fails(&report);
         }
     }
 
@@ -295,18 +197,4 @@ fn exit_if_assessment_fails(report: &gh_verify_core::assessment::AssessmentRepor
     {
         process::exit(1);
     }
-}
-
-fn find_pr_author(
-    commit_prs: &[adapters::github::GitHubCommitPullAssociation],
-    pr_number: u32,
-) -> String {
-    for assoc in commit_prs {
-        for pr in &assoc.pull_requests {
-            if pr.number == pr_number {
-                return pr.user.login.clone();
-            }
-        }
-    }
-    "unknown".to_string()
 }
