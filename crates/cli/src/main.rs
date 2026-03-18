@@ -120,11 +120,7 @@ fn run() -> Result<()> {
                 let prs =
                     github::release_api::get_commit_pulls(&client, &owner, &repo_name, &c.sha)
                         .unwrap_or_else(|err| {
-                            let short = if c.sha.len() >= 7 {
-                                &c.sha[..7]
-                            } else {
-                                &c.sha
-                            };
+                            let short = gh_verify_core::integrity::short_sha(&c.sha);
                             eprintln!("Warning: failed to fetch PRs for commit {short}: {err}");
                             vec![]
                         });

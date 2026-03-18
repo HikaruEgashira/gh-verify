@@ -228,24 +228,6 @@ pub fn classify_pr_size(
 // the Creusot proof boundary. They model composition logic that sits
 // between GitHub API data and the core predicates above.
 
-/// Four-eyes check with author knowledge requirement.
-///
-/// Models the composition in `integrity::has_independent_approver`:
-/// - When `known_author_count == 0`, commit authorship is unknown and
-///   the four-eyes principle **cannot** be verified → MUST fail.
-/// - When authors are known, delegates to `is_approver_independent`.
-///
-/// This closes Red Team attack vector #3: a GitHub App commit with
-/// `author: null` would produce `known_author_count == 0`, and the
-/// attacker could then self-approve. This predicate proves that the
-/// composition correctly rejects unknown authorship.
-#[ensures(known_author_count == 0usize ==> result == false)]
-#[ensures(known_author_count > 0usize && has_independent ==> result == true)]
-#[ensures(known_author_count > 0usize && !has_independent ==> result == false)]
-pub fn four_eyes_with_known_authors(known_author_count: usize, has_independent: bool) -> bool {
-    known_author_count > 0 && has_independent
-}
-
 /// Branch protection: per-PR unprotected branch violation.
 ///
 /// Models `classify_branch_compliance` at the per-PR level. A merged PR

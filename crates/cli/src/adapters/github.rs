@@ -111,7 +111,6 @@ pub fn map_pull_request_evidence(
         .map(|reference| WorkItemRef {
             system: map_issue_ref_kind(&reference.kind).to_string(),
             value: reference.value,
-            url: None,
         })
         .collect(),
     );
@@ -231,10 +230,6 @@ mod tests {
             },
             &[PrFile {
                 filename: "src/lib.rs".to_string(),
-                status: "modified".to_string(),
-                additions: 10,
-                deletions: 2,
-                changes: 12,
                 patch: None,
             }],
             &[Review {
@@ -326,12 +321,10 @@ mod tests {
                 commit_sha: "aaa111".to_string(),
                 pull_requests: vec![PullRequestSummary {
                     number: 1,
-                    state: "closed".to_string(),
                     merged_at: Some("2026-03-15T00:00:00Z".to_string()),
                     user: PrUser {
                         login: "dev".to_string(),
                     },
-                    base: None,
                 }],
             },
             // Association for a commit NOT in the range — should be excluded
@@ -339,12 +332,10 @@ mod tests {
                 commit_sha: "bbb222".to_string(),
                 pull_requests: vec![PullRequestSummary {
                     number: 99,
-                    state: "closed".to_string(),
                     merged_at: Some("2026-03-15T00:00:00Z".to_string()),
                     user: PrUser {
                         login: "other".to_string(),
                     },
-                    base: None,
                 }],
             },
             // Duplicate PR #1 on a different in-range association — should be deduped
@@ -352,12 +343,10 @@ mod tests {
                 commit_sha: "aaa111".to_string(),
                 pull_requests: vec![PullRequestSummary {
                     number: 1,
-                    state: "closed".to_string(),
                     merged_at: Some("2026-03-15T00:00:00Z".to_string()),
                     user: PrUser {
                         login: "dev".to_string(),
                     },
-                    base: None,
                 }],
             },
         ];

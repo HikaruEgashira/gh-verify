@@ -14,8 +14,8 @@ devenv tasks run ghverify:bench          # Benchmarks (uses GitHub API)
 devenv tasks run ghverify:dist           # Build release binary for distribution
 devenv tasks run ghverify:fmt            # Format + clippy lint
 devenv tasks run ghverify:docs            # Generate rule docs from tests/specs → site/
-./scripts/verify.sh                      # Creusot formal verification (all)
-./scripts/verify.sh <predicate_name>     # Creusot verify single predicate
+devenv tasks run ghverify:verify          # Creusot formal verification (all)
+devenv tasks run ghverify:verify-one <name>  # Creusot verify single predicate
 ```
 
 ## Architecture
@@ -23,7 +23,7 @@ devenv tasks run ghverify:docs            # Generate rule docs from tests/specs 
 Three-crate workspace:
 
 - `gh-verify-core` — pure runtime logic (serde only)
-- `gh-verify` — CLI with I/O (reqwest, clap, tree-sitter)
+- `gh-verify` — CLI with I/O (reqwest, clap)
 - `gh-verify-verif` — Creusot verification targets (creusot-std only)
 
 ### gh-verify-core (crates/core/)
@@ -36,13 +36,7 @@ Pure verification logic. No I/O, no unsafe.
 | `integrity.rs` | SLSA release checks (signatures, mutual approval, PR coverage) |
 | `scope.rs` | PR scope classification by connected components |
 | `union_find.rs` | Disjoint set union for call graph connectivity |
-| `coverage.rs` | LCOV parser, patch line extraction, coverage analysis |
-| `test_coverage.rs` | Test file pair heuristics (naming convention fallback) |
-| `approval.rs` | Stale approval detection (timestamp comparison) |
-| `branch_protection.rs` | Branch protection compliance checks |
-| `conventional.rs` | Conventional Commits format validation |
 | `linkage.rs` | Issue/ticket reference extraction from PR body |
-| `size.rs` | PR size classification by line/file count |
 
 ### gh-verify-verif (crates/verif/)
 
@@ -62,7 +56,6 @@ I/O layer. Delegates all judgments to core via the control/evidence assessment p
 | `github/release_api.rs` | Tag comparison, commit-PR association, reviews |
 | `adapters/github.rs` | GitHub API → `EvidenceBundle` mapping |
 | `output/` | human / json formatters for `AssessmentReport` |
-| `util/symbol_extractor.rs` | tree-sitter symbol extraction |
 
 | Change | Where | Registration |
 |---|---|---|

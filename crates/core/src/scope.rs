@@ -354,7 +354,7 @@ pub fn extract_feature_namespace(paths: &[&str]) -> Option<FeatureNamespace> {
             continue;
         }
         if indices.len() > best_count
-            || (indices.len() == best_count && best.map_or(true, |(t, _)| *token < t))
+            || (indices.len() == best_count && best.is_none_or(|(t, _)| *token < t))
         {
             best_count = indices.len();
             best = Some((token, indices));
@@ -398,9 +398,7 @@ pub fn extract_feature_namespace(paths: &[&str]) -> Option<FeatureNamespace> {
             if intersection.len() >= threshold
                 && (intersection.len() > best_bigram_count
                     || (intersection.len() == best_bigram_count
-                        && best_bigram
-                            .as_ref()
-                            .map_or(true, |(t, _)| short_keys[i] < *t)))
+                        && best_bigram.as_ref().is_none_or(|(t, _)| short_keys[i] < *t)))
             {
                 best_bigram_count = intersection.len();
                 let label = if short_keys[i].len() >= short_keys[j].len() {
@@ -436,11 +434,11 @@ fn absorb_related_files(ns: &mut FeatureNamespace, all_tokens: &[Vec<String>], n
         .map(|t| t.as_str())
         .collect();
 
-    for i in 0..n {
+    for (i, tokens) in all_tokens.iter().enumerate().take(n) {
         if ns.member_indices.contains(&i) {
             continue;
         }
-        let shares_token = all_tokens[i]
+        let shares_token = tokens
             .iter()
             .any(|t| t.len() >= 5 && !is_structural_token(t) && member_tokens.contains(t.as_str()));
         if shares_token {

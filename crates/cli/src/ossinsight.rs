@@ -13,7 +13,11 @@ impl OssInsightClient {
     pub fn new() -> Result<Self> {
         let mut headers = HeaderMap::new();
         headers.insert(ACCEPT, HeaderValue::from_static("application/json"));
-        headers.insert(USER_AGENT, HeaderValue::from_static("gh-verify/0.2.0"));
+        headers.insert(
+            USER_AGENT,
+            HeaderValue::from_str(&format!("gh-verify/{}", env!("CARGO_PKG_VERSION")))
+                .context("invalid version for User-Agent")?,
+        );
 
         let client = Client::builder()
             .default_headers(headers)

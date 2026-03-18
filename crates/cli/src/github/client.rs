@@ -5,10 +5,12 @@ use anyhow::{Context, Result, bail};
 use reqwest::blocking::Client;
 use reqwest::header::{ACCEPT, AUTHORIZATION, HeaderMap, HeaderValue, RETRY_AFTER, USER_AGENT};
 use reqwest::{StatusCode, blocking::Response};
+use serde::de::DeserializeOwned;
 
 use crate::config::Config;
 
 const MAX_BODY_SIZE: usize = 10 * 1024 * 1024; // 10MB
+const MAX_PAGES: usize = 10;
 const MAX_HTTP_ATTEMPTS: usize = 3;
 const INITIAL_RETRY_DELAY_MS: u64 = 250;
 
@@ -32,7 +34,11 @@ impl GitHubClient {
             "X-GitHub-Api-Version",
             HeaderValue::from_static("2022-11-28"),
         );
-        headers.insert(USER_AGENT, HeaderValue::from_static("gh-verify/0.2.0"));
+        headers.insert(
+            USER_AGENT,
+            HeaderValue::from_str(&format!("gh-verify/{}", env!("CARGO_PKG_VERSION")))
+                .context("invalid version for User-Agent")?,
+        );
 
         let client = Client::builder()
             .default_headers(headers)
@@ -54,6 +60,26 @@ impl GitHubClient {
     /// GET request with pagination support. Returns (body, next_url).
     pub fn get_with_link(&self, path: &str) -> Result<(String, Option<String>)> {
         self.get_internal(path)
+    }
+
+    /// Paginate a GitHub API endpoint, collecting all items across pages.
+    pub fn paginate<T: DeserializeOwned>(&self, initial_path: &str) -> Result<Vec<T>> {
+        let mut all_items: Vec<T> = Vec::new();
+        let mut current_path = initial_path.to_string();
+
+        for _ in 0..MAX_PAGES {
+            let (body, next_path) = self.get_with_link(&current_path)?;
+            let items: Vec<T> =
+                serde_json::from_str(&body).context("failed to parse paginated response")?;
+            all_items.extend(items);
+
+            match next_path {
+                Some(next) => current_path = next,
+                None => break,
+            }
+        }
+
+        Ok(all_items)
     }
 
     fn get_internal(&self, path: &str) -> Result<(String, Option<String>)> {

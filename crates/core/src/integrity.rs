@@ -14,6 +14,11 @@ use crate::verdict::{RuleResult, Severity};
 
 const RULE_ID: &str = "verify-release-integrity";
 
+/// Truncate a SHA to 7 characters for display.
+pub fn short_sha(sha: &str) -> &str {
+    if sha.len() >= 7 { &sha[..7] } else { sha }
+}
+
 // --- Input data structures (I/O-free, owned) ---
 
 /// A commit with its verification status.
@@ -30,11 +35,7 @@ pub struct Commit {
 
 impl Commit {
     pub fn short_sha(&self) -> &str {
-        if self.sha.len() >= 7 {
-            &self.sha[..7]
-        } else {
-            &self.sha
-        }
+        short_sha(&self.sha)
     }
 
     /// A commit is a merge iff it has 2+ parents.
@@ -249,13 +250,7 @@ pub fn check_pr_coverage(assocs: &[CommitPrAssoc]) -> RuleResult {
 
     let short_shas: Vec<String> = uncovered
         .iter()
-        .map(|a| {
-            if a.commit_sha.len() >= 7 {
-                a.commit_sha[..7].to_string()
-            } else {
-                a.commit_sha.clone()
-            }
-        })
+        .map(|a| short_sha(&a.commit_sha).to_string())
         .collect();
 
     RuleResult {

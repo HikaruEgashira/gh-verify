@@ -89,20 +89,20 @@ fn extract_github_issues(body: &str, refs: &mut Vec<IssueReference>) {
                 while j < chars.len() && chars[j] == ' ' {
                     j += 1;
                 }
-                if j < chars.len() && chars[j] == '#' {
-                    if let Some((num_str, end)) = parse_digits(&body_chars, j + 1) {
-                        // Reconstruct keyword from original chars (preserves casing)
-                        let kw_original: String =
-                            body_chars[i..i + kw_chars.len()].iter().collect();
-                        let full = format!("{} #{}", kw_original, num_str);
-                        refs.push(IssueReference {
-                            kind: IssueRefKind::GitHubIssue,
-                            value: full,
-                        });
-                        i = end;
-                        matched_keyword = true;
-                        break;
-                    }
+                if j < chars.len()
+                    && chars[j] == '#'
+                    && let Some((num_str, end)) = parse_digits(&body_chars, j + 1)
+                {
+                    // Reconstruct keyword from original chars (preserves casing)
+                    let kw_original: String = body_chars[i..i + kw_chars.len()].iter().collect();
+                    let full = format!("{kw_original} #{num_str}");
+                    refs.push(IssueReference {
+                        kind: IssueRefKind::GitHubIssue,
+                        value: full,
+                    });
+                    i = end;
+                    matched_keyword = true;
+                    break;
                 }
             }
         }
@@ -114,15 +114,13 @@ fn extract_github_issues(body: &str, refs: &mut Vec<IssueReference>) {
         // Bare #N (not preceded by alphanumeric or &)
         if chars[i] == '#' {
             let preceded_ok = i == 0 || (!chars[i - 1].is_alphanumeric() && chars[i - 1] != '&');
-            if preceded_ok {
-                if let Some((num_str, end)) = parse_digits(&body_chars, i + 1) {
-                    refs.push(IssueReference {
-                        kind: IssueRefKind::GitHubIssue,
-                        value: format!("#{}", num_str),
-                    });
-                    i = end;
-                    continue;
-                }
+            if preceded_ok && let Some((num_str, end)) = parse_digits(&body_chars, i + 1) {
+                refs.push(IssueReference {
+                    kind: IssueRefKind::GitHubIssue,
+                    value: format!("#{num_str}"),
+                });
+                i = end;
+                continue;
             }
         }
 

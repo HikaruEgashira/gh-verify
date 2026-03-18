@@ -114,7 +114,6 @@ impl fmt::Display for ChangeRequestId {
 pub struct WorkItemRef {
     pub system: String,
     pub value: String,
-    pub url: Option<String>,
 }
 
 /// A file or artifact that was modified in a change request.

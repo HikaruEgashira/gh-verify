@@ -26,6 +26,7 @@ struct ProofAttestation {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[allow(dead_code)]
 enum ProofStatus {
     Proven,
     Partial,
@@ -389,6 +390,7 @@ fn parse_rule_metadata(path: &Path) -> (String, String, String) {
 /// Build two maps by scanning CLI rule files for `use` statements:
 ///   1. core module name → rule ID  (e.g. "scope" → "detect-unscoped-change")
 ///   2. function name → rule ID     (e.g. "classify_scope" → "detect-unscoped-change")
+///
 /// Returns:
 ///   - module_map: core module name → Vec<rule_id> (for test file mapping)
 ///   - fn_map: function name → rule_id (only unique mappings, for spec mapping)
@@ -580,6 +582,7 @@ fn collect_rules(root: &Path) -> BTreeMap<String, RuleInfo> {
 
     // 4. Collect verif specs, attach proof attestations, and map to rules
     let verif_path = root.join("crates/verif/src/lib.rs");
+    let mirror_re = Regex::new(r"gh-verify-core::(\w+)").unwrap();
     for mut spec in parse_verif_specs(&verif_path) {
         spec.proof = parse_proof_attestation(root, &spec.fn_name);
 
@@ -618,7 +621,6 @@ fn collect_rules(root: &Path) -> BTreeMap<String, RuleInfo> {
             rule.specs.push(spec);
         } else {
             // Strategy 4: check verif doc comment for "Mirrors `gh-verify-core::module::fn`"
-            let mirror_re = Regex::new(r"gh-verify-core::(\w+)").unwrap();
             let mut matched = false;
             if let Some(cap) = mirror_re.captures(&spec.doc) {
                 let module = &cap[1];
@@ -634,9 +636,11 @@ fn collect_rules(root: &Path) -> BTreeMap<String, RuleInfo> {
             // Strategy 5: keyword-based heuristic for verif lemmas
             if !matched {
                 let name = &spec.fn_name;
-                let inferred = if name.contains("four_eyes") || name.contains("approver") {
-                    Some("verify-release-integrity")
-                } else if name.contains("signature") || name.contains("coverage") {
+                let inferred = if name.contains("four_eyes")
+                    || name.contains("approver")
+                    || name.contains("signature")
+                    || name.contains("coverage")
+                {
                     Some("verify-release-integrity")
                 } else if name.contains("compliance") || name.contains("conventional") {
                     Some("verify-conventional-commit")
@@ -706,9 +710,9 @@ fn render_inline_md(s: &str) -> String {
 }
 
 fn render_html(rules: &BTreeMap<String, RuleInfo>) -> String {
-    let total_specs: usize = rules.values().map(|r| r.specs.len()).sum();
-    let total_tests: usize = rules.values().map(|r| r.tests.len()).sum();
-    let proven_specs: usize = rules
+    let _total_specs: usize = rules.values().map(|r| r.specs.len()).sum();
+    let _total_tests: usize = rules.values().map(|r| r.tests.len()).sum();
+    let _proven_specs: usize = rules
         .values()
         .flat_map(|r| &r.specs)
         .filter(|s| {
@@ -836,9 +840,9 @@ fn render_rule(html: &mut String, rule: &RuleInfo) {
     ));
 
     if !rule.description.is_empty() {
-        write!(
+        writeln!(
             html,
-            "<p class=\"rule-desc\">{}</p>\n",
+            "<p class=\"rule-desc\">{}</p>",
             render_inline_md(&rule.description)
         )
         .unwrap();
@@ -854,9 +858,9 @@ fn render_rule(html: &mut String, rule: &RuleInfo) {
     }
 
     if !rule.tests.is_empty() {
-        write!(
+        writeln!(
             html,
-            "<h3>Behavioral Specification <span class=\"badge badge-test\">{} tests</span></h3>\n",
+            "<h3>Behavioral Specification <span class=\"badge badge-test\">{} tests</span></h3>",
             rule.tests.len()
         )
         .unwrap();
@@ -873,9 +877,9 @@ fn render_rule(html: &mut String, rule: &RuleInfo) {
 }
 
 fn render_spec(html: &mut String, spec: &VerifSpec) {
-    write!(
+    writeln!(
         html,
-        "<div class=\"spec-block\">\n<h4><code>{sig}</code></h4>\n",
+        "<div class=\"spec-block\">\n<h4><code>{sig}</code></h4>",
         sig = esc(&spec.signature),
     )
     .unwrap();
@@ -900,9 +904,9 @@ fn render_spec(html: &mut String, spec: &VerifSpec) {
     }
 
     if !spec.doc.is_empty() {
-        write!(
+        writeln!(
             html,
-            "<p class=\"spec-doc\">{}</p>\n",
+            "<p class=\"spec-doc\">{}</p>",
             render_inline_md(&spec.doc)
         )
         .unwrap();
@@ -910,18 +914,18 @@ fn render_spec(html: &mut String, spec: &VerifSpec) {
 
     html.push_str("<div class=\"ensures-list\">\n");
     for e in &spec.ensures {
-        write!(
+        writeln!(
             html,
-            "<pre class=\"ensures\"><code>#[ensures({e})]</code></pre>\n",
+            "<pre class=\"ensures\"><code>#[ensures({e})]</code></pre>",
             e = esc(e)
         )
         .unwrap();
     }
     html.push_str("</div>\n");
 
-    write!(
+    writeln!(
         html,
-        "<details><summary>Implementation</summary><pre><code>{body}</code></pre></details>\n",
+        "<details><summary>Implementation</summary><pre><code>{body}</code></pre></details>",
         body = esc(&spec.body)
     )
     .unwrap();
@@ -946,13 +950,13 @@ fn render_decision_table(html: &mut String, tests: &[TestCase]) {
         let name = test.name.replace('_', " ");
         let key_assert = test.assertions.first().map(|a| esc(a)).unwrap_or_default();
 
-        write!(
+        writeln!(
             html,
             "<tr>\
              <td>{name}</td>\
              <td><span class=\"sev-badge {cls}\">{label}</span></td>\
              <td><code>{assert}</code></td>\
-             </tr>\n",
+             </tr>",
             name = esc(&name),
             cls = sev.css_class(),
             label = sev.label(),
@@ -993,16 +997,16 @@ fn render_test(html: &mut String, test: &TestCase) {
     )
     .unwrap();
 
-    write!(
+    writeln!(
         html,
-        "<pre class=\"test-body\"><code>{body}</code></pre>\n",
+        "<pre class=\"test-body\"><code>{body}</code></pre>",
         body = esc(&test.body)
     )
     .unwrap();
 
-    write!(
+    writeln!(
         html,
-        "<p class=\"source-link\">{src}</p>\n</details>\n",
+        "<p class=\"source-link\">{src}</p>\n</details>",
         src = esc(&test.source_file)
     )
     .unwrap();

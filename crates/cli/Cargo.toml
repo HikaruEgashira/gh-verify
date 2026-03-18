@@ -25,9 +25,3 @@ anyhow = { workspace = true }
 clap = { workspace = true }
 reqwest = { workspace = true }
 colored = { workspace = true }
-regex = { workspace = true }
-tree-sitter = { workspace = true }
-tree-sitter-typescript = { workspace = true }
-tree-sitter-python = { workspace = true }
-tree-sitter-go = { workspace = true }
-streaming-iterator = "0.1"

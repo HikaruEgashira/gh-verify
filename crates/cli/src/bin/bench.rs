@@ -462,12 +462,7 @@ fn run_case(client: &GitHubClient, case: &BenchCase) -> ActualResult {
     assess_pr(client, owner, repo, case.pr_number)
 }
 
-fn assess_pr(
-    client: &GitHubClient,
-    owner: &str,
-    repo: &str,
-    pr_number: u32,
-) -> ActualResult {
+fn assess_pr(client: &GitHubClient, owner: &str, repo: &str, pr_number: u32) -> ActualResult {
     let pr_files = match pr_api::get_pr_files(client, owner, repo, pr_number) {
         Ok(f) => f,
         Err(e) => return ActualResult::FetchError(format!("files: {e}")),

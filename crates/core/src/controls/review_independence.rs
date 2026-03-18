@@ -97,9 +97,7 @@ fn evaluate_change(change: &GovernedChange) -> ControlFinding {
         if approval.disposition != ApprovalDisposition::Approved {
             return false;
         }
-        let is_commit_author = authors
-            .iter()
-            .any(|author| *author == approval.actor.as_str());
+        let is_commit_author = authors.contains(&approval.actor.as_str());
         let is_pr_author = approval.actor == requester;
         is_approver_independent(is_commit_author, is_pr_author)
     });

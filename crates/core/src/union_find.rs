@@ -141,10 +141,7 @@ impl UnionFind {
 
         for (i, file_index) in file_nodes {
             let root = self.find(i as u32);
-            comp_map
-                .entry(root)
-                .or_insert_with(Vec::new)
-                .push(file_index);
+            comp_map.entry(root).or_default().push(file_index);
         }
 
         comp_map.into_values().collect()

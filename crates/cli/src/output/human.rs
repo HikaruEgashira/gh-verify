@@ -42,10 +42,7 @@ pub fn print(report: &AssessmentReport) -> Result<()> {
     }
 
     println!();
-    println!(
-        "Summary: {} pass, {} review, {} fail",
-        pass_count, review_count, fail_count
-    );
+    println!("Summary: {pass_count} pass, {review_count} review, {fail_count} fail");
 
     Ok(())
 }
