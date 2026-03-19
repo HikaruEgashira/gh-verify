@@ -333,4 +333,239 @@ mod tests {
             );
         }
     }
+
+    // ================================================================
+    // Mutation-hardening tests
+    // ================================================================
+
+    // --- add_node deduplication mutations ---
+
+    #[test]
+    fn dedup_same_name_different_file_index_creates_two() {
+        // Kills: dedup only by name (ignoring file_index)
+        let mut uf = UnionFind::new();
+        let a = uf.add_node(0, "handler", NodeKind::Function);
+        let b = uf.add_node(1, "handler", NodeKind::Function);
+        assert_ne!(a, b, "different file_index must create separate nodes");
+        assert_eq!(uf.len(), 2);
+    }
+
+    #[test]
+    fn dedup_same_file_index_different_name_creates_two() {
+        // Kills: dedup only by file_index (ignoring name)
+        let mut uf = UnionFind::new();
+        let a = uf.add_node(0, "foo", NodeKind::Function);
+        let b = uf.add_node(0, "bar", NodeKind::Function);
+        assert_ne!(a, b);
+        assert_eq!(uf.len(), 2);
+    }
+
+    #[test]
+    fn dedup_same_both_returns_same_id() {
+        let mut uf = UnionFind::new();
+        let a = uf.add_node(5, "main", NodeKind::File);
+        let b = uf.add_node(5, "main", NodeKind::File);
+        assert_eq!(a, b);
+        assert_eq!(uf.len(), 1);
+    }
+
+    // --- add_node self-parent initialization ---
+
+    #[test]
+    fn new_node_is_own_root() {
+        // Kills: initializing parent to wrong value
+        let mut uf = UnionFind::new();
+        let a = uf.add_node(0, "x", NodeKind::File);
+        assert_eq!(uf.find(a), a, "new node must be its own root");
+    }
+
+    #[test]
+    fn new_node_rank_is_zero() {
+        let mut uf = UnionFind::new();
+        uf.add_node(0, "x", NodeKind::File);
+        assert_eq!(uf.rank[0], 0);
+    }
+
+    // --- merge rank logic mutations ---
+
+    #[test]
+    fn merge_lower_rank_under_higher_rank() {
+        // Kills: swapping rank comparison (< → >)
+        let mut uf = UnionFind::new();
+        let a = uf.add_node(0, "a", NodeKind::File);
+        let b = uf.add_node(1, "b", NodeKind::File);
+        let c = uf.add_node(2, "c", NodeKind::File);
+
+        // Merge a-b, giving root rank 1
+        uf.merge(a, b);
+        let root_ab = uf.find(a);
+
+        // Merge c (rank 0) with a-b (rank 1) — c should go under root_ab
+        uf.merge(c, a);
+        assert_eq!(uf.find(c), root_ab, "lower rank goes under higher rank");
+    }
+
+    #[test]
+    fn merge_equal_rank_increments() {
+        // Kills: removing rank increment on equal merge
+        let mut uf = UnionFind::new();
+        let a = uf.add_node(0, "a", NodeKind::File);
+        let b = uf.add_node(1, "b", NodeKind::File);
+
+        let rank_before = uf.rank[a as usize];
+        uf.merge(a, b);
+        let root = uf.find(a);
+        assert_eq!(
+            uf.rank[root as usize],
+            rank_before + 1,
+            "equal rank merge should increment winner's rank"
+        );
+    }
+
+    #[test]
+    fn merge_self_is_noop() {
+        // Kills: removing ra == rb early return
+        let mut uf = UnionFind::new();
+        let a = uf.add_node(0, "a", NodeKind::File);
+        uf.merge(a, a);
+        assert_eq!(uf.component_count(), 1);
+        assert_eq!(uf.rank[a as usize], 0, "self-merge should not increment rank");
+    }
+
+    // --- component_count mutations ---
+
+    #[test]
+    fn component_count_after_multiple_merges() {
+        let mut uf = UnionFind::new();
+        for i in 0..5u16 {
+            uf.add_node(i, &format!("f{i}"), NodeKind::File);
+        }
+        assert_eq!(uf.component_count(), 5);
+
+        uf.merge(0, 1);
+        assert_eq!(uf.component_count(), 4);
+
+        uf.merge(2, 3);
+        assert_eq!(uf.component_count(), 3);
+
+        uf.merge(0, 2);
+        assert_eq!(uf.component_count(), 2);
+
+        uf.merge(0, 4);
+        assert_eq!(uf.component_count(), 1);
+    }
+
+    // --- get_node ---
+
+    #[test]
+    fn get_node_returns_correct_descriptor() {
+        let mut uf = UnionFind::new();
+        uf.add_node(3, "myfile.rs", NodeKind::File);
+        let node = uf.get_node(0).unwrap();
+        assert_eq!(node.file_index, 3);
+        assert_eq!(node.name, "myfile.rs");
+        assert_eq!(node.kind, NodeKind::File);
+    }
+
+    #[test]
+    fn get_node_out_of_bounds_returns_none() {
+        let uf = UnionFind::new();
+        assert!(uf.get_node(0).is_none());
+        assert!(uf.get_node(100).is_none());
+    }
+
+    // --- len / is_empty ---
+
+    #[test]
+    fn len_after_adds() {
+        let mut uf = UnionFind::new();
+        assert_eq!(uf.len(), 0);
+        uf.add_node(0, "a", NodeKind::File);
+        assert_eq!(uf.len(), 1);
+        uf.add_node(1, "b", NodeKind::File);
+        assert_eq!(uf.len(), 2);
+        // Duplicate should not increase len
+        uf.add_node(0, "a", NodeKind::File);
+        assert_eq!(uf.len(), 2);
+    }
+
+    #[test]
+    fn is_empty_transitions() {
+        let mut uf = UnionFind::new();
+        assert!(uf.is_empty());
+        uf.add_node(0, "a", NodeKind::File);
+        assert!(!uf.is_empty());
+    }
+
+    // --- Default trait ---
+
+    #[test]
+    fn default_creates_empty_graph() {
+        let mut uf = UnionFind::default();
+        assert!(uf.is_empty());
+        assert_eq!(uf.component_count(), 0);
+    }
+
+    // --- Path compression correctness ---
+
+    #[test]
+    fn path_compression_after_chain() {
+        // Create a chain: 0 -> 1 -> 2 -> 3
+        let mut uf = UnionFind::new();
+        for i in 0..4u16 {
+            uf.add_node(i, &format!("f{i}"), NodeKind::File);
+        }
+        uf.merge(0, 1);
+        uf.merge(1, 2);
+        uf.merge(2, 3);
+
+        let root = uf.find(0);
+        // After find, all nodes should point closer to root
+        assert_eq!(uf.find(0), root);
+        assert_eq!(uf.find(1), root);
+        assert_eq!(uf.find(2), root);
+        assert_eq!(uf.find(3), root);
+    }
+
+    // --- get_components comprehensive ---
+
+    #[test]
+    fn get_components_all_separate() {
+        let mut uf = UnionFind::new();
+        for i in 0..3u16 {
+            uf.add_node(i, &format!("f{i}"), NodeKind::File);
+        }
+        let comps = uf.get_components();
+        assert_eq!(comps.len(), 3);
+        for comp in &comps {
+            assert_eq!(comp.len(), 1);
+        }
+    }
+
+    #[test]
+    fn get_components_all_merged() {
+        let mut uf = UnionFind::new();
+        for i in 0..4u16 {
+            uf.add_node(i, &format!("f{i}"), NodeKind::File);
+        }
+        uf.merge(0, 1);
+        uf.merge(2, 3);
+        uf.merge(0, 2);
+        let comps = uf.get_components();
+        assert_eq!(comps.len(), 1);
+        assert_eq!(comps[0].len(), 4);
+    }
+
+    #[test]
+    fn get_components_excludes_function_nodes() {
+        let mut uf = UnionFind::new();
+        let f = uf.add_node(0, "a.rs", NodeKind::File);
+        let _fn = uf.add_node(0, "foo", NodeKind::Function);
+        uf.merge(f, _fn);
+
+        let comps = uf.get_components();
+        // Only file nodes should appear in components
+        let total: usize = comps.iter().map(|c| c.len()).sum();
+        assert_eq!(total, 1, "function nodes should not appear in components");
+    }
 }
