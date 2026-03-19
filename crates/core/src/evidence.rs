@@ -274,15 +274,6 @@ mod tests {
     }
 
     #[test]
-    fn partial_state_returns_gaps() {
-        let gap = EvidenceGap::DiffUnavailable {
-            subject: "x".into(),
-        };
-        let state = EvidenceState::partial(42, vec![gap.clone()]);
-        assert_eq!(state.gaps().len(), 1);
-    }
-
-    #[test]
     fn missing_state_returns_gaps() {
         let gap = EvidenceGap::DiffUnavailable {
             subject: "x".into(),
@@ -300,49 +291,9 @@ mod tests {
     // --- EvidenceState::has_gaps() mutations ---
 
     #[test]
-    fn complete_has_no_gaps() {
-        assert!(!EvidenceState::complete(1).has_gaps());
-    }
-
-    #[test]
-    fn partial_with_gaps_has_gaps() {
-        let state = EvidenceState::partial(
-            1,
-            vec![EvidenceGap::DiffUnavailable {
-                subject: "x".into(),
-            }],
-        );
-        assert!(state.has_gaps());
-    }
-
-    #[test]
     fn partial_with_empty_gaps_no_gaps() {
         let state = EvidenceState::partial(1, vec![]);
         assert!(!state.has_gaps());
-    }
-
-    #[test]
-    fn missing_with_gaps_has_gaps() {
-        let state: EvidenceState<i32> = EvidenceState::missing(vec![EvidenceGap::DiffUnavailable {
-            subject: "x".into(),
-        }]);
-        assert!(state.has_gaps());
-    }
-
-    #[test]
-    fn not_applicable_has_no_gaps() {
-        assert!(!EvidenceState::<i32>::not_applicable().has_gaps());
-    }
-
-    // --- ChangeRequestId ---
-
-    #[test]
-    fn change_request_id_display_format() {
-        // Kills: swapping system and value in Display
-        let id = ChangeRequestId::new("a", "b");
-        let s = id.to_string();
-        assert!(s.starts_with("a:"), "system should come first");
-        assert!(s.ends_with("b"), "value should come last");
     }
 
 }

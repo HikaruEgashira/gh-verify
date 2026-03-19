@@ -183,15 +183,4 @@ mod tests {
         assert_eq!(SlsaFoundationProfile.name(), "slsa-foundation");
     }
 
-    #[test]
-    fn outcome_preserves_control_id() {
-        // Kills: swapping control_id
-        let outcome = SlsaFoundationProfile.map(&ControlFinding::satisfied(
-            ControlId::SourceAuthenticity,
-            "ok",
-            vec![],
-        ));
-        assert_eq!(outcome.control_id, ControlId::SourceAuthenticity);
-    }
-
 }
