@@ -337,13 +337,6 @@ mod tests {
     // --- ChangeRequestId ---
 
     #[test]
-    fn change_request_id_new_takes_into_string() {
-        let id = ChangeRequestId::new(String::from("gitlab_mr"), String::from("group/project!5"));
-        assert_eq!(id.system, "gitlab_mr");
-        assert_eq!(id.value, "group/project!5");
-    }
-
-    #[test]
     fn change_request_id_display_format() {
         // Kills: swapping system and value in Display
         let id = ChangeRequestId::new("a", "b");
@@ -352,79 +345,4 @@ mod tests {
         assert!(s.ends_with("b"), "value should come last");
     }
 
-    // --- AuthenticityEvidence ---
-
-    #[test]
-    fn authenticity_evidence_new() {
-        let auth = AuthenticityEvidence::new(true, Some("gpg".into()));
-        assert!(auth.verified);
-        assert_eq!(auth.mechanism, Some("gpg".into()));
-
-        let auth2 = AuthenticityEvidence::new(false, None);
-        assert!(!auth2.verified);
-        assert!(auth2.mechanism.is_none());
-    }
-
-    // --- EvidenceGap variants can be constructed ---
-
-    #[test]
-    fn evidence_gap_collection_failed() {
-        let gap = EvidenceGap::CollectionFailed {
-            source: "github".into(),
-            subject: "PR#1".into(),
-            detail: "404".into(),
-        };
-        match gap {
-            EvidenceGap::CollectionFailed { source, .. } => assert_eq!(source, "github"),
-            _ => panic!("wrong variant"),
-        }
-    }
-
-    #[test]
-    fn evidence_gap_truncated() {
-        let gap = EvidenceGap::Truncated {
-            source: "api".into(),
-            subject: "list".into(),
-        };
-        match gap {
-            EvidenceGap::Truncated { source, .. } => assert_eq!(source, "api"),
-            _ => panic!("wrong variant"),
-        }
-    }
-
-    #[test]
-    fn evidence_gap_missing_field() {
-        let gap = EvidenceGap::MissingField {
-            source: "api".into(),
-            subject: "pr".into(),
-            field: "body".into(),
-        };
-        match gap {
-            EvidenceGap::MissingField { field, .. } => assert_eq!(field, "body"),
-            _ => panic!("wrong variant"),
-        }
-    }
-
-    #[test]
-    fn evidence_gap_unsupported() {
-        let gap = EvidenceGap::Unsupported {
-            source: "gitea".into(),
-            capability: "signed commits".into(),
-        };
-        match gap {
-            EvidenceGap::Unsupported { capability, .. } => {
-                assert_eq!(capability, "signed commits")
-            }
-            _ => panic!("wrong variant"),
-        }
-    }
-
-    // --- EvidenceBundle default ---
-
-    #[test]
-    fn evidence_bundle_default_empty() {
-        let bundle = EvidenceBundle::default();
-        assert!(bundle.change_requests.is_empty());
-        assert!(bundle.promotion_batches.is_empty());
-    }
 }

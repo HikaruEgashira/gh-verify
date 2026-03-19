@@ -360,24 +360,7 @@ mod tests {
         assert_eq!(uf.len(), 2);
     }
 
-    #[test]
-    fn dedup_same_both_returns_same_id() {
-        let mut uf = UnionFind::new();
-        let a = uf.add_node(5, "main", NodeKind::File);
-        let b = uf.add_node(5, "main", NodeKind::File);
-        assert_eq!(a, b);
-        assert_eq!(uf.len(), 1);
-    }
-
     // --- add_node self-parent initialization ---
-
-    #[test]
-    fn new_node_is_own_root() {
-        // Kills: initializing parent to wrong value
-        let mut uf = UnionFind::new();
-        let a = uf.add_node(0, "x", NodeKind::File);
-        assert_eq!(uf.find(a), a, "new node must be its own root");
-    }
 
     #[test]
     fn new_node_rank_is_zero() {

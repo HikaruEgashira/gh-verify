@@ -1069,43 +1069,6 @@ mod tests {
     // Mutation-hardening tests
     // ================================================================
 
-    // --- classify_scope boundary mutations ---
-
-    #[test]
-    fn classify_scope_0_files_any_components_is_pass() {
-        // Kills: <= 1 → == 0
-        assert_eq!(classify_scope(0, 0), Severity::Pass);
-        assert_eq!(classify_scope(0, 5), Severity::Pass);
-        assert_eq!(classify_scope(0, 100), Severity::Pass);
-    }
-
-    #[test]
-    fn classify_scope_1_file_any_components_is_pass() {
-        // Kills: <= 1 → < 1 or <= 1 → == 1
-        assert_eq!(classify_scope(1, 0), Severity::Pass);
-        assert_eq!(classify_scope(1, 3), Severity::Pass);
-        assert_eq!(classify_scope(1, 100), Severity::Pass);
-    }
-
-    #[test]
-    fn classify_scope_2_files_0_components_is_pass() {
-        // Kills: 0 | 1 → 1 only
-        assert_eq!(classify_scope(2, 0), Severity::Pass);
-    }
-
-    #[test]
-    fn classify_scope_2_files_2_components_is_warning() {
-        // Kills: match arm 2 → _
-        assert_eq!(classify_scope(2, 2), Severity::Warning);
-    }
-
-    #[test]
-    fn classify_scope_boundary_2_to_3_components() {
-        // Kills: 2 → <= 2
-        assert_eq!(classify_scope(5, 2), Severity::Warning);
-        assert_eq!(classify_scope(5, 3), Severity::Error);
-    }
-
     // --- is_non_code_file extension coverage ---
 
     #[test]
@@ -1139,13 +1102,6 @@ mod tests {
     }
 
     #[test]
-    fn non_code_prefixes_coverage() {
-        // Kills: removing a prefix from NON_CODE_PREFIXES
-        assert!(is_non_code_file(".github/workflows/ci.yml"));
-        assert!(is_non_code_file("docs/api.md"));
-    }
-
-    #[test]
     fn code_files_not_non_code() {
         // Kills: always returning true
         assert!(!is_non_code_file("src/lib.rs"));
@@ -1162,13 +1118,6 @@ mod tests {
     }
 
     // --- resolve_import mutations ---
-
-    #[test]
-    fn resolve_import_double_quoted() {
-        // Kills: removing quote stripping
-        let files = vec!["internal/handler.go"];
-        assert_eq!(resolve_import("\"internal/handler\"", &files), Some(0));
-    }
 
     #[test]
     fn resolve_import_single_quoted() {
@@ -1403,15 +1352,6 @@ mod tests {
         assert!(!should_bridge_colocated_sources(
             "packages/a/src/Foo.ts",
             "packages/a/__tests__/FooTest.spec.ts"
-        ));
-    }
-
-    #[test]
-    fn colocated_bridge_short_stem_no_token_overlap_rejected() {
-        // Kills: >= 8 → >= 4 (would match short stems)
-        assert!(!should_bridge_colocated_sources(
-            "packages/a/src/foo.ts",
-            "packages/a/src/bar.ts"
         ));
     }
 

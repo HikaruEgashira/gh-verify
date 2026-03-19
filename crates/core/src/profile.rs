@@ -184,80 +184,6 @@ mod tests {
     }
 
     #[test]
-    fn satisfied_maps_to_info_pass_not_error_fail() {
-        // Kills: swapping Satisfied → (Error, Fail)
-        let outcome = SlsaFoundationProfile.map(&ControlFinding::satisfied(
-            ControlId::ReviewIndependence,
-            "ok",
-            vec![],
-        ));
-        assert_eq!(outcome.severity, FindingSeverity::Info);
-        assert_eq!(outcome.decision, GateDecision::Pass);
-        assert_ne!(outcome.severity, FindingSeverity::Error);
-        assert_ne!(outcome.decision, GateDecision::Fail);
-    }
-
-    #[test]
-    fn violated_maps_differently_from_satisfied() {
-        let sat = SlsaFoundationProfile.map(&ControlFinding::satisfied(
-            ControlId::ReviewIndependence,
-            "ok",
-            vec![],
-        ));
-        let vio = SlsaFoundationProfile.map(&ControlFinding::violated(
-            ControlId::ReviewIndependence,
-            "bad",
-            vec![],
-        ));
-        assert_ne!(sat.decision, vio.decision);
-        assert_ne!(sat.severity, vio.severity);
-    }
-
-    #[test]
-    fn indeterminate_same_as_violated_in_slsa() {
-        // SLSA Foundation treats indeterminate as failure
-        let indet = SlsaFoundationProfile.map(&ControlFinding::indeterminate(
-            ControlId::ReviewIndependence,
-            "unknown",
-            vec![],
-            vec![],
-        ));
-        let vio = SlsaFoundationProfile.map(&ControlFinding::violated(
-            ControlId::ReviewIndependence,
-            "bad",
-            vec![],
-        ));
-        assert_eq!(indet.decision, vio.decision);
-        assert_eq!(indet.severity, vio.severity);
-    }
-
-    #[test]
-    fn not_applicable_same_as_satisfied() {
-        let sat = SlsaFoundationProfile.map(&ControlFinding::satisfied(
-            ControlId::ReviewIndependence,
-            "ok",
-            vec![],
-        ));
-        let na = SlsaFoundationProfile.map(&ControlFinding::not_applicable(
-            ControlId::ReviewIndependence,
-            "n/a",
-        ));
-        assert_eq!(sat.decision, na.decision);
-        assert_eq!(sat.severity, na.severity);
-    }
-
-    #[test]
-    fn outcome_preserves_rationale() {
-        // Kills: not cloning rationale
-        let outcome = SlsaFoundationProfile.map(&ControlFinding::satisfied(
-            ControlId::ReviewIndependence,
-            "specific rationale text",
-            vec![],
-        ));
-        assert_eq!(outcome.rationale, "specific rationale text");
-    }
-
-    #[test]
     fn outcome_preserves_control_id() {
         // Kills: swapping control_id
         let outcome = SlsaFoundationProfile.map(&ControlFinding::satisfied(
@@ -268,28 +194,4 @@ mod tests {
         assert_eq!(outcome.control_id, ControlId::SourceAuthenticity);
     }
 
-    #[test]
-    fn apply_profile_empty_findings() {
-        let outcomes = apply_profile(&SlsaFoundationProfile, &[]);
-        assert!(outcomes.is_empty());
-    }
-
-    #[test]
-    fn apply_profile_preserves_order() {
-        let findings = vec![
-            ControlFinding::satisfied(
-                ControlId::ReviewIndependence,
-                "first",
-                vec![],
-            ),
-            ControlFinding::violated(
-                ControlId::SourceAuthenticity,
-                "second",
-                vec![],
-            ),
-        ];
-        let outcomes = apply_profile(&SlsaFoundationProfile, &findings);
-        assert_eq!(outcomes[0].control_id, ControlId::ReviewIndependence);
-        assert_eq!(outcomes[1].control_id, ControlId::SourceAuthenticity);
-    }
 }

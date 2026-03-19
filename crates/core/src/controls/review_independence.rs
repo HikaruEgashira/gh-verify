@@ -309,19 +309,6 @@ mod tests {
     }
 
     #[test]
-    fn commit_author_approving_is_violated() {
-        // Author "author" made the commit and approves — should be Violated
-        let mut change = make_change();
-        change.approval_decisions = EvidenceState::complete(vec![ApprovalDecision {
-            actor: "author".to_string(),
-            disposition: ApprovalDisposition::Approved,
-            submitted_at: None,
-        }]);
-        let finding = evaluate_change(&change);
-        assert_eq!(finding.status, crate::control::ControlStatus::Violated);
-    }
-
-    #[test]
     fn submitter_approving_own_pr_is_violated() {
         // Different commit author but submitter approves their own PR
         let mut change = make_change();

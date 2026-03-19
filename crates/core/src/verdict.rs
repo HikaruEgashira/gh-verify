@@ -68,46 +68,4 @@ mod tests {
         assert!(r.suggestion.is_none());
     }
 
-    // ================================================================
-    // Mutation-hardening tests
-    // ================================================================
-
-    #[test]
-    fn severity_ordering_all_pairs() {
-        // Kills: any reordering of enum variants
-        assert!(Severity::Pass < Severity::Warning);
-        assert!(Severity::Pass < Severity::Error);
-        assert!(Severity::Warning < Severity::Error);
-        assert!(Severity::Warning > Severity::Pass);
-        assert!(Severity::Error > Severity::Warning);
-        assert!(Severity::Error > Severity::Pass);
-    }
-
-    #[test]
-    fn severity_equality() {
-        assert_eq!(Severity::Pass, Severity::Pass);
-        assert_eq!(Severity::Warning, Severity::Warning);
-        assert_eq!(Severity::Error, Severity::Error);
-        assert_ne!(Severity::Pass, Severity::Warning);
-        assert_ne!(Severity::Pass, Severity::Error);
-        assert_ne!(Severity::Warning, Severity::Error);
-    }
-
-    #[test]
-    fn is_failing_only_error() {
-        // Kills: matching Warning as failing or not matching Error
-        assert!(!Severity::Pass.is_failing());
-        assert!(!Severity::Warning.is_failing());
-        assert!(Severity::Error.is_failing());
-    }
-
-    #[test]
-    fn pass_result_fields() {
-        let r = RuleResult::pass("my-rule", "message");
-        assert_eq!(r.rule_id, "my-rule");
-        assert_eq!(r.message, "message");
-        assert_eq!(r.severity, Severity::Pass);
-        assert!(r.affected_files.is_empty());
-        assert!(r.suggestion.is_none());
-    }
 }

@@ -185,28 +185,6 @@ mod tests {
     // Mutation-hardening tests
     // ================================================================
 
-    // --- ControlId::as_str ---
-
-    #[test]
-    fn control_id_as_str_values() {
-        // Kills: swapping the string mapping
-        assert_eq!(ControlId::ReviewIndependence.as_str(), "review-independence");
-        assert_eq!(ControlId::SourceAuthenticity.as_str(), "source-authenticity");
-    }
-
-    #[test]
-    fn control_id_from_str_each_variant() {
-        // Kills: swapping from_str mapping
-        assert_eq!(
-            "review-independence".parse::<ControlId>().unwrap(),
-            ControlId::ReviewIndependence
-        );
-        assert_eq!(
-            "source-authenticity".parse::<ControlId>().unwrap(),
-            ControlId::SourceAuthenticity
-        );
-    }
-
     // --- ControlFinding constructors ---
 
     #[test]

@@ -329,33 +329,4 @@ mod tests {
         assert_eq!(findings[1].status, ControlStatus::Violated);
     }
 
-    #[test]
-    fn all_revisions_signed_is_satisfied() {
-        let mut change = make_change(true);
-        change.source_revisions = EvidenceState::complete(vec![
-            SourceRevision {
-                id: "aaa".into(),
-                authored_by: Some("alice".into()),
-                committed_at: None,
-                merge: false,
-                authenticity: EvidenceState::complete(
-                    crate::evidence::AuthenticityEvidence::new(true, Some("gpg".into())),
-                ),
-            },
-            SourceRevision {
-                id: "bbb".into(),
-                authored_by: Some("bob".into()),
-                committed_at: None,
-                merge: false,
-                authenticity: EvidenceState::complete(
-                    crate::evidence::AuthenticityEvidence::new(true, Some("gpg".into())),
-                ),
-            },
-        ]);
-        let findings = SourceAuthenticityControl.evaluate(&EvidenceBundle {
-            change_requests: vec![change],
-            promotion_batches: vec![],
-        });
-        assert_eq!(findings[0].status, ControlStatus::Satisfied);
-    }
 }

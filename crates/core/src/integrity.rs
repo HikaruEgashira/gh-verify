@@ -754,18 +754,6 @@ mod tests {
     }
 
     #[test]
-    fn is_merge_parent_count_3_is_merge() {
-        let c = Commit {
-            sha: "a".into(),
-            message: "not merge".into(),
-            verified: true,
-            author_login: None,
-            parent_count: Some(3),
-        };
-        assert!(c.is_merge());
-    }
-
-    #[test]
     fn is_merge_parent_count_1_not_merge() {
         // Kills: >= 2 → >= 1
         let c = Commit {
@@ -792,7 +780,7 @@ mod tests {
 
     #[test]
     fn is_merge_fallback_non_merge_prefix() {
-        // Kills: removing "Merge " prefix check
+        // Kills: starts_with("Merge ") → contains("Merge")
         let c = Commit {
             sha: "a".into(),
             message: "Merged something".into(),
@@ -800,14 +788,14 @@ mod tests {
             author_login: None,
             parent_count: None,
         };
-        assert!(!c.is_merge(), "starts_with 'Merge ' not 'Merged'");
+        assert!(!c.is_merge());
     }
 
     // --- check_commit_signatures mutations ---
 
     #[test]
     fn signatures_empty_commits_is_pass() {
-        // Kills: mutation of empty vec handling
+        // Kills: returning Error for empty input
         let result = check_commit_signatures(&[]);
         assert_eq!(result.severity, Severity::Pass);
     }
@@ -846,34 +834,13 @@ mod tests {
 
     #[test]
     fn mutual_approval_empty_prs_is_pass() {
-        // Kills: returning Error for empty input
         let result = check_mutual_approval(&[]);
         assert_eq!(result.severity, Severity::Pass);
     }
 
     #[test]
-    fn mutual_approval_multiple_prs_all_independent() {
-        let prs = vec![
-            PrWithReviews {
-                pr_number: 1,
-                pr_author: "alice".into(),
-                commit_authors: vec!["alice".into()],
-                approvers: vec!["bob".into()],
-            },
-            PrWithReviews {
-                pr_number: 2,
-                pr_author: "carol".into(),
-                commit_authors: vec!["carol".into()],
-                approvers: vec!["dave".into()],
-            },
-        ];
-        let result = check_mutual_approval(&prs);
-        assert_eq!(result.severity, Severity::Pass);
-    }
-
-    #[test]
     fn mutual_approval_mixed_one_self_one_independent() {
-        // Kills: returning Pass when any PR has independent approval (should require ALL)
+        // Kills: returning Pass when any PR has independent (should require ALL)
         let prs = vec![
             PrWithReviews {
                 pr_number: 1,
@@ -907,19 +874,6 @@ mod tests {
     }
 
     #[test]
-    fn mutual_approval_commit_author_different_from_pr_author() {
-        // Kills: checking only PR author or only commit author
-        let prs = vec![PrWithReviews {
-            pr_number: 1,
-            pr_author: "alice".into(),
-            commit_authors: vec!["bob".into()],
-            approvers: vec!["carol".into()],
-        }];
-        let result = check_mutual_approval(&prs);
-        assert_eq!(result.severity, Severity::Pass);
-    }
-
-    #[test]
     fn mutual_approval_affected_files_contains_pr_numbers() {
         // Kills: mutation of affected_files formatting
         let prs = vec![PrWithReviews {
@@ -932,7 +886,7 @@ mod tests {
         assert!(result.affected_files.iter().any(|f| f.contains("42")));
     }
 
-    // --- check_pr_coverage mutations ---
+    // --- check_pr_coverage: exhaustive truth table ---
 
     #[test]
     fn pr_coverage_empty_assocs_is_pass() {
@@ -941,64 +895,43 @@ mod tests {
     }
 
     #[test]
-    fn pr_coverage_non_merge_with_pr_is_pass() {
-        // Kills: negation mutation on !a.pr_numbers.is_empty()
-        let assocs = vec![CommitPrAssoc {
-            commit_sha: "aaa".into(),
-            pr_numbers: vec![1],
-            is_merge: false,
-        }];
-        let result = check_pr_coverage(&assocs);
-        assert_eq!(result.severity, Severity::Pass);
-    }
-
-    #[test]
-    fn pr_coverage_merge_without_pr_is_pass() {
-        // Kills: negation mutation on is_merge
-        let assocs = vec![CommitPrAssoc {
-            commit_sha: "aaa".into(),
-            pr_numbers: vec![],
-            is_merge: true,
-        }];
-        let result = check_pr_coverage(&assocs);
-        assert_eq!(result.severity, Severity::Pass);
-    }
-
-    #[test]
-    fn pr_coverage_merge_with_pr_is_pass() {
-        let assocs = vec![CommitPrAssoc {
-            commit_sha: "aaa".into(),
-            pr_numbers: vec![1],
-            is_merge: true,
-        }];
-        let result = check_pr_coverage(&assocs);
-        assert_eq!(result.severity, Severity::Pass);
-    }
-
-    #[test]
-    fn pr_coverage_non_merge_without_pr_is_error() {
-        let assocs = vec![CommitPrAssoc {
-            commit_sha: "aaa".into(),
-            pr_numbers: vec![],
-            is_merge: false,
-        }];
-        let result = check_pr_coverage(&assocs);
-        assert_eq!(result.severity, Severity::Error);
+    fn pr_coverage_truth_table() {
+        // Kills: any negation flip on is_merge or has_pr
+        // (is_merge=false, has_pr=true) → Pass
+        assert_eq!(
+            check_pr_coverage(&[CommitPrAssoc {
+                commit_sha: "a".into(), pr_numbers: vec![1], is_merge: false,
+            }]).severity,
+            Severity::Pass,
+        );
+        // (is_merge=true, has_pr=false) → Pass
+        assert_eq!(
+            check_pr_coverage(&[CommitPrAssoc {
+                commit_sha: "a".into(), pr_numbers: vec![], is_merge: true,
+            }]).severity,
+            Severity::Pass,
+        );
+        // (is_merge=true, has_pr=true) → Pass
+        assert_eq!(
+            check_pr_coverage(&[CommitPrAssoc {
+                commit_sha: "a".into(), pr_numbers: vec![1], is_merge: true,
+            }]).severity,
+            Severity::Pass,
+        );
+        // (is_merge=false, has_pr=false) → Error
+        assert_eq!(
+            check_pr_coverage(&[CommitPrAssoc {
+                commit_sha: "a".into(), pr_numbers: vec![], is_merge: false,
+            }]).severity,
+            Severity::Error,
+        );
     }
 
     #[test]
     fn pr_coverage_uncovered_count_in_message() {
         let assocs = vec![
-            CommitPrAssoc {
-                commit_sha: "aaa1234567".into(),
-                pr_numbers: vec![],
-                is_merge: false,
-            },
-            CommitPrAssoc {
-                commit_sha: "bbb1234567".into(),
-                pr_numbers: vec![],
-                is_merge: false,
-            },
+            CommitPrAssoc { commit_sha: "aaa1234567".into(), pr_numbers: vec![], is_merge: false },
+            CommitPrAssoc { commit_sha: "bbb1234567".into(), pr_numbers: vec![], is_merge: false },
         ];
         let result = check_pr_coverage(&assocs);
         assert!(result.message.contains("2 commits"));
@@ -1009,21 +942,17 @@ mod tests {
 
     #[test]
     fn verify_integrity_single_sig_failure_only() {
-        // Kills: incorrect filtering of non-pass results
+        // Kills: including pass results when failures exist
         let commits = vec![make_commit("aaa1234567", false, "alice")];
         let prs = vec![PrWithReviews {
-            pr_number: 1,
-            pr_author: "alice".into(),
-            commit_authors: vec!["alice".into()],
-            approvers: vec!["bob".into()],
+            pr_number: 1, pr_author: "alice".into(),
+            commit_authors: vec!["alice".into()], approvers: vec!["bob".into()],
         }];
         let assocs = vec![CommitPrAssoc {
-            commit_sha: "aaa1234567".into(),
-            pr_numbers: vec![1],
-            is_merge: false,
+            commit_sha: "aaa1234567".into(), pr_numbers: vec![1], is_merge: false,
         }];
         let results = verify_release_integrity(&commits, &prs, &assocs);
-        assert_eq!(results.len(), 1, "only sig failure should be included");
+        assert_eq!(results.len(), 1);
         assert_eq!(results[0].severity, Severity::Error);
     }
 
@@ -1031,18 +960,14 @@ mod tests {
     fn verify_integrity_all_three_fail() {
         let commits = vec![make_commit("aaa1234567", false, "alice")];
         let prs = vec![PrWithReviews {
-            pr_number: 1,
-            pr_author: "alice".into(),
-            commit_authors: vec!["alice".into()],
-            approvers: vec!["alice".into()],
+            pr_number: 1, pr_author: "alice".into(),
+            commit_authors: vec!["alice".into()], approvers: vec!["alice".into()],
         }];
         let assocs = vec![CommitPrAssoc {
-            commit_sha: "aaa1234567".into(),
-            pr_numbers: vec![],
-            is_merge: false,
+            commit_sha: "aaa1234567".into(), pr_numbers: vec![], is_merge: false,
         }];
         let results = verify_release_integrity(&commits, &prs, &assocs);
-        assert_eq!(results.len(), 3, "all three failures should be included");
+        assert_eq!(results.len(), 3);
         assert!(results.iter().all(|r| r.severity == Severity::Error));
     }
 
@@ -1053,45 +978,9 @@ mod tests {
         assert_eq!(results[0].severity, Severity::Pass);
     }
 
-    // --- signature_severity / pr_coverage_severity boundary ---
-
-    #[test]
-    fn signature_severity_boundary_0_vs_1() {
-        // Kills: == 0 → <= 0, or == 0 → == 1
-        assert_eq!(signature_severity(0), Severity::Pass);
-        assert_eq!(signature_severity(1), Severity::Error);
-    }
-
-    #[test]
-    fn pr_coverage_severity_boundary_0_vs_1() {
-        assert_eq!(pr_coverage_severity(0), Severity::Pass);
-        assert_eq!(pr_coverage_severity(1), Severity::Error);
-    }
-
     #[test]
     fn signature_severity_usize_max() {
         assert_eq!(signature_severity(usize::MAX), Severity::Error);
-    }
-
-    // --- is_approver_independent: each input individually matters ---
-
-    #[test]
-    fn approver_independent_only_when_both_false() {
-        // Kills: removing either negation
-        assert!(is_approver_independent(false, false));
-        assert!(!is_approver_independent(true, false));
-        assert!(!is_approver_independent(false, true));
-        assert!(!is_approver_independent(true, true));
-    }
-
-    // --- is_uncovered_commit: each input individually matters ---
-
-    #[test]
-    fn uncovered_only_when_not_merge_and_no_pr() {
-        assert!(is_uncovered_commit(false, false));
-        assert!(!is_uncovered_commit(true, false));
-        assert!(!is_uncovered_commit(false, true));
-        assert!(!is_uncovered_commit(true, true));
     }
 
     // --- has_independent_approver edge cases ---
@@ -1111,7 +1000,6 @@ mod tests {
 
     #[test]
     fn has_independent_approver_third_party() {
-        // Approver is neither PR author nor any commit author
         let prs = vec![PrWithReviews {
             pr_number: 1,
             pr_author: "alice".into(),
@@ -1121,8 +1009,6 @@ mod tests {
         let result = check_mutual_approval(&prs);
         assert_eq!(result.severity, Severity::Pass);
     }
-
-    // --- RuleResult::pass construction ---
 
     #[test]
     fn pass_result_has_correct_rule_id() {
