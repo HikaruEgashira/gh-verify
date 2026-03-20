@@ -39,13 +39,13 @@
         test_version()  { local o; o=$("$BINARY" --version 2>&1); [[ "$o" == *"gh-verify"* ]]; }
         test_help()     { local o; o=$("$BINARY" --help 2>&1);    [[ "$o" == *"Usage"* ]]; }
         test_exits_1()  { "$BINARY" notacommand 2>/dev/null; [[ $? -ne 0 ]]; }
-        test_rules()    { local o; GH_TOKEN=fake GH_REPO=fake/fake o=$("$BINARY" pr list-rules 2>&1) || true; [[ "$o" == *"detect-unscoped-change"* ]]; }
+        test_pr_bad_arg() { local o; GH_TOKEN=fake GH_REPO=fake/fake o=$("$BINARY" pr notanumber 2>&1); [[ $? -ne 0 ]] && [[ "$o" == *"invalid PR number"* ]]; }
 
         echo ""; echo "Integration tests:"
         run_test "version output"         test_version
         run_test "help output"            test_help
         run_test "unknown subcmd exits 1" test_exits_1
-        run_test "pr list-rules"          test_rules
+        run_test "pr bad arg exits 1"     test_pr_bad_arg
         echo ""; echo "results: $PASS passed, $FAIL failed"
         [[ $FAIL -eq 0 ]]
       '';
