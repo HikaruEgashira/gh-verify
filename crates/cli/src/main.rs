@@ -8,6 +8,7 @@ use gh_verify::config::Config;
 use gh_verify::github;
 use gh_verify::github::client::GitHubClient;
 use gh_verify::output;
+use gh_verify::policy::OpaProfile;
 
 const VERSION: &str = env!("GH_VERIFY_VERSION");
 
@@ -30,6 +31,9 @@ enum Commands {
         /// Repository in OWNER/REPO format
         #[arg(long)]
         repo: Option<String>,
+        /// Path to OPA policy file (.rego) for custom gate decisions
+        #[arg(long)]
+        policy: Option<String>,
     },
     /// Verify release integrity
     Release {
@@ -41,6 +45,9 @@ enum Commands {
         /// Repository in OWNER/REPO format
         #[arg(long)]
         repo: Option<String>,
+        /// Path to OPA policy file (.rego) for custom gate decisions
+        #[arg(long)]
+        policy: Option<String>,
     },
 }
 
@@ -59,6 +66,7 @@ fn run() -> Result<()> {
             arg,
             format,
             repo: repo_override,
+            policy,
         } => {
             let pr_number: u32 = arg.parse().context("invalid PR number")?;
             let fmt = output::parse_format(&format)?;
@@ -85,7 +93,7 @@ fn run() -> Result<()> {
                 &pr_reviews,
                 &pr_commits,
             );
-            let report = gh_verify_core::assessment::assess_with_slsa_foundation(&bundle);
+            let report = assess_bundle(&bundle, policy.as_deref())?;
             output::print(fmt, &report)?;
             exit_if_assessment_fails(&report);
         }
@@ -93,6 +101,7 @@ fn run() -> Result<()> {
             arg,
             format,
             repo: repo_override,
+            policy,
         } => {
             let fmt = output::parse_format(&format)?;
             let cfg = Config::load()?;
@@ -139,7 +148,7 @@ fn run() -> Result<()> {
                 &commits,
                 &commit_prs,
             );
-            let report = gh_verify_core::assessment::assess_with_slsa_foundation(&bundle);
+            let report = assess_bundle(&bundle, policy.as_deref())?;
             output::print(fmt, &report)?;
             exit_if_assessment_fails(&report);
         }
@@ -183,6 +192,20 @@ fn parse_release_arg(
         }
     }
     bail!("tag not found: {head_tag}");
+}
+
+fn assess_bundle(
+    bundle: &gh_verify_core::evidence::EvidenceBundle,
+    policy_path: Option<&str>,
+) -> Result<gh_verify_core::assessment::AssessmentReport> {
+    match policy_path {
+        Some(path) => {
+            let profile = OpaProfile::from_file(path)?;
+            let controls = gh_verify_core::controls::slsa_foundation_controls();
+            Ok(gh_verify_core::assessment::assess(bundle, &controls, &profile))
+        }
+        None => Ok(gh_verify_core::assessment::assess_with_slsa_foundation(bundle)),
+    }
 }
 
 fn exit_if_assessment_fails(report: &gh_verify_core::assessment::AssessmentReport) {
