@@ -1,4 +1,5 @@
 pub mod client;
 pub mod pr_api;
 pub mod release_api;
+pub mod repo_api;
 pub mod types;

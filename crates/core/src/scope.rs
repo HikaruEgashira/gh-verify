@@ -1064,4 +1064,9 @@ mod tests {
         assert!(!is_structural_token("frobnicator"));
         assert!(!is_structural_token("elements"));
     }
+
 }
+
+#[cfg(test)]
+#[path = "tests/scope_hardening.rs"]
+mod scope_hardening;

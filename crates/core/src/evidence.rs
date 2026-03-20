@@ -19,6 +19,13 @@ pub enum EvidenceState<T> {
     NotApplicable,
 }
 
+impl<T> Default for EvidenceState<T> {
+    /// Defaults to `NotApplicable`: the evidence category was not collected.
+    fn default() -> Self {
+        Self::NotApplicable
+    }
+}
+
 impl<T> EvidenceState<T> {
     /// Wraps a fully-collected value.
     pub fn complete(value: T) -> Self {
@@ -195,13 +202,60 @@ pub struct PromotionBatch {
     pub linked_change_requests: EvidenceState<Vec<ChangeRequestId>>,
 }
 
+/// Result of verifying an artifact's build provenance attestation.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ArtifactAttestation {
+    /// Artifact path or OCI URI that was verified.
+    pub subject: String,
+    /// Attestation predicate type (e.g. "https://slsa.dev/provenance/v1").
+    pub predicate_type: String,
+    /// The workflow that signed the attestation.
+    pub signer_workflow: Option<String>,
+    /// The source repository associated with the attestation.
+    pub source_repo: Option<String>,
+    /// Whether the attestation passed cryptographic verification.
+    pub verified: bool,
+    /// Detail message from the verifier.
+    pub verification_detail: Option<String>,
+}
+
+/// Branch protection configuration for a repository's default branch.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct BranchProtectionConfig {
+    /// Minimum number of required approving reviews.
+    pub required_reviews: u32,
+    /// Whether stale reviews are dismissed on new pushes.
+    pub dismiss_stale_reviews: bool,
+    /// Whether code owner reviews are required.
+    pub require_code_owner_reviews: bool,
+    /// Whether protection rules are enforced for administrators.
+    pub enforce_admins: bool,
+    /// Whether commit signature verification is required.
+    pub required_signatures: bool,
+}
+
+/// Repository-level policy settings.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RepositoryPolicy {
+    /// Branch protection rules for the default branch.
+    pub branch_protection: EvidenceState<BranchProtectionConfig>,
+    /// Required status checks on the default branch.
+    pub required_status_checks: EvidenceState<Vec<String>>,
+}
+
 /// Top-level container for all evidence collected from adapters.
 ///
 /// Passed to controls for evaluation; should be platform-agnostic.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct EvidenceBundle {
+    /// Source Track: governed change requests (e.g. pull requests).
     pub change_requests: Vec<GovernedChange>,
+    /// Source Track: release promotion batches.
     pub promotion_batches: Vec<PromotionBatch>,
+    /// Build Track: artifact provenance attestations.
+    pub artifact_attestations: EvidenceState<Vec<ArtifactAttestation>>,
+    /// Repository policy: branch protection and status checks.
+    pub repository_policy: EvidenceState<RepositoryPolicy>,
 }
 
 #[cfg(test)]
@@ -229,4 +283,9 @@ mod tests {
         let id = ChangeRequestId::new("github_pr", "owner/repo#42");
         assert_eq!(id.to_string(), "github_pr:owner/repo#42");
     }
+
 }
+
+#[cfg(test)]
+#[path = "tests/evidence_hardening.rs"]
+mod evidence_hardening;
