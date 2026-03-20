@@ -1,0 +1,80 @@
+name: ci
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+
+      - run: cargo fmt --all -- --check
+
+  clippy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6 # v2.7.8
+
+      - run: cargo clippy -p gh-verify-core -p gh-verify -p gen-docs -- -D warnings
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6 # v2.7.8
+
+      - name: Unit tests
+        run: cargo test -p gh-verify-core -p gh-verify -p gen-docs
+
+      - name: Build release binary
+        run: cargo build --release -p gh-verify
+
+      - name: Integration tests
+        run: |
+          set -euo pipefail
+          BINARY=target/release/gh-verify
+          PASS=0; FAIL=0
+
+          run_test() {
+            local name="$1" fn="$2"
+            if $fn; then echo "  ok  $name"; PASS=$((PASS+1))
+            else         echo "  FAIL $name"; FAIL=$((FAIL+1)); fi
+          }
+
+          test_version()  { local o; o=$("$BINARY" --version 2>&1); [[ "$o" == *"gh-verify"* ]]; }
+          test_help()     { local o; o=$("$BINARY" --help 2>&1);    [[ "$o" == *"Usage"* ]]; }
+          test_exits_1()  { "$BINARY" notacommand 2>/dev/null; [[ $? -ne 0 ]]; }
+          test_rules()    { local o; GH_TOKEN=fake GH_REPO=fake/fake o=$("$BINARY" pr list-rules 2>&1) || true; [[ "$o" == *"detect-unscoped-change"* ]]; }
+
+          echo "Integration tests:"
+          run_test "version output"         test_version
+          run_test "help output"            test_help
+          run_test "unknown subcmd exits 1" test_exits_1
+          run_test "pr list-rules"          test_rules
+          echo ""
+          echo "results: $PASS passed, $FAIL failed"
+          [[ $FAIL -eq 0 ]]

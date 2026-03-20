@@ -1,5 +1,6 @@
 [workspace]
 members = ["crates/core", "crates/cli", "crates/verif", "tools/gen-docs"]
+default-members = ["crates/core", "crates/cli", "tools/gen-docs"]
 resolver = "2"
 
 [workspace.package]

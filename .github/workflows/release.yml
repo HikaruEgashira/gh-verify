@@ -22,8 +22,100 @@ jobs:
           tag: ${{ github.ref_name }}
           format: json
 
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6 # v2.7.8
+
+      - name: Unit tests
+        run: cargo test -p gh-verify-core -p gh-verify -p gen-docs
+
+      - name: Clippy
+        run: cargo clippy -p gh-verify-core -p gh-verify -p gen-docs -- -D warnings
+
+  bench:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6 # v2.7.8
+
+      - name: Build and run benchmarks
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cargo build --release --bin gh-verify-bench -p gh-verify
+          target/release/gh-verify-bench
+
+  formal-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - uses: dtolnay/rust-toolchain@nightly
+
+      - uses: ocaml/setup-ocaml@v3
+        with:
+          ocaml-compiler: "5.2"
+
+      - name: Cache opam packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.opam
+          key: opam-creusot-${{ runner.os }}-${{ hashFiles('.github/workflows/release.yml') }}
+
+      - name: Install Creusot dependencies
+        run: |
+          opam install -y why3 alt-ergo z3
+
+      - name: Install cargo-creusot
+        run: |
+          cargo install --git https://github.com/creusot-rs/creusot cargo-creusot
+
+      - name: Run formal verification
+        run: |
+          eval $(opam env)
+          cargo creusot -p gh-verify-verif
+          cargo creusot prove '*' -- -p gh-verify-verif
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: verif-proofs
+          path: verif/
+
+  docs:
+    needs: formal-verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6 # v2.7.8
+
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: verif-proofs
+          path: verif/
+
+      - name: Generate docs
+        run: cargo run --release -p gen-docs
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: docs-site
+          path: site/
+
   build:
-    needs: verify
+    needs: [verify, test, bench, formal-verify, docs]
     strategy:
       matrix:
         include:
