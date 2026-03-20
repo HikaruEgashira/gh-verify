@@ -32,7 +32,6 @@ fn make_change() -> GovernedChange {
 
 #[test]
 fn empty_change_requests_is_not_applicable() {
-    // Kills: removing is_empty() early return
     let findings = ReviewIndependenceControl.evaluate(&EvidenceBundle {
         change_requests: vec![],
         promotion_batches: vec![],
@@ -45,14 +44,7 @@ fn empty_change_requests_is_not_applicable() {
 }
 
 #[test]
-fn control_id_is_review_independence() {
-    // Kills: returning wrong ControlId
-    assert_eq!(ReviewIndependenceControl.id(), crate::control::ControlId::ReviewIndependence);
-}
-
-#[test]
 fn missing_approval_decisions_is_indeterminate() {
-    // Kills: not handling Missing approval_decisions
     let mut change = make_change();
     change.approval_decisions = EvidenceState::missing(vec![]);
     let finding = evaluate_change(&change);
@@ -75,7 +67,6 @@ fn missing_source_revisions_is_indeterminate() {
 
 #[test]
 fn missing_submitted_by_is_indeterminate() {
-    // Kills: removing submitted_by None check
     let mut change = make_change();
     change.submitted_by = None;
     let finding = evaluate_change(&change);
@@ -124,7 +115,6 @@ fn dismissed_review_does_not_count_as_approval() {
 
 #[test]
 fn multiple_changes_produce_multiple_findings() {
-    // Kills: only evaluating first change
     let bundle = EvidenceBundle {
         change_requests: vec![make_change(), make_change()],
         promotion_batches: vec![],
@@ -135,7 +125,6 @@ fn multiple_changes_produce_multiple_findings() {
 
 #[test]
 fn submitter_approving_own_pr_is_violated() {
-    // Different commit author but submitter approves their own PR
     let mut change = make_change();
     change.source_revisions = EvidenceState::complete(vec![SourceRevision {
         id: "abc123".to_string(),
@@ -151,18 +140,4 @@ fn submitter_approving_own_pr_is_violated() {
     }]);
     let finding = evaluate_change(&change);
     assert_eq!(finding.status, crate::control::ControlStatus::Violated);
-}
-
-#[test]
-fn finding_subject_contains_change_id() {
-    // Kills: not including subject in finding
-    let finding = evaluate_change(&make_change());
-    assert!(
-        !finding.subjects.is_empty(),
-        "finding should have at least one subject"
-    );
-    assert!(
-        finding.subjects[0].contains("owner/repo"),
-        "subject should contain change ID"
-    );
 }

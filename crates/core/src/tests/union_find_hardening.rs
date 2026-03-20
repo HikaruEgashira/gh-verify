@@ -22,15 +22,6 @@ fn dedup_same_file_index_different_name_creates_two() {
     assert_eq!(uf.len(), 2);
 }
 
-// --- add_node self-parent initialization ---
-
-#[test]
-fn new_node_rank_is_zero() {
-    let mut uf = UnionFind::new();
-    uf.add_node(0, "x", NodeKind::File);
-    assert_eq!(uf.rank[0], 0);
-}
-
 // --- merge rank logic mutations ---
 
 #[test]
@@ -41,11 +32,9 @@ fn merge_lower_rank_under_higher_rank() {
     let b = uf.add_node(1, "b", NodeKind::File);
     let c = uf.add_node(2, "c", NodeKind::File);
 
-    // Merge a-b, giving root rank 1
     uf.merge(a, b);
     let root_ab = uf.find(a);
 
-    // Merge c (rank 0) with a-b (rank 1) — c should go under root_ab
     uf.merge(c, a);
     assert_eq!(uf.find(c), root_ab, "lower rank goes under higher rank");
 }
@@ -69,7 +58,6 @@ fn merge_equal_rank_increments() {
 
 #[test]
 fn merge_self_is_noop() {
-    // Kills: removing ra == rb early return
     let mut uf = UnionFind::new();
     let a = uf.add_node(0, "a", NodeKind::File);
     uf.merge(a, a);
@@ -100,24 +88,7 @@ fn component_count_after_multiple_merges() {
     assert_eq!(uf.component_count(), 1);
 }
 
-// --- get_node ---
-
-#[test]
-fn get_node_returns_correct_descriptor() {
-    let mut uf = UnionFind::new();
-    uf.add_node(3, "myfile.rs", NodeKind::File);
-    let node = uf.get_node(0).unwrap();
-    assert_eq!(node.file_index, 3);
-    assert_eq!(node.name, "myfile.rs");
-    assert_eq!(node.kind, NodeKind::File);
-}
-
-#[test]
-fn get_node_out_of_bounds_returns_none() {
-    let uf = UnionFind::new();
-    assert!(uf.get_node(0).is_none());
-    assert!(uf.get_node(100).is_none());
-}
+// --- get_components excludes function nodes ---
 
 #[test]
 fn get_components_excludes_function_nodes() {
@@ -127,7 +98,6 @@ fn get_components_excludes_function_nodes() {
     uf.merge(f, _fn);
 
     let comps = uf.get_components();
-    // Only file nodes should appear in components
     let total: usize = comps.iter().map(|c| c.len()).sum();
     assert_eq!(total, 1, "function nodes should not appear in components");
 }

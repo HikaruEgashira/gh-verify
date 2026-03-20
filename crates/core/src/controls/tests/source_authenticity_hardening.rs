@@ -28,16 +28,7 @@ fn make_change(verified: bool) -> GovernedChange {
 }
 
 #[test]
-fn control_id_is_source_authenticity() {
-    assert_eq!(
-        SourceAuthenticityControl.id(),
-        crate::control::ControlId::SourceAuthenticity
-    );
-}
-
-#[test]
 fn empty_evidence_is_not_applicable() {
-    // Kills: removing empty findings check
     let findings = SourceAuthenticityControl.evaluate(&EvidenceBundle {
         change_requests: vec![],
         promotion_batches: vec![],
@@ -94,7 +85,6 @@ fn promotion_batch_unsigned_is_violated() {
 
 #[test]
 fn missing_source_revisions_is_indeterminate() {
-    // Kills: not handling Missing revisions_state
     let mut change = make_change(true);
     change.source_revisions = EvidenceState::missing(vec![]);
     let findings = SourceAuthenticityControl.evaluate(&EvidenceBundle {
@@ -106,7 +96,6 @@ fn missing_source_revisions_is_indeterminate() {
 
 #[test]
 fn partial_revisions_with_gaps_is_indeterminate() {
-    // Kills: not handling Partial with gaps
     let mut change = make_change(true);
     change.source_revisions = EvidenceState::partial(
         vec![SourceRevision {

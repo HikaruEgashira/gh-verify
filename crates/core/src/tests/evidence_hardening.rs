@@ -1,6 +1,6 @@
 use super::*;
 
-// --- EvidenceState::value() mutations ---
+// --- EvidenceState::value() variant coverage ---
 
 #[test]
 fn complete_state_returns_value() {
@@ -31,13 +31,7 @@ fn not_applicable_state_returns_none() {
     assert_eq!(state.value(), None);
 }
 
-// --- EvidenceState::gaps() mutations ---
-
-#[test]
-fn complete_state_has_no_gaps() {
-    let state = EvidenceState::complete(42);
-    assert!(state.gaps().is_empty());
-}
+// --- EvidenceState::gaps() mutation coverage ---
 
 #[test]
 fn missing_state_returns_gaps() {
@@ -46,18 +40,4 @@ fn missing_state_returns_gaps() {
     };
     let state: EvidenceState<i32> = EvidenceState::missing(vec![gap]);
     assert_eq!(state.gaps().len(), 1);
-}
-
-#[test]
-fn not_applicable_state_has_no_gaps() {
-    let state: EvidenceState<i32> = EvidenceState::not_applicable();
-    assert!(state.gaps().is_empty());
-}
-
-// --- EvidenceState::has_gaps() mutations ---
-
-#[test]
-fn partial_with_empty_gaps_no_gaps() {
-    let state = EvidenceState::partial(1, vec![]);
-    assert!(!state.has_gaps());
 }

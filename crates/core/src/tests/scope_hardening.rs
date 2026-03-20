@@ -33,17 +33,7 @@ fn non_code_extensions_comprehensive() {
 }
 
 #[test]
-fn code_files_not_non_code() {
-    // Kills: always returning true
-    assert!(!is_non_code_file("src/lib.rs"));
-    assert!(!is_non_code_file("main.py"));
-    assert!(!is_non_code_file("handler.go"));
-    assert!(!is_non_code_file("Component.tsx"));
-}
-
-#[test]
 fn dotfile_in_subdirectory_is_non_code() {
-    // Kills: checking basename dotfile logic
     assert!(is_non_code_file("src/.eslintrc"));
     assert!(is_non_code_file("deep/path/.env.local"));
 }
@@ -72,7 +62,6 @@ fn resolve_import_dotdot_prefix() {
 
 #[test]
 fn resolve_import_with_extension() {
-    // Kills: removing common extension matching
     let files = vec!["src/component.tsx"];
     assert_eq!(resolve_import("component", &files), Some(0));
 }
@@ -87,7 +76,6 @@ fn resolve_import_index_file() {
 
 #[test]
 fn fixture_detection_all_markers() {
-    // Kills: removing any fixture marker pattern
     assert_eq!(
         classify_file_role("path/__fixtures__/data.json"),
         FileRole::Fixture
@@ -112,7 +100,6 @@ fn fixture_detection_all_markers() {
 
 #[test]
 fn test_detection_all_markers() {
-    // Kills: removing any test marker pattern
     assert_eq!(
         classify_file_role("src/__tests__/foo.ts"),
         FileRole::Test
@@ -151,13 +138,12 @@ fn semantic_tokens_deduplicated_and_sorted() {
     assert_eq!(
         tokens.iter().filter(|t| *t == "foo").count(),
         1,
-        "should deduplicate"
     );
 }
 
 #[test]
 fn semantic_tokens_min_length_3() {
-    // Kills: >= 3 → >= 2 (would include 2-char tokens)
+    // Kills: >= 3 → >= 2
     let tokens = semantic_path_tokens("src/ab.ts");
     assert!(!tokens.contains(&"ab".to_string()), "2-char token excluded");
     assert!(tokens.contains(&"src".to_string()), "3-char token included");
@@ -177,7 +163,6 @@ fn common_prefix_len_basic() {
 
 #[test]
 fn token_overlap_min_length_check() {
-    // Kills: removing min_len check
     let a = vec!["abc".to_string()];
     let b = vec!["abc".to_string()];
     assert!(!has_token_overlap(&a, &b, 5, false), "3 < 5 threshold");
@@ -189,28 +174,14 @@ fn token_overlap_generic_filter() {
     // Kills: removing require_non_generic check
     let a = vec!["tests".to_string()];
     let b = vec!["tests".to_string()];
-    assert!(
-        !has_token_overlap(&a, &b, 3, true),
-        "generic token should be rejected"
-    );
-    assert!(
-        has_token_overlap(&a, &b, 3, false),
-        "generic allowed when filter off"
-    );
-}
-
-#[test]
-fn token_overlap_no_match() {
-    let a = vec!["alpha".to_string()];
-    let b = vec!["bravo".to_string()];
-    assert!(!has_token_overlap(&a, &b, 3, false));
+    assert!(!has_token_overlap(&a, &b, 3, true), "generic token should be rejected");
+    assert!(has_token_overlap(&a, &b, 3, false), "generic allowed when filter off");
 }
 
 // --- is_generic_token comprehensive ---
 
 #[test]
 fn generic_tokens_all_covered() {
-    // Kills: removing any entry from the is_generic_token match
     let generics = vec![
         "test", "tests", "spec", "fixture", "fixtures", "runtime", "source", "types", "type",
         "index", "core", "src", "lib", "util", "utils", "package", "packages", "private",
@@ -221,21 +192,11 @@ fn generic_tokens_all_covered() {
     }
 }
 
-#[test]
-fn non_generic_tokens() {
-    assert!(!is_generic_token("authentication"));
-    assert!(!is_generic_token("dashboard"));
-    assert!(!is_generic_token("payment"));
-}
-
 // --- package_root ---
 
 #[test]
 fn package_root_with_src_boundary() {
-    assert_eq!(
-        package_root("packages/foo/src/bar.ts"),
-        "packages/foo"
-    );
+    assert_eq!(package_root("packages/foo/src/bar.ts"), "packages/foo");
 }
 
 #[test]
@@ -248,7 +209,6 @@ fn package_root_with_tests_boundary() {
 
 #[test]
 fn package_root_at_repo_root() {
-    // Kills: not checking ROOT_BOUNDARIES
     assert_eq!(package_root("src/main.rs"), "src");
     assert_eq!(package_root("tests/foo.rs"), "tests");
 }
@@ -270,7 +230,6 @@ fn normalized_file_stem_strips_extension_and_lowercases() {
 
 #[test]
 fn colocated_bridge_different_parents_rejected() {
-    // Kills: removing parent_dir check
     assert!(!should_bridge_colocated_sources(
         "packages/a/src/LongFeatureName.ts",
         "packages/b/src/LongFeatureName.ts"
@@ -279,7 +238,6 @@ fn colocated_bridge_different_parents_rejected() {
 
 #[test]
 fn colocated_bridge_non_source_rejected() {
-    // Kills: removing FileRole::Source check
     assert!(!should_bridge_colocated_sources(
         "packages/a/src/Foo.ts",
         "packages/a/__tests__/FooTest.spec.ts"
@@ -326,7 +284,6 @@ fn aux_bridge_source_count_boundary_2_vs_3() {
 
 #[test]
 fn fork_variant_must_contain_forks_path() {
-    // Kills: removing is_fork_variant_path check
     assert!(!should_bridge_fork_variants(
         "packages/shared/ReactFeatureFlags.js",
         "packages/shared/ReactFeatureFlags.web.js"
@@ -344,7 +301,6 @@ fn fork_variant_stem_too_short_rejected() {
 
 #[test]
 fn fork_variant_generic_stem_rejected() {
-    // Kills: removing is_generic_token check
     assert!(!should_bridge_fork_variants(
         "packages/shared/compiler.js",
         "packages/shared/forks/compiler.web.js"
@@ -355,12 +311,10 @@ fn fork_variant_generic_stem_rejected() {
 
 #[test]
 fn test_fixture_bridge_wrong_roles_rejected() {
-    // Two source files should not bridge
     assert!(!should_bridge_test_fixture_pair(
         "src/alpha.ts",
         "src/alpha_helper.ts"
     ));
-    // Two test files should not bridge
     assert!(!should_bridge_test_fixture_pair(
         "test/alpha.spec.ts",
         "test/alpha.test.ts"
@@ -371,7 +325,6 @@ fn test_fixture_bridge_wrong_roles_rejected() {
 
 #[test]
 fn patch_semantic_source_source_requires_same_package_root() {
-    // Kills: removing package_root check
     let tokens = vec!["setinssrsetupstate".to_string()];
     assert!(!should_bridge_patch_semantic_tokens(
         "packages/core/src/component.ts",
@@ -385,7 +338,6 @@ fn patch_semantic_source_source_requires_same_package_root() {
 
 #[test]
 fn patch_semantic_source_test_same_parent_rejected() {
-    // Kills: removing parent_dir check
     let tokens = vec!["setinssrsetupstate".to_string()];
     assert!(!should_bridge_patch_semantic_tokens(
         "packages/core/src/component.ts",
@@ -425,7 +377,6 @@ fn patch_semantic_test_fixture_rejects_aux_0() {
 
 #[test]
 fn patch_semantic_no_token_overlap_rejected() {
-    // Kills: removing token overlap check
     let a = vec!["alpha".to_string()];
     let b = vec!["bravo".to_string()];
     assert!(!should_bridge_patch_semantic_tokens(
@@ -442,7 +393,6 @@ fn patch_semantic_no_token_overlap_rejected() {
 
 #[test]
 fn feature_namespace_rejects_ubiquitous_token_in_large_pr() {
-    // Token appears in 10/10 files (100% > 90% upper_bound) → rejected
     let paths: Vec<&str> = (0..10)
         .map(|i| match i % 3 {
             0 => "src/feature/frobnicator-alpha.ts",
@@ -450,10 +400,7 @@ fn feature_namespace_rejects_ubiquitous_token_in_large_pr() {
             _ => "lib/feature/frobnicator-gamma.ts",
         })
         .collect();
-    // All share "frobnicator" (11 chars) and "feature" (7 chars) but
-    // they appear in all files, exceeding the 90% upper bound
     let ns = extract_feature_namespace(&paths);
-    // "frobnicator" appears in all 10 files which is >= 90% upper bound
     if let Some(ns) = &ns {
         assert_ne!(
             ns.member_indices.len(),

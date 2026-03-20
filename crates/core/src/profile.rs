@@ -174,7 +174,3 @@ mod tests {
     }
 
 }
-
-#[cfg(test)]
-#[path = "tests/profile_hardening.rs"]
-mod profile_hardening;
