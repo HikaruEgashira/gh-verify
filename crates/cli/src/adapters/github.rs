@@ -176,13 +176,13 @@ pub fn map_branch_protection_evidence(
     let reviews = response.required_pull_request_reviews.as_ref();
     gh_verify_core::evidence::BranchProtectionConfig {
         required_reviews: reviews.map_or(0, |r| r.required_approving_review_count),
-        dismiss_stale_reviews: reviews.map_or(false, |r| r.dismiss_stale_reviews),
-        require_code_owner_reviews: reviews.map_or(false, |r| r.require_code_owner_reviews),
+        dismiss_stale_reviews: reviews.is_some_and(|r| r.dismiss_stale_reviews),
+        require_code_owner_reviews: reviews.is_some_and(|r| r.require_code_owner_reviews),
         enforce_admins: response.enforce_admins.enabled,
         required_signatures: response
             .required_signatures
             .as_ref()
-            .map_or(false, |s| s.enabled),
+            .is_some_and(|s| s.enabled),
     }
 }
 

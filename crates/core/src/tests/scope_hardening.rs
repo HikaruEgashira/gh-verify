@@ -100,10 +100,7 @@ fn fixture_detection_all_markers() {
 
 #[test]
 fn test_detection_all_markers() {
-    assert_eq!(
-        classify_file_role("src/__tests__/foo.ts"),
-        FileRole::Test
-    );
+    assert_eq!(classify_file_role("src/__tests__/foo.ts"), FileRole::Test);
     assert_eq!(classify_file_role("src/tests/foo.ts"), FileRole::Test);
     assert_eq!(classify_file_role("src/test/foo.ts"), FileRole::Test);
     assert_eq!(classify_file_role("src/e2e/foo.ts"), FileRole::Test);
@@ -135,10 +132,7 @@ fn semantic_tokens_camel_case_split() {
 #[test]
 fn semantic_tokens_deduplicated_and_sorted() {
     let tokens = semantic_path_tokens("src/foo/foo.ts");
-    assert_eq!(
-        tokens.iter().filter(|t| *t == "foo").count(),
-        1,
-    );
+    assert_eq!(tokens.iter().filter(|t| *t == "foo").count(), 1,);
 }
 
 #[test]
@@ -174,8 +168,14 @@ fn token_overlap_generic_filter() {
     // Kills: removing require_non_generic check
     let a = vec!["tests".to_string()];
     let b = vec!["tests".to_string()];
-    assert!(!has_token_overlap(&a, &b, 3, true), "generic token should be rejected");
-    assert!(has_token_overlap(&a, &b, 3, false), "generic allowed when filter off");
+    assert!(
+        !has_token_overlap(&a, &b, 3, true),
+        "generic token should be rejected"
+    );
+    assert!(
+        has_token_overlap(&a, &b, 3, false),
+        "generic allowed when filter off"
+    );
 }
 
 // --- is_generic_token comprehensive ---

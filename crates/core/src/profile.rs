@@ -263,5 +263,4 @@ mod tests {
         assert_eq!(outcomes[3].decision, GateDecision::Fail);
         assert_eq!(outcomes[3].severity, FindingSeverity::Error);
     }
-
 }

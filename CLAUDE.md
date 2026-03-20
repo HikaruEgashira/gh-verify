@@ -35,10 +35,10 @@ Pure verification logic. No I/O, no unsafe.
 | `verdict.rs` | `Severity` enum (Pass/Warning/Error) |
 | `evidence.rs` | Platform-neutral evidence types (`EvidenceBundle`, `GovernedChange`, etc.) |
 | `control.rs` | `Control` trait, `ControlId` enum, `ControlFinding`, `evaluate_all` |
-| `controls/` | Control implementations (`ReviewIndependence`, `SourceAuthenticity`) |
-| `assessment.rs` | `assess_with_slsa_foundation` — top-level entry point |
-| `profile.rs` | `ControlProfile` trait, `SlsaFoundationProfile`, gate decision mapping |
-| `integrity.rs` | Creusot-verified predicates (`is_approver_independent`, `signature_severity`, etc.) |
+| `controls/` | Control implementations (Source: `ReviewIndependence`, `SourceAuthenticity`; Build: `BuildProvenance`; Repo: `BranchProtection`, `RequiredReviewers`) |
+| `assessment.rs` | `assess_with_slsa_foundation`, `assess_with_slsa_comprehensive` — top-level entry points |
+| `profile.rs` | `ControlProfile` trait, `SlsaFoundationProfile`, `SlsaComprehensiveProfile`, `parse_profile`, gate decision mapping |
+| `integrity.rs` | Creusot-verified predicates (`is_approver_independent`, `signature_severity`, `build_provenance_severity`, `branch_protection_severity`, `required_reviewers_severity`, etc.) |
 | `scope.rs` | PR scope classification by connected components |
 | `union_find.rs` | Disjoint set union for call graph connectivity |
 | `linkage.rs` | Issue/ticket reference extraction from PR body |
@@ -50,7 +50,8 @@ in a crate free of Creusot-unsupported constructs (`format!`, `String`, `Vec`).
 Runtime implementations in `gh-verify-core` must match these verified predicates.
 
 Verified predicates: `is_approver_independent`, `is_uncovered_commit`,
-`signature_severity`, `pr_coverage_severity`, `classify_scope`.
+`signature_severity`, `pr_coverage_severity`, `classify_scope`,
+`build_provenance_severity`, `branch_protection_severity`, `required_reviewers_severity`.
 
 ### gh-verify (crates/cli/)
 
@@ -62,6 +63,8 @@ I/O layer. Delegates all judgments to core via the control/evidence assessment p
 | `github/client.rs` | HTTP client with User-Agent |
 | `github/pr_api.rs` | PR files / metadata / reviews / commits fetch |
 | `github/release_api.rs` | Tag comparison, commit-PR association, reviews |
+| `github/repo_api.rs` | Branch protection, default branch fetch |
+| `attestation/gh_cli.rs` | `gh attestation verify` subprocess + JSON parse |
 | `adapters/github.rs` | GitHub API → `EvidenceBundle` mapping |
 | `output/` | human / json formatters for `AssessmentReport` |
 

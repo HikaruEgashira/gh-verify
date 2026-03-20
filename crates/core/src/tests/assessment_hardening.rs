@@ -1,8 +1,8 @@
 use super::*;
 use crate::control::ControlStatus;
 use crate::evidence::{
-    ApprovalDecision, ApprovalDisposition, AuthenticityEvidence, ChangeRequestId,
-    EvidenceState, GovernedChange, SourceRevision,
+    ApprovalDecision, ApprovalDisposition, AuthenticityEvidence, ChangeRequestId, EvidenceState,
+    GovernedChange, SourceRevision,
 };
 use crate::profile::GateDecision;
 
@@ -39,12 +39,19 @@ fn assessment_all_pass_scenario() {
 
     let report = assess_with_slsa_foundation(&evidence);
     assert_eq!(report.profile_name, "slsa-foundation");
-    assert!(report
-        .outcomes
-        .iter()
-        .all(|o| o.decision == GateDecision::Pass));
-    assert!(report.findings.iter().all(|f| f.status == ControlStatus::Satisfied
-        || f.status == ControlStatus::NotApplicable));
+    assert!(
+        report
+            .outcomes
+            .iter()
+            .all(|o| o.decision == GateDecision::Pass)
+    );
+    assert!(
+        report
+            .findings
+            .iter()
+            .all(|f| f.status == ControlStatus::Satisfied
+                || f.status == ControlStatus::NotApplicable)
+    );
 }
 
 #[test]
@@ -52,7 +59,10 @@ fn assessment_empty_evidence() {
     // Kills: panicking on empty evidence
     let evidence = EvidenceBundle::default();
     let report = assess_with_slsa_foundation(&evidence);
-    assert!(!report.findings.is_empty(), "should produce findings even for empty evidence");
+    assert!(
+        !report.findings.is_empty(),
+        "should produce findings even for empty evidence"
+    );
     assert_eq!(report.findings.len(), report.outcomes.len());
 }
 

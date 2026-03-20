@@ -504,7 +504,6 @@ mod tests {
         let without_refs = extract_issue_references("plain text", &[]);
         assert!(!has_issue_linkage(&without_refs));
     }
-
 }
 
 #[cfg(test)]

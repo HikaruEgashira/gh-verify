@@ -62,7 +62,10 @@ fn merge_self_is_noop() {
     let a = uf.add_node(0, "a", NodeKind::File);
     uf.merge(a, a);
     assert_eq!(uf.component_count(), 1);
-    assert_eq!(uf.rank[a as usize], 0, "self-merge should not increment rank");
+    assert_eq!(
+        uf.rank[a as usize], 0,
+        "self-merge should not increment rank"
+    );
 }
 
 // --- component_count mutations ---

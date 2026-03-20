@@ -1,9 +1,7 @@
 use anyhow::{Context, Result, bail};
 
 use gh_verify_core::control::ControlFinding;
-use gh_verify_core::profile::{
-    ControlProfile, FindingSeverity, GateDecision, ProfileOutcome,
-};
+use gh_verify_core::profile::{ControlProfile, FindingSeverity, GateDecision, ProfileOutcome};
 
 const DEFAULT_POLICY: &str = include_str!("default.rego");
 const RULE_PATH: &str = "data.verify.profile.map";
@@ -36,8 +34,7 @@ impl OpaProfile {
     }
 
     fn eval_finding(&self, finding: &ControlFinding) -> Result<(FindingSeverity, GateDecision)> {
-        let input_json =
-            serde_json::to_string(finding).context("serializing finding to JSON")?;
+        let input_json = serde_json::to_string(finding).context("serializing finding to JSON")?;
 
         // Engine requires &mut self for eval, so clone per-evaluation.
         // Findings are few (one per control x subject), so this is acceptable.
@@ -185,10 +182,7 @@ map := {"severity": "error", "decision": "fail"} if {
 "#;
         let profile = OpaProfile::from_rego("custom.rego", custom_rego).unwrap();
 
-        let finding = make_finding(
-            ControlId::ReviewIndependence,
-            ControlStatus::Indeterminate,
-        );
+        let finding = make_finding(ControlId::ReviewIndependence, ControlStatus::Indeterminate);
         let outcome = profile.map(&finding);
 
         assert_eq!(outcome.severity, FindingSeverity::Warning);

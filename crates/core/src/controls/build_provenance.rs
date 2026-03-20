@@ -37,8 +37,7 @@ impl Control for BuildProvenanceControl {
                     )];
                 }
 
-                let subjects: Vec<String> =
-                    value.iter().map(|a| a.subject.clone()).collect();
+                let subjects: Vec<String> = value.iter().map(|a| a.subject.clone()).collect();
 
                 let unverified: Vec<&str> = value
                     .iter()

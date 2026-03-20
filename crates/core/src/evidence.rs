@@ -283,7 +283,6 @@ mod tests {
         let id = ChangeRequestId::new("github_pr", "owner/repo#42");
         assert_eq!(id.to_string(), "github_pr:owner/repo#42");
     }
-
 }
 
 #[cfg(test)]

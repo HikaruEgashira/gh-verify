@@ -198,7 +198,6 @@ mod tests {
             "unknown control id: nonexistent-control"
         );
     }
-
 }
 
 #[cfg(test)]

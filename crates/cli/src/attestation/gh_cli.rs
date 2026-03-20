@@ -1,4 +1,4 @@
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use serde::Deserialize;
 use std::process::Command;
 
@@ -33,14 +33,23 @@ pub struct CertificateInfo {
     pub build_signer_uri: Option<String>,
 }
 
-/// Verify an artifact using `gh attestation verify` and return parsed results.
-pub fn verify_artifact(
+/// Verify an artifact using `gh attestation verify` with full option support.
+///
+/// Supports binary files, OCI images (`oci://`), custom predicate types,
+/// signer workflow pinning, and self-hosted runner rejection.
+pub fn verify_artifact_extended(
     artifact: &str,
     owner: Option<&str>,
     repo: Option<&str>,
+    digest_alg: &str,
+    predicate_type: &str,
+    signer_workflow: Option<&str>,
+    deny_self_hosted_runners: bool,
 ) -> Result<Vec<GhAttestationOutput>> {
     let mut cmd = Command::new("gh");
     cmd.args(["attestation", "verify", artifact, "--format", "json"]);
+    cmd.args(["--digest-alg", digest_alg]);
+    cmd.args(["--predicate-type", predicate_type]);
 
     if let Some(r) = repo {
         cmd.args(["--repo", r]);
@@ -48,6 +57,14 @@ pub fn verify_artifact(
         cmd.args(["--owner", o]);
     } else {
         bail!("either --owner or --repo is required for attestation verification");
+    }
+
+    if let Some(workflow) = signer_workflow {
+        cmd.args(["--signer-workflow", workflow]);
+    }
+
+    if deny_self_hosted_runners {
+        cmd.arg("--deny-self-hosted-runners");
     }
 
     let output = cmd
@@ -60,7 +77,6 @@ pub fn verify_artifact(
     }
 
     let stdout = String::from_utf8(output.stdout).context("invalid UTF-8 in gh output")?;
-    // gh outputs a JSON array
     let results: Vec<GhAttestationOutput> =
         serde_json::from_str(&stdout).context("failed to parse gh attestation verify output")?;
 
@@ -86,7 +102,7 @@ pub fn to_artifact_attestations(
                 predicate_type: r.verification_result.statement.predicate_type.clone(),
                 signer_workflow: cert.and_then(|c| c.build_signer_uri.clone()),
                 source_repo: cert.and_then(|c| c.source_repository_uri.clone()),
-                verified: true, // if gh attestation verify succeeded, the attestation is verified
+                verified: true, // gh attestation verify succeeding means verified
                 verification_detail: None,
             }
         })

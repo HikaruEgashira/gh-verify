@@ -18,7 +18,10 @@ impl Control for BranchProtectionControl {
         let policy = match evidence.repository_policy.value() {
             Some(p) => p,
             None => {
-                return if matches!(evidence.repository_policy, crate::evidence::EvidenceState::NotApplicable) {
+                return if matches!(
+                    evidence.repository_policy,
+                    crate::evidence::EvidenceState::NotApplicable
+                ) {
                     vec![ControlFinding::not_applicable(
                         id,
                         "Repository policy evidence is not applicable",
@@ -98,7 +101,9 @@ mod tests {
         }
     }
 
-    fn make_policy(bp_state: EvidenceState<BranchProtectionConfig>) -> EvidenceState<RepositoryPolicy> {
+    fn make_policy(
+        bp_state: EvidenceState<BranchProtectionConfig>,
+    ) -> EvidenceState<RepositoryPolicy> {
         EvidenceState::complete(RepositoryPolicy {
             branch_protection: bp_state,
             required_status_checks: EvidenceState::not_applicable(),
@@ -109,7 +114,9 @@ mod tests {
 
     #[test]
     fn both_settings_enabled_is_satisfied() {
-        let bundle = make_bundle(make_policy(EvidenceState::complete(make_config(true, true))));
+        let bundle = make_bundle(make_policy(EvidenceState::complete(make_config(
+            true, true,
+        ))));
         let findings = BranchProtectionControl.evaluate(&bundle);
         assert_eq!(findings.len(), 1);
         assert_eq!(findings[0].status, ControlStatus::Satisfied);
@@ -121,7 +128,9 @@ mod tests {
 
     #[test]
     fn enforce_admins_disabled_is_violated() {
-        let bundle = make_bundle(make_policy(EvidenceState::complete(make_config(false, true))));
+        let bundle = make_bundle(make_policy(EvidenceState::complete(make_config(
+            false, true,
+        ))));
         let findings = BranchProtectionControl.evaluate(&bundle);
         assert_eq!(findings.len(), 1);
         assert_eq!(findings[0].status, ControlStatus::Violated);
@@ -130,7 +139,9 @@ mod tests {
 
     #[test]
     fn dismiss_stale_reviews_disabled_is_violated() {
-        let bundle = make_bundle(make_policy(EvidenceState::complete(make_config(true, false))));
+        let bundle = make_bundle(make_policy(EvidenceState::complete(make_config(
+            true, false,
+        ))));
         let findings = BranchProtectionControl.evaluate(&bundle);
         assert_eq!(findings.len(), 1);
         assert_eq!(findings[0].status, ControlStatus::Violated);
@@ -139,7 +150,9 @@ mod tests {
 
     #[test]
     fn both_disabled_mentions_both_in_rationale() {
-        let bundle = make_bundle(make_policy(EvidenceState::complete(make_config(false, false))));
+        let bundle = make_bundle(make_policy(EvidenceState::complete(make_config(
+            false, false,
+        ))));
         let findings = BranchProtectionControl.evaluate(&bundle);
         assert_eq!(findings[0].status, ControlStatus::Violated);
         assert!(findings[0].rationale.contains("enforce_admins"));
@@ -150,11 +163,13 @@ mod tests {
 
     #[test]
     fn missing_repository_policy_is_indeterminate() {
-        let bundle = make_bundle(EvidenceState::missing(vec![EvidenceGap::CollectionFailed {
-            source: "github".to_string(),
-            subject: "repo".to_string(),
-            detail: "403 Forbidden".to_string(),
-        }]));
+        let bundle = make_bundle(EvidenceState::missing(vec![
+            EvidenceGap::CollectionFailed {
+                source: "github".to_string(),
+                subject: "repo".to_string(),
+                detail: "403 Forbidden".to_string(),
+            },
+        ]));
         let findings = BranchProtectionControl.evaluate(&bundle);
         assert_eq!(findings.len(), 1);
         assert_eq!(findings[0].status, ControlStatus::Indeterminate);
@@ -166,9 +181,11 @@ mod tests {
         let bundle = make_bundle(make_policy(EvidenceState::not_applicable()));
         let findings = BranchProtectionControl.evaluate(&bundle);
         assert_eq!(findings[0].status, ControlStatus::Indeterminate);
-        assert!(findings[0]
-            .rationale
-            .contains("not configured or inaccessible"));
+        assert!(
+            findings[0]
+                .rationale
+                .contains("not configured or inaccessible")
+        );
     }
 
     #[test]

@@ -3,7 +3,9 @@ use serde::{Deserialize, Serialize};
 use crate::control::{Control, ControlFinding, evaluate_all};
 use crate::controls;
 use crate::evidence::EvidenceBundle;
-use crate::profile::{ControlProfile, ProfileOutcome, SlsaFoundationProfile, apply_profile};
+use crate::profile::{
+    ControlProfile, ProfileOutcome, SlsaComprehensiveProfile, SlsaFoundationProfile, apply_profile,
+};
 
 /// Complete assessment result combining raw control findings with profile-mapped outcomes.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -33,6 +35,12 @@ pub fn assess(
 pub fn assess_with_slsa_foundation(evidence: &EvidenceBundle) -> AssessmentReport {
     let controls = controls::slsa_foundation_controls();
     assess(evidence, &controls, &SlsaFoundationProfile)
+}
+
+/// Entry point that runs all controls (Source + Build + Repo) with the comprehensive profile.
+pub fn assess_with_slsa_comprehensive(evidence: &EvidenceBundle) -> AssessmentReport {
+    let controls = controls::slsa_comprehensive_controls();
+    assess(evidence, &controls, &SlsaComprehensiveProfile)
 }
 
 #[cfg(test)]
@@ -92,7 +100,6 @@ mod tests {
                 && finding.status == ControlStatus::Violated
         }));
     }
-
 }
 
 #[cfg(test)]
