@@ -232,10 +232,12 @@ fn run() -> Result<()> {
                 ..Default::default()
             };
 
-            if let Some(ref rn) = repo_name {
-                let cfg = Config::load()?;
-                let client = GitHubClient::new(&cfg)?;
-                collect_repo_policy(&client, &owner_name, rn, &mut bundle);
+            if is_comprehensive(&policy) {
+                if let Some(ref rn) = repo_name {
+                    let cfg = Config::load()?;
+                    let client = GitHubClient::new(&cfg)?;
+                    collect_repo_policy(&client, &owner_name, rn, &mut bundle);
+                }
             }
 
             process_assessment(&bundle, &policy, &format)
@@ -279,8 +281,20 @@ fn collect_repo_policy(
     repo: &str,
     bundle: &mut EvidenceBundle,
 ) {
-    let default_branch = github::repo_api::get_default_branch(client, owner, repo)
-        .unwrap_or_else(|_| "main".to_string());
+    let default_branch = match github::repo_api::get_default_branch(client, owner, repo) {
+        Ok(branch) => branch,
+        Err(err) => {
+            eprintln!("Warning: could not determine default branch: {err}");
+            bundle.repository_policy = EvidenceState::missing(vec![
+                gh_verify_core::evidence::EvidenceGap::CollectionFailed {
+                    source: "github_api".to_string(),
+                    subject: format!("{owner}/{repo}"),
+                    detail: format!("default branch resolution failed: {err}"),
+                },
+            ]);
+            return;
+        }
+    };
 
     match github::repo_api::get_branch_protection(client, owner, repo, &default_branch) {
         Ok(protection) => {
