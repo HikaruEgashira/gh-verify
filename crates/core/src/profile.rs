@@ -72,6 +72,55 @@ impl ControlProfile for SlsaFoundationProfile {
     }
 }
 
+/// Comprehensive profile covering Source Track + Build Track + Repository Policy.
+///
+/// Source controls (ReviewIndependence, SourceAuthenticity): strict — Indeterminate → Fail.
+/// Build/Repo controls (BuildProvenance, BranchProtection, RequiredReviewers): lenient — Indeterminate → Review.
+pub struct SlsaComprehensiveProfile;
+
+impl ControlProfile for SlsaComprehensiveProfile {
+    fn name(&self) -> &'static str {
+        "slsa-comprehensive"
+    }
+
+    fn map(&self, finding: &ControlFinding) -> ProfileOutcome {
+        let is_source_control = matches!(
+            finding.control_id,
+            ControlId::ReviewIndependence | ControlId::SourceAuthenticity
+        );
+
+        let (severity, decision) = match finding.status {
+            ControlStatus::Satisfied | ControlStatus::NotApplicable => {
+                (FindingSeverity::Info, GateDecision::Pass)
+            }
+            ControlStatus::Indeterminate => {
+                if is_source_control {
+                    (FindingSeverity::Error, GateDecision::Fail)
+                } else {
+                    (FindingSeverity::Warning, GateDecision::Review)
+                }
+            }
+            ControlStatus::Violated => (FindingSeverity::Error, GateDecision::Fail),
+        };
+
+        ProfileOutcome {
+            control_id: finding.control_id,
+            severity,
+            decision,
+            rationale: finding.rationale.clone(),
+        }
+    }
+}
+
+/// Parses a profile name into the corresponding profile instance.
+pub fn parse_profile(name: &str) -> Option<Box<dyn ControlProfile>> {
+    match name {
+        "slsa-foundation" => Some(Box::new(SlsaFoundationProfile)),
+        "slsa-comprehensive" => Some(Box::new(SlsaComprehensiveProfile)),
+        _ => None,
+    }
+}
+
 /// Applies a profile to all findings and returns the mapped outcomes.
 pub fn apply_profile(
     profile: &dyn ControlProfile,
@@ -136,6 +185,48 @@ mod tests {
         assert_eq!(outcome.severity, FindingSeverity::Info);
         assert_eq!(outcome.decision, GateDecision::Pass);
         assert_eq!(outcome.control_id, ControlId::SourceAuthenticity);
+    }
+
+    #[test]
+    fn comprehensive_indeterminate_build_maps_to_review() {
+        let outcome = SlsaComprehensiveProfile.map(&ControlFinding::indeterminate(
+            ControlId::BuildProvenance,
+            "gh attestation verify not available",
+            vec!["artifact:binary".to_string()],
+            vec![],
+        ));
+        assert_eq!(outcome.severity, FindingSeverity::Warning);
+        assert_eq!(outcome.decision, GateDecision::Review);
+    }
+
+    #[test]
+    fn comprehensive_indeterminate_source_maps_to_fail() {
+        let outcome = SlsaComprehensiveProfile.map(&ControlFinding::indeterminate(
+            ControlId::ReviewIndependence,
+            "Evidence is partial",
+            vec!["github_pr:owner/repo#10".to_string()],
+            vec![],
+        ));
+        assert_eq!(outcome.severity, FindingSeverity::Error);
+        assert_eq!(outcome.decision, GateDecision::Fail);
+    }
+
+    #[test]
+    fn comprehensive_violated_always_fails() {
+        let outcome = SlsaComprehensiveProfile.map(&ControlFinding::violated(
+            ControlId::BranchProtection,
+            "Admin enforcement disabled",
+            vec!["repository".to_string()],
+        ));
+        assert_eq!(outcome.severity, FindingSeverity::Error);
+        assert_eq!(outcome.decision, GateDecision::Fail);
+    }
+
+    #[test]
+    fn parse_profile_known_names() {
+        assert!(parse_profile("slsa-foundation").is_some());
+        assert!(parse_profile("slsa-comprehensive").is_some());
+        assert!(parse_profile("unknown").is_none());
     }
 
     #[test]

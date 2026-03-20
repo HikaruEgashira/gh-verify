@@ -34,6 +34,7 @@ fn assessment_all_pass_scenario() {
             work_item_refs: EvidenceState::complete(vec![]),
         }],
         promotion_batches: vec![],
+        ..Default::default()
     };
 
     let report = assess_with_slsa_foundation(&evidence);
@@ -42,10 +43,8 @@ fn assessment_all_pass_scenario() {
         .outcomes
         .iter()
         .all(|o| o.decision == GateDecision::Pass));
-    assert!(report
-        .findings
-        .iter()
-        .all(|f| f.status == ControlStatus::Satisfied));
+    assert!(report.findings.iter().all(|f| f.status == ControlStatus::Satisfied
+        || f.status == ControlStatus::NotApplicable));
 }
 
 #[test]
@@ -72,6 +71,7 @@ fn assessment_findings_count_equals_outcomes_count() {
             work_item_refs: EvidenceState::complete(vec![]),
         }],
         promotion_batches: vec![],
+        ..Default::default()
     };
     let report = assess_with_slsa_foundation(&evidence);
     assert_eq!(

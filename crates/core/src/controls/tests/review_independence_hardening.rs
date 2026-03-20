@@ -35,6 +35,7 @@ fn empty_change_requests_is_not_applicable() {
     let findings = ReviewIndependenceControl.evaluate(&EvidenceBundle {
         change_requests: vec![],
         promotion_batches: vec![],
+        ..Default::default()
     });
     assert_eq!(findings.len(), 1);
     assert_eq!(
@@ -118,6 +119,7 @@ fn multiple_changes_produce_multiple_findings() {
     let bundle = EvidenceBundle {
         change_requests: vec![make_change(), make_change()],
         promotion_batches: vec![],
+        ..Default::default()
     };
     let findings = ReviewIndependenceControl.evaluate(&bundle);
     assert_eq!(findings.len(), 2);

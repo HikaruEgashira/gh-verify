@@ -147,6 +147,7 @@ mod tests {
         let findings = SourceAuthenticityControl.evaluate(&EvidenceBundle {
             change_requests: vec![make_change(true)],
             promotion_batches: vec![],
+            ..Default::default()
         });
         assert_eq!(findings[0].status, ControlStatus::Satisfied);
     }
@@ -156,6 +157,7 @@ mod tests {
         let findings = SourceAuthenticityControl.evaluate(&EvidenceBundle {
             change_requests: vec![make_change(false)],
             promotion_batches: vec![],
+            ..Default::default()
         });
         assert_eq!(findings[0].status, ControlStatus::Violated);
     }
@@ -174,6 +176,7 @@ mod tests {
         let findings = SourceAuthenticityControl.evaluate(&EvidenceBundle {
             change_requests: vec![change],
             promotion_batches: vec![],
+            ..Default::default()
         });
         assert_eq!(findings[0].status, ControlStatus::Indeterminate);
     }

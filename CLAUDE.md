@@ -32,8 +32,13 @@ Pure verification logic. No I/O, no unsafe.
 
 | Module | Purpose |
 |--------|---------|
-| `verdict.rs` | Severity enum, RuleResult type |
-| `integrity.rs` | SLSA release checks (signatures, mutual approval, PR coverage) |
+| `verdict.rs` | `Severity` enum (Pass/Warning/Error) |
+| `evidence.rs` | Platform-neutral evidence types (`EvidenceBundle`, `GovernedChange`, etc.) |
+| `control.rs` | `Control` trait, `ControlId` enum, `ControlFinding`, `evaluate_all` |
+| `controls/` | Control implementations (`ReviewIndependence`, `SourceAuthenticity`) |
+| `assessment.rs` | `assess_with_slsa_foundation` — top-level entry point |
+| `profile.rs` | `ControlProfile` trait, `SlsaFoundationProfile`, gate decision mapping |
+| `integrity.rs` | Creusot-verified predicates (`is_approver_independent`, `signature_severity`, etc.) |
 | `scope.rs` | PR scope classification by connected components |
 | `union_find.rs` | Disjoint set union for call graph connectivity |
 | `linkage.rs` | Issue/ticket reference extraction from PR body |
@@ -43,6 +48,9 @@ Pure verification logic. No I/O, no unsafe.
 Creusot verification targets. Core predicates with `#[ensures]` specs
 in a crate free of Creusot-unsupported constructs (`format!`, `String`, `Vec`).
 Runtime implementations in `gh-verify-core` must match these verified predicates.
+
+Verified predicates: `is_approver_independent`, `is_uncovered_commit`,
+`signature_severity`, `pr_coverage_severity`, `classify_scope`.
 
 ### gh-verify (crates/cli/)
 

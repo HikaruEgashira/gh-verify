@@ -32,6 +32,7 @@ fn empty_evidence_is_not_applicable() {
     let findings = SourceAuthenticityControl.evaluate(&EvidenceBundle {
         change_requests: vec![],
         promotion_batches: vec![],
+        ..Default::default()
     });
     assert_eq!(findings.len(), 1);
     assert_eq!(findings[0].status, ControlStatus::NotApplicable);
@@ -56,6 +57,7 @@ fn promotion_batch_evaluated() {
             }]),
             linked_change_requests: EvidenceState::complete(vec![]),
         }],
+        ..Default::default()
     });
     assert_eq!(findings.len(), 1);
     assert_eq!(findings[0].status, ControlStatus::Satisfied);
@@ -79,6 +81,7 @@ fn promotion_batch_unsigned_is_violated() {
             }]),
             linked_change_requests: EvidenceState::complete(vec![]),
         }],
+        ..Default::default()
     });
     assert_eq!(findings[0].status, ControlStatus::Violated);
 }
@@ -90,6 +93,7 @@ fn missing_source_revisions_is_indeterminate() {
     let findings = SourceAuthenticityControl.evaluate(&EvidenceBundle {
         change_requests: vec![change],
         promotion_batches: vec![],
+        ..Default::default()
     });
     assert_eq!(findings[0].status, ControlStatus::Indeterminate);
 }
@@ -117,6 +121,7 @@ fn partial_revisions_with_gaps_is_indeterminate() {
     let findings = SourceAuthenticityControl.evaluate(&EvidenceBundle {
         change_requests: vec![change],
         promotion_batches: vec![],
+        ..Default::default()
     });
     assert_eq!(findings[0].status, ControlStatus::Indeterminate);
 }
@@ -148,6 +153,7 @@ fn multiple_revisions_mixed_signed_unsigned() {
     let findings = SourceAuthenticityControl.evaluate(&EvidenceBundle {
         change_requests: vec![change],
         promotion_batches: vec![],
+        ..Default::default()
     });
     assert_eq!(findings[0].status, ControlStatus::Violated);
 }
@@ -157,6 +163,7 @@ fn multiple_changes_produce_multiple_findings() {
     let findings = SourceAuthenticityControl.evaluate(&EvidenceBundle {
         change_requests: vec![make_change(true), make_change(false)],
         promotion_batches: vec![],
+        ..Default::default()
     });
     assert_eq!(findings.len(), 2);
     assert_eq!(findings[0].status, ControlStatus::Satisfied);

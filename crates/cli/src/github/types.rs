@@ -119,3 +119,28 @@ pub struct PrCommitInner {
 pub struct PrCommitAuthor {
     pub date: Option<String>,
 }
+
+/// Branch protection response from GitHub API.
+#[derive(Debug, Clone, Deserialize)]
+pub struct BranchProtectionResponse {
+    pub enforce_admins: EnforceAdmins,
+    pub required_pull_request_reviews: Option<RequiredPullRequestReviews>,
+    pub required_signatures: Option<RequiredSignatures>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct EnforceAdmins {
+    pub enabled: bool,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct RequiredPullRequestReviews {
+    pub required_approving_review_count: u32,
+    pub dismiss_stale_reviews: bool,
+    pub require_code_owner_reviews: bool,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct RequiredSignatures {
+    pub enabled: bool,
+}

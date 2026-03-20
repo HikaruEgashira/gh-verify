@@ -13,6 +13,12 @@ pub enum ControlId {
     ReviewIndependence,
     /// Commit signatures must be present and verified.
     SourceAuthenticity,
+    /// Build Track: artifact has verified SLSA provenance attestation.
+    BuildProvenance,
+    /// Repo policy: default branch has adequate protection rules.
+    BranchProtection,
+    /// Repo policy: minimum number of required reviewers is configured.
+    RequiredReviewers,
 }
 
 impl ControlId {
@@ -21,6 +27,9 @@ impl ControlId {
         match self {
             Self::ReviewIndependence => "review-independence",
             Self::SourceAuthenticity => "source-authenticity",
+            Self::BuildProvenance => "build-provenance",
+            Self::BranchProtection => "branch-protection",
+            Self::RequiredReviewers => "required-reviewers",
         }
     }
 }
@@ -49,6 +58,9 @@ impl FromStr for ControlId {
         match s {
             "review-independence" => Ok(Self::ReviewIndependence),
             "source-authenticity" => Ok(Self::SourceAuthenticity),
+            "build-provenance" => Ok(Self::BuildProvenance),
+            "branch-protection" => Ok(Self::BranchProtection),
+            "required-reviewers" => Ok(Self::RequiredReviewers),
             _ => Err(UnknownControlId(s.to_string())),
         }
     }
@@ -163,7 +175,13 @@ mod tests {
 
     #[test]
     fn control_id_display_round_trip() {
-        let variants = [ControlId::ReviewIndependence, ControlId::SourceAuthenticity];
+        let variants = [
+            ControlId::ReviewIndependence,
+            ControlId::SourceAuthenticity,
+            ControlId::BuildProvenance,
+            ControlId::BranchProtection,
+            ControlId::RequiredReviewers,
+        ];
         for id in &variants {
             let s = id.to_string();
             let parsed: ControlId = s.parse().unwrap();

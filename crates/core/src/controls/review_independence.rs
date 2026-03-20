@@ -193,6 +193,7 @@ mod tests {
         let findings = ReviewIndependenceControl.evaluate(&EvidenceBundle {
             change_requests: vec![change],
             promotion_batches: vec![],
+            ..Default::default()
         });
 
         assert_eq!(
