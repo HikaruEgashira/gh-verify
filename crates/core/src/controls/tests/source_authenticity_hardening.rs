@@ -51,9 +51,10 @@ fn promotion_batch_evaluated() {
                 authored_by: Some("author".into()),
                 committed_at: None,
                 merge: false,
-                authenticity: EvidenceState::complete(
-                    crate::evidence::AuthenticityEvidence::new(true, Some("gpg".into())),
-                ),
+                authenticity: EvidenceState::complete(crate::evidence::AuthenticityEvidence::new(
+                    true,
+                    Some("gpg".into()),
+                )),
             }]),
             linked_change_requests: EvidenceState::complete(vec![]),
         }],
@@ -75,9 +76,9 @@ fn promotion_batch_unsigned_is_violated() {
                 authored_by: Some("author".into()),
                 committed_at: None,
                 merge: false,
-                authenticity: EvidenceState::complete(
-                    crate::evidence::AuthenticityEvidence::new(false, None),
-                ),
+                authenticity: EvidenceState::complete(crate::evidence::AuthenticityEvidence::new(
+                    false, None,
+                )),
             }]),
             linked_change_requests: EvidenceState::complete(vec![]),
         }],
@@ -136,18 +137,19 @@ fn multiple_revisions_mixed_signed_unsigned() {
             authored_by: Some("alice".into()),
             committed_at: None,
             merge: false,
-            authenticity: EvidenceState::complete(
-                crate::evidence::AuthenticityEvidence::new(true, Some("gpg".into())),
-            ),
+            authenticity: EvidenceState::complete(crate::evidence::AuthenticityEvidence::new(
+                true,
+                Some("gpg".into()),
+            )),
         },
         SourceRevision {
             id: "bbb".into(),
             authored_by: Some("bob".into()),
             committed_at: None,
             merge: false,
-            authenticity: EvidenceState::complete(
-                crate::evidence::AuthenticityEvidence::new(false, None),
-            ),
+            authenticity: EvidenceState::complete(crate::evidence::AuthenticityEvidence::new(
+                false, None,
+            )),
         },
     ]);
     let findings = SourceAuthenticityControl.evaluate(&EvidenceBundle {

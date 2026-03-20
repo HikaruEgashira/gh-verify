@@ -108,9 +108,11 @@ mod tests {
         let findings = RequiredReviewersControl.evaluate(&make_bundle(0));
         assert_eq!(findings.len(), 1);
         assert_eq!(findings[0].status, ControlStatus::Violated);
-        assert!(findings[0]
-            .rationale
-            .contains("no minimum reviewer requirement configured"));
+        assert!(
+            findings[0]
+                .rationale
+                .contains("no minimum reviewer requirement configured")
+        );
     }
 
     #[test]

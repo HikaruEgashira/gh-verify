@@ -26,8 +26,16 @@ fn evaluate_all_collects_from_all_controls() {
     let evidence = EvidenceBundle::default();
     let controls = slsa_foundation_controls();
     let findings = evaluate_all(&controls, &evidence);
-    assert!(findings.iter().any(|f| f.control_id == ControlId::ReviewIndependence));
-    assert!(findings.iter().any(|f| f.control_id == ControlId::SourceAuthenticity));
+    assert!(
+        findings
+            .iter()
+            .any(|f| f.control_id == ControlId::ReviewIndependence)
+    );
+    assert!(
+        findings
+            .iter()
+            .any(|f| f.control_id == ControlId::SourceAuthenticity)
+    );
 }
 
 #[test]

@@ -201,7 +201,6 @@ mod tests {
             crate::control::ControlStatus::Indeterminate
         );
     }
-
 }
 
 #[cfg(test)]

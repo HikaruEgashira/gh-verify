@@ -185,7 +185,11 @@ mod tests {
         for &ds in &[false, true] {
             for &ea in &[false, true] {
                 let result = branch_protection_severity(ds, ea);
-                let spec = if ds && ea { Severity::Pass } else { Severity::Error };
+                let spec = if ds && ea {
+                    Severity::Pass
+                } else {
+                    Severity::Error
+                };
                 assert_eq!(
                     result, spec,
                     "branch_protection_severity({ds}, {ea}): got {result:?}, spec {spec:?}"

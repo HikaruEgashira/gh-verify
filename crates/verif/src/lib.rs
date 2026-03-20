@@ -94,12 +94,10 @@ pub fn classify_scope(code_files_count: usize, components: usize) -> Severity {
 #[ensures(attestation_count > 0usize && all_verified ==> result == Severity::Pass)]
 #[ensures(attestation_count > 0usize && !all_verified ==> result == Severity::Error)]
 pub fn build_provenance_severity(attestation_count: usize, all_verified: bool) -> Severity {
-    if attestation_count == 0 {
-        Severity::Pass
-    } else if all_verified {
-        Severity::Pass
-    } else {
+    if attestation_count > 0 && !all_verified {
         Severity::Error
+    } else {
+        Severity::Pass
     }
 }
 
