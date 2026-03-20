@@ -58,12 +58,12 @@ runs:
         INPUT_FORMAT: ${{ inputs.format }}
         INPUT_POLICY: ${{ inputs.policy }}
       run: |
-        POLICY_FLAG=""
-        if [ -n "$INPUT_POLICY" ]; then
-          POLICY_FLAG="--policy $INPUT_POLICY"
-        fi
         set +e
-        OUTPUT=$(gh verify pr "$INPUT_PR_NUMBER" --repo "$INPUT_REPO" --format "$INPUT_FORMAT" $POLICY_FLAG 2>&1)
+        if [ -n "$INPUT_POLICY" ]; then
+          OUTPUT=$(gh verify pr "$INPUT_PR_NUMBER" --repo "$INPUT_REPO" --format "$INPUT_FORMAT" --policy "$INPUT_POLICY" 2>&1)
+        else
+          OUTPUT=$(gh verify pr "$INPUT_PR_NUMBER" --repo "$INPUT_REPO" --format "$INPUT_FORMAT" 2>&1)
+        fi
         EXIT_CODE=$?
         set -e
 
