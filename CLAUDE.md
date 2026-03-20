@@ -35,7 +35,7 @@ Pure verification logic. No I/O, no unsafe.
 | `verdict.rs` | `Severity` enum (Pass/Warning/Error) |
 | `evidence.rs` | Platform-neutral evidence types (`EvidenceBundle`, `GovernedChange`, etc.) |
 | `control.rs` | `Control` trait, `ControlId` enum, `ControlFinding`, `evaluate_all` |
-| `controls/` | Control implementations (`ReviewIndependence`, `SourceAuthenticity`) |
+| `controls/` | Control implementations (`ReviewIndependence`, `SourceAuthenticity`, `BuildProvenance`) |
 | `assessment.rs` | `assess_with_slsa_foundation` — top-level entry point |
 | `profile.rs` | `ControlProfile` trait, `SlsaFoundationProfile`, gate decision mapping |
 | `integrity.rs` | Creusot-verified predicates (`is_approver_independent`, `signature_severity`, etc.) |

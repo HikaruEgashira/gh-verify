@@ -140,13 +140,42 @@ fn run() -> Result<()> {
                 });
             }
 
+            // Collect unique PR numbers from commit-PR associations
+            let mut seen_pr_numbers = std::collections::HashSet::new();
+            for assoc in &commit_prs {
+                for pr in &assoc.pull_requests {
+                    seen_pr_numbers.insert(pr.number);
+                }
+            }
+
+            // Fetch full evidence for each linked PR (reviews, commits, files)
             let repo_full = format!("{owner}/{repo_name}");
+            let mut pr_evidences = Vec::new();
+            for pr_number in &seen_pr_numbers {
+                match fetch_pr_evidence(&client, &owner, &repo_name, *pr_number) {
+                    Ok((metadata, files, reviews, pr_commits)) => {
+                        pr_evidences.push(adapters::github::map_pull_request_evidence(
+                            &repo_full,
+                            *pr_number,
+                            &metadata,
+                            &files,
+                            &reviews,
+                            &pr_commits,
+                        ));
+                    }
+                    Err(err) => {
+                        eprintln!("Warning: failed to fetch evidence for PR #{pr_number}: {err}");
+                    }
+                }
+            }
+
             let bundle = adapters::github::build_release_bundle(
                 &repo_full,
                 &base_tag,
                 &head_tag,
                 &commits,
                 &commit_prs,
+                pr_evidences,
             );
             let report = assess_bundle(&bundle, policy.as_deref())?;
             output::print(fmt, &report)?;
@@ -206,6 +235,28 @@ fn assess_bundle(
         }
         None => Ok(gh_verify_core::assessment::assess_with_slsa_foundation(bundle)),
     }
+}
+
+fn fetch_pr_evidence(
+    client: &GitHubClient,
+    owner: &str,
+    repo: &str,
+    pr_number: u32,
+) -> Result<(
+    crate::github::types::PrMetadata,
+    Vec<crate::github::types::PrFile>,
+    Vec<crate::github::types::Review>,
+    Vec<crate::github::types::PrCommit>,
+)> {
+    let metadata = github::pr_api::get_pr_metadata(client, owner, repo, pr_number)
+        .context("failed to fetch PR metadata")?;
+    let files = github::pr_api::get_pr_files(client, owner, repo, pr_number)
+        .context("failed to fetch PR files")?;
+    let reviews = github::pr_api::get_pr_reviews(client, owner, repo, pr_number)
+        .context("failed to fetch PR reviews")?;
+    let commits = github::pr_api::get_pr_commits(client, owner, repo, pr_number)
+        .context("failed to fetch PR commits")?;
+    Ok((metadata, files, reviews, commits))
 }
 
 fn exit_if_assessment_fails(report: &gh_verify_core::assessment::AssessmentReport) {

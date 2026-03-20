@@ -219,30 +219,6 @@ pub struct ArtifactAttestation {
     pub verification_detail: Option<String>,
 }
 
-/// Branch protection configuration for a repository's default branch.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct BranchProtectionConfig {
-    /// Minimum number of required approving reviews.
-    pub required_reviews: u32,
-    /// Whether stale reviews are dismissed on new pushes.
-    pub dismiss_stale_reviews: bool,
-    /// Whether code owner reviews are required.
-    pub require_code_owner_reviews: bool,
-    /// Whether protection rules are enforced for administrators.
-    pub enforce_admins: bool,
-    /// Whether commit signature verification is required.
-    pub required_signatures: bool,
-}
-
-/// Repository-level policy settings.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct RepositoryPolicy {
-    /// Branch protection rules for the default branch.
-    pub branch_protection: EvidenceState<BranchProtectionConfig>,
-    /// Required status checks on the default branch.
-    pub required_status_checks: EvidenceState<Vec<String>>,
-}
-
 /// Top-level container for all evidence collected from adapters.
 ///
 /// Passed to controls for evaluation; should be platform-agnostic.
@@ -254,8 +230,6 @@ pub struct EvidenceBundle {
     pub promotion_batches: Vec<PromotionBatch>,
     /// Build Track: artifact provenance attestations.
     pub artifact_attestations: EvidenceState<Vec<ArtifactAttestation>>,
-    /// Repository policy: branch protection and status checks.
-    pub repository_policy: EvidenceState<RepositoryPolicy>,
 }
 
 #[cfg(test)]
