@@ -3,8 +3,8 @@ use anyhow::{Context, Result, bail};
 use gh_verify_core::control::ControlFinding;
 use gh_verify_core::profile::{ControlProfile, FindingSeverity, GateDecision, ProfileOutcome};
 
-const FOUNDATION_POLICY: &str = include_str!("default.rego");
-const COMPREHENSIVE_POLICY: &str = include_str!("comprehensive.rego");
+const FOUNDATION_POLICY: &str = include_str!("../../../../policy/slsa-foundation.rego");
+const COMPREHENSIVE_POLICY: &str = include_str!("../../../../policy/slsa-comprehensive.rego");
 const RULE_PATH: &str = "data.verify.profile.map";
 
 /// OPA-based profile that evaluates Rego policies to map control findings
