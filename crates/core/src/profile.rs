@@ -173,14 +173,8 @@ mod tests {
         assert_eq!(outcomes[3].severity, FindingSeverity::Error);
     }
 
-    // ================================================================
-    // Mutation-hardening tests
-    // ================================================================
-
-    #[test]
-    fn profile_name_is_correct() {
-        // Kills: returning wrong profile name
-        assert_eq!(SlsaFoundationProfile.name(), "slsa-foundation");
-    }
-
 }
+
+#[cfg(test)]
+#[path = "tests/profile_hardening.rs"]
+mod profile_hardening;
