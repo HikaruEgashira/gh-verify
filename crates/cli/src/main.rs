@@ -10,7 +10,6 @@ use gh_verify::github::client::GitHubClient;
 use gh_verify::output;
 use gh_verify::policy::OpaProfile;
 
-use gh_verify_core::assessment::{self, AssessmentReport};
 use gh_verify_core::evidence::{EvidenceBundle, EvidenceState};
 
 const VERSION: &str = env!("GH_VERIFY_VERSION");
@@ -34,12 +33,9 @@ enum Commands {
         /// Repository in OWNER/REPO format
         #[arg(long)]
         repo: Option<String>,
-        /// Assessment profile (slsa-foundation or slsa-comprehensive)
+        /// Policy: built-in name (slsa-foundation, slsa-comprehensive) or path to .rego file
         #[arg(long, default_value = "slsa-foundation")]
-        profile: String,
-        /// Path to OPA policy file (.rego) for custom gate decisions
-        #[arg(long)]
-        policy: Option<String>,
+        policy: String,
     },
     /// Verify release integrity
     Release {
@@ -51,12 +47,9 @@ enum Commands {
         /// Repository in OWNER/REPO format
         #[arg(long)]
         repo: Option<String>,
-        /// Assessment profile (slsa-foundation or slsa-comprehensive)
+        /// Policy: built-in name (slsa-foundation, slsa-comprehensive) or path to .rego file
         #[arg(long, default_value = "slsa-foundation")]
-        profile: String,
-        /// Path to OPA policy file (.rego) for custom gate decisions
-        #[arg(long)]
-        policy: Option<String>,
+        policy: String,
     },
     /// Verify artifact attestation (binary, OCI image, or SBOM)
     Attest {
@@ -83,12 +76,9 @@ enum Commands {
         /// Output format (human or json)
         #[arg(long, default_value = "human")]
         format: String,
-        /// Assessment profile (slsa-foundation or slsa-comprehensive)
+        /// Policy: built-in name (slsa-foundation, slsa-comprehensive) or path to .rego file
         #[arg(long, default_value = "slsa-comprehensive")]
-        profile: String,
-        /// Path to OPA policy file (.rego) for custom gate decisions
-        #[arg(long)]
-        policy: Option<String>,
+        policy: String,
     },
 }
 
@@ -107,11 +97,9 @@ fn run() -> Result<()> {
             arg,
             format,
             repo: repo_override,
-            profile,
             policy,
         } => {
             let pr_number: u32 = arg.parse().context("invalid PR number")?;
-            let fmt = output::parse_format(&format)?;
             let cfg = Config::load()?;
             let (owner, repo_name) = resolve_repo(&cfg, repo_override.as_deref())?;
             let client = GitHubClient::new(&cfg)?;
@@ -136,22 +124,18 @@ fn run() -> Result<()> {
                 &pr_commits,
             );
 
-            if profile == "slsa-comprehensive" {
+            if is_comprehensive(&policy) {
                 collect_repo_policy(&client, &owner, &repo_name, &mut bundle);
             }
 
-            let report = assess_bundle(&bundle, &profile, policy.as_deref())?;
-            output::print(fmt, &report)?;
-            exit_if_assessment_fails(&report);
+            process_assessment(&bundle, &policy, &format)
         }
         Commands::Release {
             arg,
             format,
             repo: repo_override,
-            profile,
             policy,
         } => {
-            let fmt = output::parse_format(&format)?;
             let cfg = Config::load()?;
             let (owner, repo_name) = resolve_repo(&cfg, repo_override.as_deref())?;
             let client = GitHubClient::new(&cfg)?;
@@ -197,13 +181,11 @@ fn run() -> Result<()> {
                 &commit_prs,
             );
 
-            if profile == "slsa-comprehensive" {
+            if is_comprehensive(&policy) {
                 collect_repo_policy(&client, &owner, &repo_name, &mut bundle);
             }
 
-            let report = assess_bundle(&bundle, &profile, policy.as_deref())?;
-            output::print(fmt, &report)?;
-            exit_if_assessment_fails(&report);
+            process_assessment(&bundle, &policy, &format)
         }
         Commands::Attest {
             artifact,
@@ -214,11 +196,8 @@ fn run() -> Result<()> {
             signer_workflow,
             deny_self_hosted_runners,
             format,
-            profile,
             policy,
         } => {
-            let fmt = output::parse_format(&format)?;
-
             let (owner_name, repo_name) = if let Some(ref r) = repo_override {
                 let parts: Vec<&str> = r.splitn(2, '/').collect();
                 if parts.len() != 2 {
@@ -259,37 +238,40 @@ fn run() -> Result<()> {
                 collect_repo_policy(&client, &owner_name, rn, &mut bundle);
             }
 
-            let report = assess_bundle(&bundle, &profile, policy.as_deref())?;
-            output::print(fmt, &report)?;
-            exit_if_assessment_fails(&report);
+            process_assessment(&bundle, &policy, &format)
         }
     }
+}
 
+// --- Shared pipeline ---
+
+/// Single point for policy resolution → assess → output → exit-code.
+fn process_assessment(bundle: &EvidenceBundle, policy: &str, format: &str) -> Result<()> {
+    let fmt = output::parse_format(format)?;
+    let profile = OpaProfile::resolve(policy)?;
+    let controls = if is_comprehensive(policy) {
+        gh_verify_core::controls::slsa_comprehensive_controls()
+    } else {
+        gh_verify_core::controls::slsa_foundation_controls()
+    };
+    let report = gh_verify_core::assessment::assess(bundle, &controls, &profile);
+    output::print(fmt, &report)?;
+    if report
+        .outcomes
+        .iter()
+        .any(|o| o.decision == gh_verify_core::profile::GateDecision::Fail)
+    {
+        process::exit(1);
+    }
     Ok(())
 }
 
-/// Assess an evidence bundle using either an OPA policy or a built-in profile.
-/// OPA policy takes precedence when provided.
-fn assess_bundle(
-    bundle: &EvidenceBundle,
-    profile: &str,
-    policy_path: Option<&str>,
-) -> Result<AssessmentReport> {
-    if let Some(path) = policy_path {
-        let opa = OpaProfile::from_file(path)?;
-        let controls = match profile {
-            "slsa-comprehensive" => gh_verify_core::controls::slsa_comprehensive_controls(),
-            _ => gh_verify_core::controls::slsa_foundation_controls(),
-        };
-        return Ok(assessment::assess(bundle, &controls, &opa));
-    }
-
-    match profile {
-        "slsa-foundation" => Ok(assessment::assess_with_slsa_foundation(bundle)),
-        "slsa-comprehensive" => Ok(assessment::assess_with_slsa_comprehensive(bundle)),
-        other => bail!("unknown profile: {other}. Use 'slsa-foundation' or 'slsa-comprehensive'"),
-    }
+/// Returns true if the policy implies comprehensive control set.
+fn is_comprehensive(policy: &str) -> bool {
+    policy != "slsa-foundation"
 }
+
+// --- Infrastructure ---
 
 fn collect_repo_policy(
     client: &GitHubClient,
@@ -357,14 +339,4 @@ fn parse_release_arg(
         }
     }
     bail!("tag not found: {head_tag}");
-}
-
-fn exit_if_assessment_fails(report: &AssessmentReport) {
-    if report
-        .outcomes
-        .iter()
-        .any(|o| o.decision == gh_verify_core::profile::GateDecision::Fail)
-    {
-        process::exit(1);
-    }
 }

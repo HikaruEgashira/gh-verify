@@ -3,7 +3,8 @@ use anyhow::{Context, Result, bail};
 use gh_verify_core::control::ControlFinding;
 use gh_verify_core::profile::{ControlProfile, FindingSeverity, GateDecision, ProfileOutcome};
 
-const DEFAULT_POLICY: &str = include_str!("default.rego");
+const FOUNDATION_POLICY: &str = include_str!("default.rego");
+const COMPREHENSIVE_POLICY: &str = include_str!("comprehensive.rego");
 const RULE_PATH: &str = "data.verify.profile.map";
 
 /// OPA-based profile that evaluates Rego policies to map control findings
@@ -20,9 +21,21 @@ impl OpaProfile {
         Self::from_rego(path, &policy)
     }
 
+    /// Resolves a policy specifier to an OPA profile.
+    /// - `"slsa-foundation"` → built-in foundation policy
+    /// - `"slsa-comprehensive"` → built-in comprehensive policy
+    /// - `"path/to/custom.rego"` → user-provided OPA policy file
+    pub fn resolve(policy: &str) -> Result<Self> {
+        match policy {
+            "slsa-foundation" => Self::from_rego("foundation.rego", FOUNDATION_POLICY),
+            "slsa-comprehensive" => Self::from_rego("comprehensive.rego", COMPREHENSIVE_POLICY),
+            path => Self::from_file(path),
+        }
+    }
+
     /// Creates a profile using the built-in default policy (SLSA Foundation equivalent).
     pub fn default_policy() -> Result<Self> {
-        Self::from_rego("default.rego", DEFAULT_POLICY)
+        Self::from_rego("foundation.rego", FOUNDATION_POLICY)
     }
 
     fn from_rego(name: &str, rego: &str) -> Result<Self> {
