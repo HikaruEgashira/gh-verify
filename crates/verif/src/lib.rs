@@ -84,3 +84,47 @@ pub fn classify_scope(code_files_count: usize, components: usize) -> Severity {
         _ => Severity::Error,
     }
 }
+
+/// Build provenance severity.
+///
+/// Pass iff at least one attestation exists and all are verified.
+/// Error if any attestation is unverified. Pass if no attestations
+/// (NotApplicable handled at control level).
+#[ensures(attestation_count == 0usize ==> result == Severity::Pass)]
+#[ensures(attestation_count > 0usize && all_verified ==> result == Severity::Pass)]
+#[ensures(attestation_count > 0usize && !all_verified ==> result == Severity::Error)]
+pub fn build_provenance_severity(attestation_count: usize, all_verified: bool) -> Severity {
+    if attestation_count == 0 {
+        Severity::Pass
+    } else if all_verified {
+        Severity::Pass
+    } else {
+        Severity::Error
+    }
+}
+
+/// Branch protection severity.
+///
+/// Pass iff both stale review dismissal and admin enforcement are enabled.
+#[ensures(dismiss_stale && enforce_admins ==> result == Severity::Pass)]
+#[ensures(!dismiss_stale || !enforce_admins ==> result == Severity::Error)]
+pub fn branch_protection_severity(dismiss_stale: bool, enforce_admins: bool) -> Severity {
+    if dismiss_stale && enforce_admins {
+        Severity::Pass
+    } else {
+        Severity::Error
+    }
+}
+
+/// Required reviewers severity.
+///
+/// Pass iff at least one reviewer is required.
+#[ensures(required_reviews >= 1u32 ==> result == Severity::Pass)]
+#[ensures(required_reviews == 0u32 ==> result == Severity::Error)]
+pub fn required_reviewers_severity(required_reviews: u32) -> Severity {
+    if required_reviews >= 1 {
+        Severity::Pass
+    } else {
+        Severity::Error
+    }
+}

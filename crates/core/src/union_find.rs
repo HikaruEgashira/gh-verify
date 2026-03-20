@@ -333,4 +333,9 @@ mod tests {
             );
         }
     }
+
 }
+
+#[cfg(test)]
+#[path = "tests/union_find_hardening.rs"]
+mod union_find_hardening;

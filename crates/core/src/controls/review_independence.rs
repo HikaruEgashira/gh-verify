@@ -193,6 +193,7 @@ mod tests {
         let findings = ReviewIndependenceControl.evaluate(&EvidenceBundle {
             change_requests: vec![change],
             promotion_batches: vec![],
+            ..Default::default()
         });
 
         assert_eq!(
@@ -200,4 +201,9 @@ mod tests {
             crate::control::ControlStatus::Indeterminate
         );
     }
+
 }
+
+#[cfg(test)]
+#[path = "tests/review_independence_hardening.rs"]
+mod review_independence_hardening;
