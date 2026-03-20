@@ -15,6 +15,7 @@ anyhow = "1"
 clap = { version = "4", features = ["derive"] }
 reqwest = { version = "0.12", default-features = false, features = ["blocking", "json", "rustls-tls"] }
 colored = "3"
+regorus = "0.9"
 creusot-std = { git = "https://github.com/creusot-rs/creusot", package = "creusot-std" }
 
 [profile.release]

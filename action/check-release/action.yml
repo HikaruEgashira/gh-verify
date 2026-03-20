@@ -15,6 +15,10 @@ inputs:
     description: "Output format: human or json"
     required: false
     default: "human"
+  policy:
+    description: "Path to custom OPA policy file (.rego) for gate decisions"
+    required: false
+    default: ""
   version:
     description: "gh-verify version to install (e.g. v0.3.0). Empty = latest."
     required: false
@@ -52,9 +56,14 @@ runs:
         INPUT_TAG: ${{ inputs.tag }}
         INPUT_REPO: ${{ inputs.repo }}
         INPUT_FORMAT: ${{ inputs.format }}
+        INPUT_POLICY: ${{ inputs.policy }}
       run: |
         set +e
-        OUTPUT=$(gh verify release "$INPUT_TAG" --repo "$INPUT_REPO" --format "$INPUT_FORMAT" 2>&1)
+        if [ -n "$INPUT_POLICY" ]; then
+          OUTPUT=$(gh verify release "$INPUT_TAG" --repo "$INPUT_REPO" --format "$INPUT_FORMAT" --policy "$INPUT_POLICY" 2>&1)
+        else
+          OUTPUT=$(gh verify release "$INPUT_TAG" --repo "$INPUT_REPO" --format "$INPUT_FORMAT" 2>&1)
+        fi
         EXIT_CODE=$?
         set -e
 
