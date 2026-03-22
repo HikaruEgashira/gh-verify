@@ -1,7 +1,7 @@
 <h1 align="center">gh-verify</h1>
 
 <p align="center">
-  A SLSA-based SDLC verifier for GitHub repositories.
+  GitHub SDLC health checker.
 </p>
 
 <p align="center">
@@ -11,7 +11,7 @@
 ---
 
 gh-verify verifies that pull requests and releases follow
-[SLSA v1.2](https://slsa.dev/) supply chain security practices.
+supply chain security and compliance practices (SLSA, SOC2, and custom OPA policies).
 It runs as a `gh` CLI extension, built in Rust with core verification
 logic formally proven via [Creusot](https://github.com/creusot-rs/creusot).
 

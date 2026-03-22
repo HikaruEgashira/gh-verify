@@ -1,6 +1,6 @@
 # ghverify - GitHub SDLC Verifier
 
-SLSA-based GitHub SDLC health checker. Runs as a `gh` CLI extension, built in Rust.
+GitHub SDLC health checker. Runs as a `gh` CLI extension, built in Rust.
 Core verification logic is formally proven with Creusot + SMT solvers.
 
 ## Commands

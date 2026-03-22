@@ -3,7 +3,7 @@ name = "gh-verify"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "SLSA-based GitHub SDLC health checker"
+description = "GitHub SDLC health checker"
 
 [lib]
 name = "gh_verify"

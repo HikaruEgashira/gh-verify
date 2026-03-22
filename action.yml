@@ -1,7 +1,7 @@
 name: "gh-verify"
 description: >
-  SLSA-based GitHub SDLC health checker.
-  Verifies pull requests and releases against SLSA controls.
+  GitHub SDLC health checker.
+  Verifies pull requests and releases against supply chain security and compliance controls.
 branding:
   icon: "shield"
   color: "blue"

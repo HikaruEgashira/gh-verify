@@ -16,7 +16,7 @@ use gh_verify_core::slsa::SlsaLevel;
 const VERSION: &str = env!("GH_VERIFY_VERSION");
 
 #[derive(Parser)]
-#[command(name = "gh-verify", version = VERSION, about = "SLSA-based GitHub SDLC health checker")]
+#[command(name = "gh-verify", version = VERSION, about = "GitHub SDLC health checker")]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
