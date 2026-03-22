@@ -28,6 +28,9 @@ The profile maps these to gate decisions — pass, review, or fail.
 ### CLI
 
 ```bash
+# Install
+gh extension install HikaruEgashira/gh-verify
+
 # Verify a pull request
 gh verify pr 6933 --repo expressjs/express
 
