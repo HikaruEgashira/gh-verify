@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use std::process;
 use std::time::Instant;
 
-use anyhow::Result;
+use anyhow::{Result, bail};
 use clap::{Args, Parser, Subcommand};
 use gh_verify::adapters;
 use gh_verify::bench::{self, BenchCase, BenchCaseSource};
@@ -12,7 +12,14 @@ use gh_verify::config::Config;
 use gh_verify::github::client::GitHubClient;
 use gh_verify::github::pr_api;
 use gh_verify::ossinsight::{CollectionRepoRank, OssInsightClient, PullRequestCreator};
-use gh_verify_core::profile::GateDecision;
+use gh_verify::policy::OpaProfile;
+use gh_verify_core::assessment;
+use gh_verify_core::control::Control;
+use gh_verify_core::controls;
+use gh_verify_core::evidence::EvidenceBundle;
+use gh_verify_core::profile::{
+    ControlProfile, GateDecision, SlsaComprehensiveProfile, SlsaFoundationProfile,
+};
 use gh_verify_core::scope::is_non_code_file;
 use gh_verify_core::verdict::Severity;
 use serde::Serialize;
@@ -29,6 +36,10 @@ struct Cli {
     /// Output format (human or json)
     #[arg(long, default_value = "human")]
     format: String,
+    /// Assessment algorithms to benchmark (comma-separated or repeated).
+    /// Available: slsa-foundation, slsa-comprehensive, all-controls, oss, aiops.
+    #[arg(long = "algorithm", value_delimiter = ',', required = true)]
+    algorithms: Vec<String>,
     #[command(subcommand)]
     command: Option<Command>,
 }
@@ -62,6 +73,44 @@ struct CollectRealWorldArgs {
         default_value = "benchmarks/discovery/ossinsight-real-world.json"
     )]
     output: String,
+}
+
+const KNOWN_ALGORITHMS: &[&str] = &[
+    "slsa-foundation",
+    "slsa-comprehensive",
+    "all-controls",
+    "oss",
+    "aiops",
+];
+
+/// Resolve algorithm name into (controls, profile).
+fn resolve_algorithm(name: &str) -> Result<(Vec<Box<dyn Control>>, Box<dyn ControlProfile>)> {
+    match name {
+        "slsa-foundation" => Ok((
+            controls::slsa_foundation_controls(),
+            Box::new(SlsaFoundationProfile),
+        )),
+        "slsa-comprehensive" => Ok((
+            controls::slsa_foundation_controls(),
+            Box::new(SlsaComprehensiveProfile),
+        )),
+        "all-controls" => Ok((
+            controls::all_controls(),
+            Box::new(SlsaFoundationProfile),
+        )),
+        "oss" => Ok((
+            controls::all_controls(),
+            Box::new(OpaProfile::oss_preset()?),
+        )),
+        "aiops" => Ok((
+            controls::all_controls(),
+            Box::new(OpaProfile::aiops_preset()?),
+        )),
+        _ => bail!(
+            "unknown algorithm '{name}'. Available: {}",
+            KNOWN_ALGORITHMS.join(", ")
+        ),
+    }
 }
 
 #[derive(Debug, Serialize)]
@@ -193,6 +242,48 @@ fn run() -> Result<()> {
     }
 }
 
+fn fetch_evidence(client: &GitHubClient, owner: &str, repo: &str, pr_number: u32) -> Result<EvidenceBundle> {
+    let pr_files = pr_api::get_pr_files(client, owner, repo, pr_number)?;
+    let pr_metadata = pr_api::get_pr_metadata(client, owner, repo, pr_number)?;
+    let pr_reviews = pr_api::get_pr_reviews(client, owner, repo, pr_number)?;
+    let pr_commits = pr_api::get_pr_commits(client, owner, repo, pr_number)?;
+
+    let repo_full = format!("{owner}/{repo}");
+    Ok(adapters::github::build_pull_request_bundle(
+        &repo_full,
+        pr_number,
+        &pr_metadata,
+        &pr_files,
+        &pr_reviews,
+        &pr_commits,
+    ))
+}
+
+fn assess_bundle(
+    bundle: &EvidenceBundle,
+    controls: &[Box<dyn Control>],
+    profile: &dyn ControlProfile,
+) -> ActualResult {
+    let report = assessment::assess(bundle, controls, profile);
+
+    let max_decision = report
+        .outcomes
+        .iter()
+        .map(|o| o.decision)
+        .max_by_key(|d| match d {
+            GateDecision::Pass => 0,
+            GateDecision::Review => 1,
+            GateDecision::Fail => 2,
+        })
+        .unwrap_or(GateDecision::Pass);
+
+    match max_decision {
+        GateDecision::Pass => ActualResult::Pass,
+        GateDecision::Review => ActualResult::Warning,
+        GateDecision::Fail => ActualResult::Error,
+    }
+}
+
 fn run_benchmarks(cli: &Cli) -> Result<()> {
     let dir = PathBuf::from(&cli.cases_dir);
     let cases = bench::load_cases(&dir)?;
@@ -200,85 +291,138 @@ fn run_benchmarks(cli: &Cli) -> Result<()> {
         anyhow::bail!("no benchmark cases found in {}", dir.display());
     }
 
+    // Validate all algorithm names upfront.
+    for name in &cli.algorithms {
+        resolve_algorithm(name)?;
+    }
+
     let cfg = Config::load()?;
     let client = GitHubClient::new(&cfg)?;
 
     eprintln!("ghverify benchmark");
     eprintln!("==================");
+    eprintln!("Algorithms: {}", cli.algorithms.join(", "));
     eprintln!();
 
-    let mut results = Vec::with_capacity(cases.len());
     let total_cases = cases.len();
-    let mut correct_so_far = 0usize;
     let bench_started = Instant::now();
+    let mut algo_reports: Vec<(String, Report)> = Vec::new();
 
-    for (idx, case) in cases.iter().enumerate() {
-        let case_no = idx + 1;
-        eprintln!(
-            "[{case_no}/{total_cases}] RUN  {:<12} | {:<30} #{:<5} | expected={}",
-            case.id,
-            case.repo,
-            case.pr_number,
-            sev_str(&case.expected)
-        );
-        let _ = io::stderr().flush();
+    for algo_name in &cli.algorithms {
+        let (controls, profile) = resolve_algorithm(algo_name)?;
 
-        let case_started = Instant::now();
-        let actual = run_case(&client, case);
-        let pass = actual.matches(&case.expected);
-        let case_secs = case_started.elapsed().as_secs_f32();
+        eprintln!("--- Algorithm: {algo_name} ---");
+        eprintln!();
 
-        if pass {
-            correct_so_far += 1;
-        }
-        let progress_accuracy = (correct_so_far as f64 / case_no as f64) * 100.0;
+        let mut results = Vec::with_capacity(cases.len());
+        let mut correct_so_far = 0usize;
 
-        if pass {
+        for (idx, case) in cases.iter().enumerate() {
+            let case_no = idx + 1;
             eprintln!(
-                "\x1b[32m[PASS]\x1b[0m {:<12} | {:.2}s | progress={}/{} ({:.1}%)",
-                case.id, case_secs, correct_so_far, case_no, progress_accuracy
-            );
-        } else {
-            eprintln!(
-                "\x1b[31m[FAIL]\x1b[0m {:<12} | {:.2}s | progress={}/{} ({:.1}%) | expected={:<7} actual={}",
+                "[{case_no}/{total_cases}] RUN  {:<12} | {:<30} #{:<5} | expected={}",
                 case.id,
-                case_secs,
-                correct_so_far,
-                case_no,
-                progress_accuracy,
-                sev_str(&case.expected),
-                actual_str(&actual)
+                case.repo,
+                case.pr_number,
+                sev_str(&case.expected)
             );
+            let _ = io::stderr().flush();
+
+            let case_started = Instant::now();
+            let actual = run_case_with(&client, case, &controls, profile.as_ref());
+            let pass = actual.matches(&case.expected);
+            let case_secs = case_started.elapsed().as_secs_f32();
+
+            if pass {
+                correct_so_far += 1;
+            }
+            let progress_accuracy = (correct_so_far as f64 / case_no as f64) * 100.0;
+
+            if pass {
+                eprintln!(
+                    "\x1b[32m[PASS]\x1b[0m {:<12} | {:.2}s | progress={}/{} ({:.1}%)",
+                    case.id, case_secs, correct_so_far, case_no, progress_accuracy
+                );
+            } else {
+                eprintln!(
+                    "\x1b[31m[FAIL]\x1b[0m {:<12} | {:.2}s | progress={}/{} ({:.1}%) | expected={:<7} actual={}",
+                    case.id,
+                    case_secs,
+                    correct_so_far,
+                    case_no,
+                    progress_accuracy,
+                    sev_str(&case.expected),
+                    actual_str(&actual)
+                );
+            }
+
+            let target = case
+                .target_rule
+                .as_deref()
+                .unwrap_or("assessment")
+                .to_owned();
+            results.push(CaseResult {
+                id: case.id.clone(),
+                expected: case.expected,
+                actual,
+                pass,
+                target_rule: target,
+            });
         }
 
-        let target = case
-            .target_rule
-            .as_deref()
-            .unwrap_or("assessment")
-            .to_owned();
-        results.push(CaseResult {
-            id: case.id.clone(),
-            expected: case.expected,
-            actual,
-            pass,
-            target_rule: target,
-        });
+        let report = build_report(results);
+        print_report(algo_name, &report);
+        algo_reports.push((algo_name.clone(), report));
+        eprintln!();
     }
 
-    let report = build_report(results);
+    eprintln!("=== Comparison ===");
+    eprintln!();
+    eprintln!(
+        "{:<20} {:>6} {:>8} {:>10} {:>10}",
+        "Algorithm", "Total", "Correct", "Accuracy", "Macro F1"
+    );
+    eprintln!(
+        "{:<20} {:>6} {:>8} {:>10} {:>10}",
+        "----", "-----", "-------", "--------", "--------"
+    );
+    for (name, report) in &algo_reports {
+        let f1_str = report
+            .macro_f1
+            .map(|v| format!("{v:.4}"))
+            .unwrap_or_else(|| "N/A".into());
+        eprintln!(
+            "{:<20} {:>6} {:>8} {:>9.1}% {:>10}",
+            name, report.total, report.correct, report.accuracy * 100.0, f1_str
+        );
+    }
 
     eprintln!();
-    eprintln!("Elapsed: {:.2}s", bench_started.elapsed().as_secs_f32());
+    eprintln!("Total elapsed: {:.2}s", bench_started.elapsed().as_secs_f32());
+
+    if cli.format == "json" {
+        let json_map: HashMap<String, &Report> = algo_reports
+            .iter()
+            .map(|(name, report)| (name.clone(), report))
+            .collect();
+        println!("{}", serde_json::to_string_pretty(&json_map)?);
+    }
+
+    Ok(())
+}
+
+fn print_report(algo_name: &str, report: &Report) {
+    eprintln!();
     eprintln!(
-        "Accuracy: {}/{} ({:.1}%)",
+        "[{algo_name}] Accuracy: {}/{} ({:.1}%)",
         report.correct,
         report.total,
         report.accuracy * 100.0
     );
     if let Some(f1) = report.macro_f1 {
-        eprintln!("Macro F1: {f1:.4}");
+        eprintln!("[{algo_name}] Macro F1: {f1:.4}");
     } else {
-        eprintln!("Macro F1: N/A");
+        eprintln!("[{algo_name}] Macro F1: N/A");
     }
     eprintln!();
 
@@ -346,12 +490,6 @@ fn run_benchmarks(cli: &Cli) -> Result<()> {
             );
         }
     }
-
-    if cli.format == "json" {
-        println!("{}", serde_json::to_string_pretty(&report)?);
-    }
-
-    Ok(())
 }
 
 fn collect_real_world(args: CollectRealWorldArgs) -> Result<()> {
@@ -420,7 +558,13 @@ fn discover_repo(
             .map(|file| file.filename.clone())
             .collect();
         let code_files = code_paths.len();
-        let observed = assess_pr(github, owner, repo, pr.number);
+        let observed = match fetch_evidence(github, owner, repo, pr.number) {
+            Ok(bundle) => {
+                let ctrls = controls::slsa_foundation_controls();
+                assess_bundle(&bundle, &ctrls, &SlsaFoundationProfile)
+            }
+            Err(e) => ActualResult::FetchError(format!("{e}")),
+        };
 
         prs.push(DiscoveryPr {
             number: pr.number,
@@ -453,62 +597,20 @@ fn discover_repo(
     })
 }
 
-fn run_case(client: &GitHubClient, case: &BenchCase) -> ActualResult {
+fn run_case_with(
+    client: &GitHubClient,
+    case: &BenchCase,
+    controls: &[Box<dyn Control>],
+    profile: &dyn ControlProfile,
+) -> ActualResult {
     let (owner, repo) = match case.repo.split_once('/') {
         Some(pair) => pair,
         None => return ActualResult::FetchError("invalid repo format".into()),
     };
 
-    assess_pr(client, owner, repo, case.pr_number)
-}
-
-fn assess_pr(client: &GitHubClient, owner: &str, repo: &str, pr_number: u32) -> ActualResult {
-    let pr_files = match pr_api::get_pr_files(client, owner, repo, pr_number) {
-        Ok(f) => f,
-        Err(e) => return ActualResult::FetchError(format!("files: {e}")),
-    };
-
-    let pr_metadata = match pr_api::get_pr_metadata(client, owner, repo, pr_number) {
-        Ok(m) => m,
-        Err(e) => return ActualResult::FetchError(format!("metadata: {e}")),
-    };
-
-    let pr_reviews = match pr_api::get_pr_reviews(client, owner, repo, pr_number) {
-        Ok(r) => r,
-        Err(e) => return ActualResult::FetchError(format!("reviews: {e}")),
-    };
-
-    let pr_commits = match pr_api::get_pr_commits(client, owner, repo, pr_number) {
-        Ok(c) => c,
-        Err(e) => return ActualResult::FetchError(format!("commits: {e}")),
-    };
-
-    let repo_full = format!("{owner}/{repo}");
-    let bundle = adapters::github::build_pull_request_bundle(
-        &repo_full,
-        pr_number,
-        &pr_metadata,
-        &pr_files,
-        &pr_reviews,
-        &pr_commits,
-    );
-    let report = gh_verify_core::assessment::assess_with_slsa_foundation(&bundle);
-
-    let max_decision = report
-        .outcomes
-        .iter()
-        .map(|o| o.decision)
-        .max_by_key(|d| match d {
-            GateDecision::Pass => 0,
-            GateDecision::Review => 1,
-            GateDecision::Fail => 2,
-        })
-        .unwrap_or(GateDecision::Pass);
-
-    match max_decision {
-        GateDecision::Pass => ActualResult::Pass,
-        GateDecision::Review => ActualResult::Warning,
-        GateDecision::Fail => ActualResult::Error,
+    match fetch_evidence(client, owner, repo, case.pr_number) {
+        Ok(bundle) => assess_bundle(&bundle, controls, profile),
+        Err(e) => ActualResult::FetchError(format!("{e}")),
     }
 }
 

@@ -56,7 +56,7 @@
       exec = ''
         set -euo pipefail
         cargo build --release --bin gh-verify-bench -p gh-verify
-        "$DEVENV_ROOT/target/release/gh-verify-bench"
+        "$DEVENV_ROOT/target/release/gh-verify-bench" "$@"
       '';
     };
 
