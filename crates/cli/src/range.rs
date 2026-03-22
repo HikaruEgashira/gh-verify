@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use anyhow::{Context, Result};
 
 use crate::github::client::GitHubClient;
-use crate::github::{pr_api, release_api};
+use crate::github::{graphql, pr_api, release_api};
 
 /// Specification for a range of PRs to verify.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -81,14 +81,15 @@ pub fn resolve_pr_numbers(
                 );
             }
 
+            let shas: Vec<&str> = commits.iter().map(|c| c.sha.as_str()).collect();
+            let commit_pr_map =
+                graphql::resolve_commit_prs(client, owner, repo, &shas).unwrap_or_else(|err| {
+                    eprintln!("Warning: failed to resolve commit PRs via GraphQL: {err}");
+                    std::collections::HashMap::new()
+                });
+
             let mut pr_numbers = HashSet::new();
-            for c in &commits {
-                let prs = release_api::get_commit_pulls(client, owner, repo, &c.sha)
-                    .unwrap_or_else(|err| {
-                        let short = gh_verify_core::integrity::short_sha(&c.sha);
-                        eprintln!("Warning: failed to fetch PRs for commit {short}: {err}");
-                        vec![]
-                    });
+            for prs in commit_pr_map.values() {
                 for pr in prs {
                     if pr.merged_at.is_some() {
                         pr_numbers.insert(pr.number);

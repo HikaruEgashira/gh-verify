@@ -4,13 +4,15 @@ use anyhow::{Context, Result, bail};
 use serde::Serialize;
 
 use gh_verify_core::assessment::AssessmentReport;
-use gh_verify_core::evidence::{EvidenceGap, EvidenceState};
+use gh_verify_core::evidence::EvidenceState;
 use gh_verify_core::profile::GateDecision;
 use gh_verify_core::slsa::SlsaLevel;
 
 use crate::adapters;
 use crate::github;
 use crate::github::client::GitHubClient;
+use crate::github::graphql::PrData;
+use crate::github::types::{CombinedStatusResponse, CommitStatusItem};
 use crate::policy::OpaProfile;
 
 /// Verify a single pull request and return an assessment report.
@@ -22,28 +24,47 @@ pub fn verify_single_pr(
     policy: Option<&str>,
     slsa_level: Option<&str>,
 ) -> Result<AssessmentReport> {
-    let pr_files = github::pr_api::get_pr_files(client, owner, repo, pr_number)
-        .context("failed to fetch PR files")?;
-    let pr_metadata = github::pr_api::get_pr_metadata(client, owner, repo, pr_number)
-        .context("failed to fetch PR metadata")?;
-    let pr_reviews = github::pr_api::get_pr_reviews(client, owner, repo, pr_number)
-        .context("failed to fetch PR reviews")?;
-    let pr_commits = github::pr_api::get_pr_commits(client, owner, repo, pr_number)
-        .context("failed to fetch PR commits")?;
+    let pr_data = github::graphql::fetch_pr(client, owner, repo, pr_number)
+        .context("failed to fetch PR data")?;
+    assess_from_pr_data(&pr_data, owner, repo, pr_number, policy, slsa_level)
+}
 
-    let head_sha = &pr_metadata.head.sha;
-    let check_runs_evidence = fetch_check_runs_evidence(client, owner, repo, head_sha);
-
+fn assess_from_pr_data(
+    pr_data: &PrData,
+    owner: &str,
+    repo: &str,
+    pr_number: u32,
+    policy: Option<&str>,
+    slsa_level: Option<&str>,
+) -> Result<AssessmentReport> {
     let repo_full = format!("{owner}/{repo}");
     let mut bundle = adapters::github::build_pull_request_bundle(
         &repo_full,
         pr_number,
-        &pr_metadata,
-        &pr_files,
-        &pr_reviews,
-        &pr_commits,
+        &pr_data.metadata,
+        &pr_data.files,
+        &pr_data.reviews,
+        &pr_data.commits,
     );
-    bundle.check_runs = check_runs_evidence;
+
+    let combined_status = if pr_data.commit_statuses.is_empty() {
+        None
+    } else {
+        Some(CombinedStatusResponse {
+            state: String::new(),
+            statuses: pr_data
+                .commit_statuses
+                .iter()
+                .map(|s| CommitStatusItem {
+                    context: s.context.clone(),
+                    state: s.state.clone(),
+                })
+                .collect(),
+        })
+    };
+    let evidence =
+        adapters::github::map_check_runs_evidence(&pr_data.check_runs, combined_status.as_ref());
+    bundle.check_runs = EvidenceState::complete(evidence);
 
     if let Some(cr_list) = bundle.check_runs.value() {
         let build_platforms = adapters::github::map_build_platform_evidence(cr_list);
@@ -93,10 +114,14 @@ pub fn verify_pr_batch(
     let mut total_fail = 0usize;
     let total = pr_numbers.len();
 
-    for (i, &pr_number) in pr_numbers.iter().enumerate() {
+    let all_data = github::graphql::fetch_prs(client, owner, repo, pr_numbers);
+
+    for (i, (pr_number, result)) in all_data.into_iter().enumerate() {
         eprintln!("Verifying PR #{pr_number} ({}/{})", i + 1, total);
 
-        match verify_single_pr(client, owner, repo, pr_number, policy, slsa_level) {
+        match result.and_then(|pr_data| {
+            assess_from_pr_data(&pr_data, owner, repo, pr_number, policy, slsa_level)
+        }) {
             Ok(report) => {
                 for outcome in &report.outcomes {
                     match outcome.decision {
@@ -126,31 +151,6 @@ pub fn verify_pr_batch(
     })
 }
 
-pub fn fetch_check_runs_evidence(
-    client: &GitHubClient,
-    owner: &str,
-    repo: &str,
-    git_ref: &str,
-) -> EvidenceState<Vec<gh_verify_core::evidence::CheckRunEvidence>> {
-    let check_runs_result = github::pr_api::get_commit_check_runs(client, owner, repo, git_ref);
-    let combined_status_result = github::pr_api::get_commit_status(client, owner, repo, git_ref);
-
-    match check_runs_result {
-        Ok(cr_response) => {
-            let combined = combined_status_result.ok();
-            let evidence = adapters::github::map_check_runs_evidence(
-                &cr_response.check_runs,
-                combined.as_ref(),
-            );
-            EvidenceState::complete(evidence)
-        }
-        Err(e) => EvidenceState::missing(vec![EvidenceGap::CollectionFailed {
-            source: "github".to_string(),
-            subject: format!("commits/{git_ref}/check-runs"),
-            detail: format!("{e:#}"),
-        }]),
-    }
-}
 
 /// Parse a SLSA level string like "source-l3-build-l2" into (source_level, build_level).
 pub fn parse_slsa_level(s: &str) -> Result<(SlsaLevel, SlsaLevel)> {

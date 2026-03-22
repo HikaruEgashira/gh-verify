@@ -157,22 +157,25 @@ fn run() -> Result<()> {
             }
             println!("Found {} commits", commits.len());
 
-            let mut commit_prs = Vec::new();
+            let shas: Vec<&str> = commits.iter().map(|c| c.sha.as_str()).collect();
+            let commit_pr_map = github::graphql::resolve_commit_prs(
+                &client, &owner, &repo_name, &shas,
+            )
+            .unwrap_or_else(|err| {
+                eprintln!("Warning: failed to resolve commit PRs via GraphQL: {err}");
+                std::collections::HashMap::new()
+            });
 
-            for c in &commits {
-                let prs =
-                    github::release_api::get_commit_pulls(&client, &owner, &repo_name, &c.sha)
-                        .unwrap_or_else(|err| {
-                            let short = gh_verify_core::integrity::short_sha(&c.sha);
-                            eprintln!("Warning: failed to fetch PRs for commit {short}: {err}");
-                            vec![]
-                        });
-
-                commit_prs.push(adapters::github::GitHubCommitPullAssociation {
+            let commit_prs: Vec<_> = commits
+                .iter()
+                .map(|c| adapters::github::GitHubCommitPullAssociation {
                     commit_sha: c.sha.clone(),
-                    pull_requests: prs,
-                });
-            }
+                    pull_requests: commit_pr_map
+                        .get(&c.sha)
+                        .cloned()
+                        .unwrap_or_default(),
+                })
+                .collect();
 
             // Collect build-provenance attestations for release assets
             let release_assets =

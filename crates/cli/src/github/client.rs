@@ -104,6 +104,48 @@ impl GitHubClient {
         Ok(all_items)
     }
 
+    /// POST a GraphQL query and return the response body.
+    pub fn post_graphql(&self, query: &str, variables: Option<&serde_json::Value>) -> Result<String> {
+        let url = format!("{}/graphql", self.base_url);
+        let body = match variables {
+            Some(vars) => serde_json::json!({ "query": query, "variables": vars }),
+            None => serde_json::json!({ "query": query }),
+        };
+
+        for attempt in 0..MAX_HTTP_ATTEMPTS {
+            match self.client.post(&url).json(&body).send() {
+                Ok(resp) => {
+                    let status = resp.status();
+                    let retry_after_secs = parse_retry_after_secs(resp.headers().get(RETRY_AFTER));
+
+                    if !status.is_success() {
+                        if should_retry_status(status) && attempt + 1 < MAX_HTTP_ATTEMPTS {
+                            thread::sleep(retry_delay_for(attempt, retry_after_secs));
+                            continue;
+                        }
+                        bail!(
+                            "GitHub GraphQL error: {} {}",
+                            status.as_u16(),
+                            status.canonical_reason().unwrap_or("Unknown")
+                        );
+                    }
+
+                    let text = resp.text().context("failed to read GraphQL response")?;
+                    if text.len() > MAX_BODY_SIZE {
+                        bail!("GraphQL response too large: {} bytes", text.len());
+                    }
+                    return Ok(text);
+                }
+                Err(_err) if attempt + 1 < MAX_HTTP_ATTEMPTS => {
+                    thread::sleep(retry_delay_for(attempt, None));
+                }
+                Err(err) => return Err(err).context("GraphQL request failed"),
+            }
+        }
+
+        bail!("GraphQL request exhausted retry attempts")
+    }
+
     fn get_internal(&self, path: &str) -> Result<(String, Option<String>)> {
         let url = format!("{}{}", self.base_url, path);
         for attempt in 0..MAX_HTTP_ATTEMPTS {
