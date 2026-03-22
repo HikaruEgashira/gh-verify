@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <a href="HACKING.md">Hacking</a> · <a href="benchmarks/README.md">Benchmarks</a> · <a href="docs/adr/">ADRs</a>
+  <a href="HACKING.md">Hacking</a> · <a href="benchmarks/README.md">Benchmarks</a>
 </p>
 
 ---
@@ -28,18 +28,26 @@ The profile maps these to gate decisions — pass, review, or fail.
 ### CLI
 
 ```bash
-gh verify pr 123 --repo owner/repo
-gh verify release v1.0.0 --repo owner/repo
-gh verify release v0.9.0..v1.0.0 --repo owner/repo
+# Verify a pull request
+gh verify pr 6933 --repo expressjs/express
+
+# Verify a release tag
+gh verify release 0.15.7 --repo astral-sh/ruff
+
+# Verify a release range
+gh verify release v5.2.0..v5.2.1 --repo expressjs/express
 
 # SLSA level selection (default: source-l1-build-l1)
-gh verify pr 123 --repo owner/repo --slsa-level source-l3-build-l2
+gh verify pr 6933 --repo expressjs/express --slsa-level source-l3-build-l2
 
-# Custom OPA policy for gate decisions
-gh verify pr 123 --repo owner/repo --policy policy.rego
+# Policy preset
+gh verify release 0.15.7 --repo astral-sh/ruff --policy soc2
+
+# Custom OPA policy file
+gh verify pr 6933 --repo expressjs/express --policy policy.rego
 
 # Output formats: human (default), json, sarif
-gh verify pr 123 --repo owner/repo --format sarif
+gh verify release 1.94.0 --repo rust-lang/rust --format json
 ```
 
 Exit codes: `0` = pass, `1` = fail.
@@ -82,18 +90,22 @@ Compliance controls always run alongside SLSA controls.
 
 ### Policy presets
 
+| Preset | Description |
+|--------|-------------|
+| `default` | All controls strict (indeterminate/violated → fail) |
+| `oss` | Tolerates unsigned commits and self-reviewed merges |
+| `aiops` | Escalates all indeterminate to human review instead of fail |
+| `soc1` | Strict on ICFR-relevant controls; advisory on dev-quality controls |
+| `soc2` | Strict on all CC6/CC7/CC8 controls; review on build-track indeterminate |
+
 ```bash
-gh verify pr 123 --repo owner/repo --policy oss.rego          # OSS/solo dev tolerant
-gh verify pr 123 --repo owner/repo --policy aiops.rego         # Human review escalation
+gh verify pr 6933 --repo expressjs/express --policy oss
+gh verify release 0.15.7 --repo astral-sh/ruff --policy soc2
 ```
 
-## Architecture
+## Development
 
-Three-crate workspace:
-
-- `gh-verify-core` — Pure verification logic. No I/O, no unsafe. Formally verified predicates.
-- `gh-verify` — CLI binary with GitHub API integration and output formatting.
-- `gh-verify-verif` — Creusot verification targets with `#[ensures]` specs.
+See [HACKING.md](HACKING.md) for architecture, build commands, and contribution guide.
 
 ## License
 
