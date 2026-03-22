@@ -17,6 +17,7 @@ reqwest = { version = "0.12", default-features = false, features = ["blocking", 
 colored = "3"
 regorus = "0.9"
 tempfile = "3"
+sha2 = "0.10"
 creusot-std = { git = "https://github.com/creusot-rs/creusot", package = "creusot-std" }
 
 [profile.release]

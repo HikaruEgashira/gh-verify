@@ -186,10 +186,12 @@ mod tests {
             CheckRunEvidence {
                 name: "ci/build".to_string(),
                 conclusion: CheckConclusion::Success,
+                app_slug: None,
             },
             CheckRunEvidence {
                 name: "ci/test".to_string(),
                 conclusion: CheckConclusion::Success,
+                app_slug: None,
             },
         ])
     }
@@ -199,10 +201,12 @@ mod tests {
             CheckRunEvidence {
                 name: "ci/build".to_string(),
                 conclusion: CheckConclusion::Success,
+                app_slug: None,
             },
             CheckRunEvidence {
                 name: "ci/test".to_string(),
                 conclusion: CheckConclusion::Failure,
+                app_slug: None,
             },
         ])
     }

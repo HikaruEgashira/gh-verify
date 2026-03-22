@@ -1,11 +1,21 @@
 use anyhow::Result;
+use sha2::{Digest, Sha256};
 use std::process::Command;
 
-use gh_verify_core::evidence::{ArtifactAttestation, EvidenceGap, EvidenceState};
+use gh_verify_core::evidence::{
+    ArtifactAttestation, EvidenceGap, EvidenceState, VerificationOutcome,
+};
 
 use crate::github::types::ReleaseAsset;
 
 use super::gh_cli;
+
+/// Compute SHA256 digest of a file, returning the hex string.
+fn sha256_file(path: &std::path::Path) -> Result<String> {
+    let bytes = std::fs::read(path)?;
+    let hash = Sha256::digest(&bytes);
+    Ok(format!("sha256:{hash:x}"))
+}
 
 /// Download release assets to a temporary directory, verify attestations for each,
 /// and return an `EvidenceState` suitable for `EvidenceBundle.artifact_attestations`.
@@ -61,42 +71,54 @@ pub fn collect_release_attestations(
                 });
                 attestations.push(ArtifactAttestation {
                     subject: asset.name.clone(),
+                    subject_digest: None,
                     predicate_type: String::new(),
                     signer_workflow: None,
                     source_repo: None,
-                    verified: false,
-                    verification_detail: Some(format!("download failed: {e}")),
+                    verification: VerificationOutcome::Failed {
+                        detail: format!("download failed: {e}"),
+                    },
                 });
                 continue;
             }
         }
 
+        // Compute SHA256 digest of the downloaded artifact
+        let digest = sha256_file(&asset_path).ok();
+
         // Verify attestation
         let path_str = asset_path.to_string_lossy().to_string();
         match gh_cli::verify_artifact(&path_str, None, Some(&repo_full)) {
             Ok(results) if !results.is_empty() => {
-                attestations.extend(gh_cli::to_artifact_attestations(&asset.name, &results));
+                attestations.extend(gh_cli::to_artifact_attestations(
+                    &asset.name,
+                    &results,
+                    digest,
+                ));
             }
             Ok(_) => {
                 // Empty results — no attestation found
                 attestations.push(ArtifactAttestation {
                     subject: asset.name.clone(),
+                    subject_digest: digest,
                     predicate_type: String::new(),
                     signer_workflow: None,
                     source_repo: None,
-                    verified: false,
-                    verification_detail: Some("no attestation found".to_string()),
+                    verification: VerificationOutcome::AttestationAbsent {
+                        detail: "no attestation found".to_string(),
+                    },
                 });
             }
             Err(e) => {
-                // Verification command failed — asset exists but has no valid attestation
+                let detail = format!("{e}");
+                let outcome = classify_verification_error(&detail);
                 attestations.push(ArtifactAttestation {
                     subject: asset.name.clone(),
+                    subject_digest: digest,
                     predicate_type: String::new(),
                     signer_workflow: None,
                     source_repo: None,
-                    verified: false,
-                    verification_detail: Some(format!("{e}")),
+                    verification: outcome,
                 });
             }
         }
@@ -143,6 +165,32 @@ fn download_asset(
     }
 
     Ok(())
+}
+
+/// Classify the error message from `gh attestation verify` into a structured outcome.
+fn classify_verification_error(detail: &str) -> VerificationOutcome {
+    let lower = detail.to_lowercase();
+    if lower.contains("no attestation") || lower.contains("not found") {
+        VerificationOutcome::AttestationAbsent {
+            detail: detail.to_string(),
+        }
+    } else if lower.contains("signature") || lower.contains("cosign") {
+        VerificationOutcome::SignatureInvalid {
+            detail: detail.to_string(),
+        }
+    } else if lower.contains("transparency") || lower.contains("rekor") || lower.contains("tlog") {
+        VerificationOutcome::TransparencyLogMissing {
+            detail: detail.to_string(),
+        }
+    } else if lower.contains("signer") || lower.contains("identity") || lower.contains("issuer") {
+        VerificationOutcome::SignerMismatch {
+            detail: detail.to_string(),
+        }
+    } else {
+        VerificationOutcome::Failed {
+            detail: detail.to_string(),
+        }
+    }
 }
 
 /// Check whether the `gh` CLI is available on PATH.

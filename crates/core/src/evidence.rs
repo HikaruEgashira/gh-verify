@@ -244,21 +244,71 @@ pub struct PromotionBatch {
     pub linked_change_requests: EvidenceState<Vec<ChangeRequestId>>,
 }
 
+/// Structured outcome of attestation verification, replacing an opaque boolean.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "outcome", rename_all = "snake_case")]
+pub enum VerificationOutcome {
+    /// Cryptographic verification succeeded.
+    Verified,
+    /// Signature verification failed.
+    SignatureInvalid { detail: String },
+    /// The claimed signer identity does not match the certificate.
+    SignerMismatch { detail: String },
+    /// The attestation was not found in a transparency log (e.g. Rekor).
+    TransparencyLogMissing { detail: String },
+    /// No attestation exists for this artifact.
+    AttestationAbsent { detail: String },
+    /// A generic verification failure that doesn't fit the above categories.
+    Failed { detail: String },
+}
+
+impl VerificationOutcome {
+    /// Returns `true` when the verification succeeded.
+    pub fn is_verified(&self) -> bool {
+        matches!(self, Self::Verified)
+    }
+
+    /// Returns a human-readable summary of the failure reason, or `None` if verified.
+    pub fn failure_detail(&self) -> Option<&str> {
+        match self {
+            Self::Verified => None,
+            Self::SignatureInvalid { detail }
+            | Self::SignerMismatch { detail }
+            | Self::TransparencyLogMissing { detail }
+            | Self::AttestationAbsent { detail }
+            | Self::Failed { detail } => Some(detail),
+        }
+    }
+
+    /// Short label for the failure category.
+    pub fn failure_kind(&self) -> Option<&'static str> {
+        match self {
+            Self::Verified => None,
+            Self::SignatureInvalid { .. } => Some("signature_invalid"),
+            Self::SignerMismatch { .. } => Some("signer_mismatch"),
+            Self::TransparencyLogMissing { .. } => Some("transparency_log_missing"),
+            Self::AttestationAbsent { .. } => Some("attestation_absent"),
+            Self::Failed { .. } => Some("failed"),
+        }
+    }
+}
+
 /// Result of verifying an artifact's build provenance attestation.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ArtifactAttestation {
     /// Artifact path or OCI URI that was verified.
     pub subject: String,
+    /// SHA256 digest of the artifact, if computed.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub subject_digest: Option<String>,
     /// Attestation predicate type (e.g. "https://slsa.dev/provenance/v1").
     pub predicate_type: String,
     /// The workflow that signed the attestation.
     pub signer_workflow: Option<String>,
     /// The source repository associated with the attestation.
     pub source_repo: Option<String>,
-    /// Whether the attestation passed cryptographic verification.
-    pub verified: bool,
-    /// Detail message from the verifier.
-    pub verification_detail: Option<String>,
+    /// Structured verification outcome.
+    pub verification: VerificationOutcome,
 }
 
 /// Conclusion of a CI check run, normalized across platforms.
@@ -285,6 +335,9 @@ pub struct CheckRunEvidence {
     pub name: String,
     /// Conclusion of the check run.
     pub conclusion: CheckConclusion,
+    /// Slug of the GitHub App that created this check run (e.g. "github-actions").
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub app_slug: Option<String>,
 }
 
 /// Build platform evidence for Build Track L2+.

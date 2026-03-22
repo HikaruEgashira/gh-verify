@@ -42,11 +42,15 @@ impl Control for ProvenanceAuthenticityControl {
 
                 let unauthenticated: Vec<String> = value
                     .iter()
-                    .filter(|a| !a.verified || a.signer_workflow.is_none())
+                    .filter(|a| !a.verification.is_verified() || a.signer_workflow.is_none())
                     .map(|a| {
                         let mut reasons = Vec::new();
-                        if !a.verified {
-                            reasons.push("unverified");
+                        if !a.verification.is_verified() {
+                            if let Some(kind) = a.verification.failure_kind() {
+                                reasons.push(kind);
+                            } else {
+                                reasons.push("unverified");
+                            }
                         }
                         if a.signer_workflow.is_none() {
                             reasons.push("no signer info");
@@ -83,7 +87,7 @@ impl Control for ProvenanceAuthenticityControl {
 mod tests {
     use super::*;
     use crate::control::ControlStatus;
-    use crate::evidence::{ArtifactAttestation, EvidenceGap};
+    use crate::evidence::{ArtifactAttestation, EvidenceGap, VerificationOutcome};
 
     fn make_attestation(
         subject: &str,
@@ -92,14 +96,16 @@ mod tests {
     ) -> ArtifactAttestation {
         ArtifactAttestation {
             subject: subject.to_string(),
+            subject_digest: None,
             predicate_type: "https://slsa.dev/provenance/v1".to_string(),
             signer_workflow: signer_workflow.map(|s| s.to_string()),
             source_repo: Some("owner/repo".to_string()),
-            verified,
-            verification_detail: if verified {
-                Some("Sigstore bundle verified".to_string())
+            verification: if verified {
+                VerificationOutcome::Verified
             } else {
-                Some("signature mismatch".to_string())
+                VerificationOutcome::SignatureInvalid {
+                    detail: "signature mismatch".to_string(),
+                }
             },
         }
     }
@@ -191,7 +197,7 @@ mod tests {
         assert_eq!(findings.len(), 1);
         assert_eq!(findings[0].status, ControlStatus::Violated);
         assert!(findings[0].rationale.contains("app:v1.1"));
-        assert!(findings[0].rationale.contains("unverified"));
+        assert!(findings[0].rationale.contains("signature_invalid"));
     }
 
     #[test]
@@ -211,7 +217,7 @@ mod tests {
                 "app:v1.0", false, None,
             )]));
         assert_eq!(findings[0].status, ControlStatus::Violated);
-        assert!(findings[0].rationale.contains("unverified"));
+        assert!(findings[0].rationale.contains("signature_invalid"));
         assert!(findings[0].rationale.contains("no signer info"));
     }
 

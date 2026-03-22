@@ -95,6 +95,7 @@ mod tests {
         CheckRunEvidence {
             name: name.to_string(),
             conclusion,
+            app_slug: None,
         }
     }
 

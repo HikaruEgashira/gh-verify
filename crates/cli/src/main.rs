@@ -80,8 +80,9 @@ fn run() -> Result<()> {
         } => {
             let pr_number: u32 = match arg {
                 Some(a) => a.parse().context("invalid PR number")?,
-                None => detect_pr_number()
-                    .context("could not detect PR for current branch. Pass a PR number explicitly")?,
+                None => detect_pr_number().context(
+                    "could not detect PR for current branch. Pass a PR number explicitly",
+                )?,
             };
             let fmt = output::parse_format(&format)?;
             let cfg = Config::load()?;
@@ -142,7 +143,8 @@ fn run() -> Result<()> {
                 None => detect_latest_release_tag(&client, &owner, &repo_name)
                     .context("could not detect latest release. Pass a tag explicitly")?,
             };
-            let (base_tag, head_tag) = parse_release_arg(&release_arg, &client, &owner, &repo_name)?;
+            let (base_tag, head_tag) =
+                parse_release_arg(&release_arg, &client, &owner, &repo_name)?;
 
             println!("Checking release: {base_tag}..{head_tag}");
 
@@ -262,18 +264,10 @@ fn detect_pr_number() -> Option<u32> {
     if !output.status.success() {
         return None;
     }
-    String::from_utf8(output.stdout)
-        .ok()?
-        .trim()
-        .parse()
-        .ok()
+    String::from_utf8(output.stdout).ok()?.trim().parse().ok()
 }
 
-fn detect_latest_release_tag(
-    client: &GitHubClient,
-    owner: &str,
-    repo: &str,
-) -> Result<String> {
+fn detect_latest_release_tag(client: &GitHubClient, owner: &str, repo: &str) -> Result<String> {
     let tags = github::release_api::get_tags(client, owner, repo)?;
     tags.into_iter()
         .next()

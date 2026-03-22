@@ -156,6 +156,12 @@ pub struct PrCommitAuthor {
     pub date: Option<String>,
 }
 
+/// Minimal app info from a check run.
+#[derive(Debug, Clone, Deserialize)]
+pub struct CheckRunApp {
+    pub slug: String,
+}
+
 /// A single check run from the GitHub Check Runs API.
 #[derive(Debug, Clone, Deserialize)]
 pub struct CheckRunItem {
@@ -164,6 +170,8 @@ pub struct CheckRunItem {
     pub status: String,
     /// "success", "failure", "neutral", "cancelled", "skipped", "timed_out", "action_required", or null if not completed.
     pub conclusion: Option<String>,
+    /// The GitHub App that created this check run (e.g. "github-actions").
+    pub app: Option<CheckRunApp>,
 }
 
 /// Response from GET /repos/{owner}/{repo}/commits/{ref}/check-runs.

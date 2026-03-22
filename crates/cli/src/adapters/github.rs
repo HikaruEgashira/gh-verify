@@ -183,6 +183,7 @@ pub fn map_check_runs_evidence(
         .map(|cr| CheckRunEvidence {
             name: cr.name.clone(),
             conclusion: map_check_run_conclusion(cr.status.as_str(), cr.conclusion.as_deref()),
+            app_slug: cr.app.as_ref().map(|a| a.slug.clone()),
         })
         .collect();
 
@@ -196,6 +197,7 @@ pub fn map_check_runs_evidence(
             evidence.push(CheckRunEvidence {
                 name: s.context.clone(),
                 conclusion: map_commit_status_state(&s.state),
+                app_slug: None,
             });
         }
     }
@@ -268,23 +270,27 @@ fn map_review_state(state: &str) -> ApprovalDisposition {
 
 /// Maps check run evidence into build platform evidence.
 ///
+/// Uses `app_slug` to distinguish GitHub Actions from external CI systems.
 /// GitHub Actions hosted runners are treated as hosted, ephemeral, and isolated.
-/// Self-hosted runners are treated as non-hosted, non-ephemeral, and non-isolated.
+/// External CI systems are marked as unknown (not assumed hosted).
 pub fn map_build_platform_evidence(check_runs: &[CheckRunEvidence]) -> Vec<BuildPlatformEvidence> {
     check_runs
         .iter()
         .filter(|cr| cr.conclusion != CheckConclusion::Pending)
-        .map(|_cr| {
-            // Heuristic: GitHub Actions hosted runners use standard labels.
-            // Without runner label data, default to github-actions (hosted).
-            let hosted = true;
+        .map(|cr| {
+            let slug = cr.app_slug.as_deref().unwrap_or("unknown");
+            let is_github_actions = slug == "github-actions";
+
+            // GitHub Actions with the standard app slug is treated as hosted.
+            // External CI systems (e.g. "circleci-checks", "codecov") cannot
+            // be assumed hosted — their build isolation properties are unknown.
             BuildPlatformEvidence {
-                platform: "github-actions".to_string(),
-                hosted,
-                ephemeral: hosted,
-                isolated: hosted,
-                runner_labels: vec!["github-actions".to_string()],
-                signing_key_isolated: hosted,
+                platform: slug.to_string(),
+                hosted: is_github_actions,
+                ephemeral: is_github_actions,
+                isolated: is_github_actions,
+                runner_labels: vec![slug.to_string()],
+                signing_key_isolated: is_github_actions,
             }
         })
         .collect()
@@ -547,11 +553,11 @@ mod tests {
         let attestations =
             EvidenceState::complete(vec![gh_verify_core::evidence::ArtifactAttestation {
                 subject: "binary-linux-amd64".to_string(),
+                subject_digest: None,
                 predicate_type: "https://slsa.dev/provenance/v1".to_string(),
                 signer_workflow: Some(".github/workflows/release.yml".to_string()),
                 source_repo: Some("owner/repo".to_string()),
-                verified: true,
-                verification_detail: None,
+                verification: gh_verify_core::evidence::VerificationOutcome::Verified,
             }]);
 
         let bundle = build_release_bundle(
@@ -577,7 +583,7 @@ mod tests {
         match &bundle.artifact_attestations {
             EvidenceState::Complete { value } => {
                 assert_eq!(value.len(), 1);
-                assert!(value[0].verified);
+                assert!(value[0].verification.is_verified());
                 assert_eq!(value[0].subject, "binary-linux-amd64");
             }
             other => panic!("expected Complete, got {other:?}"),

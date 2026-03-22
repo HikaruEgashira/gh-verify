@@ -41,7 +41,7 @@ impl Control for BuildProvenanceControl {
 
                 let unverified: Vec<&str> = value
                     .iter()
-                    .filter(|a| !a.verified)
+                    .filter(|a| !a.verification.is_verified())
                     .map(|a| a.subject.as_str())
                     .collect();
 
@@ -73,19 +73,21 @@ impl Control for BuildProvenanceControl {
 mod tests {
     use super::*;
     use crate::control::ControlStatus;
-    use crate::evidence::{ArtifactAttestation, EvidenceGap};
+    use crate::evidence::{ArtifactAttestation, EvidenceGap, VerificationOutcome};
 
     fn make_attestation(subject: &str, verified: bool) -> ArtifactAttestation {
         ArtifactAttestation {
             subject: subject.to_string(),
+            subject_digest: None,
             predicate_type: "https://slsa.dev/provenance/v1".to_string(),
             signer_workflow: Some(".github/workflows/release.yml".to_string()),
             source_repo: Some("owner/repo".to_string()),
-            verified,
-            verification_detail: if verified {
-                Some("Sigstore bundle verified".to_string())
+            verification: if verified {
+                VerificationOutcome::Verified
             } else {
-                Some("signature mismatch".to_string())
+                VerificationOutcome::SignatureInvalid {
+                    detail: "signature mismatch".to_string(),
+                }
             },
         }
     }

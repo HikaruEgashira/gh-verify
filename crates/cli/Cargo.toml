@@ -27,3 +27,4 @@ reqwest = { workspace = true }
 colored = { workspace = true }
 regorus = { workspace = true }
 tempfile = { workspace = true }
+sha2 = { workspace = true }
