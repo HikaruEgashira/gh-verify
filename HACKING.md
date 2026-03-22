@@ -22,9 +22,20 @@ devenv tasks run ghverify:verify         # Creusot formal verification
 
 ## Adding a Control
 
-1. Create `crates/core/src/controls/<name>.rs` — implement the `Control` trait
-2. Register in `crates/core/src/controls/mod.rs` (`slsa_foundation_controls` or `development_quality_controls`)
-3. Add `ControlId` variant in `crates/core/src/control.rs`
+### SLSA control
+
+1. Add `ControlId` variant in `crates/core/src/control.rs` (with `as_str` + `from_str`)
+2. Map it in `crates/core/src/slsa.rs` (`control_slsa_mapping` + `ALL_SLSA_CONTROLS`)
+3. Add integrity predicate in `crates/core/src/integrity.rs`
+4. Add Creusot spec in `crates/verif/src/lib.rs` (matching integrity signature)
+5. Create `crates/core/src/controls/<name>.rs` — implement `Control` trait, delegate to integrity predicate
+6. Add to `crates/core/src/controls/mod.rs` (`instantiate()` match arm)
+
+### Dev quality control
+
+1. Add `ControlId` variant in `crates/core/src/control.rs`
+2. Create `crates/core/src/controls/<name>.rs` — implement `Control` trait
+3. Add to `crates/core/src/controls/mod.rs` (`instantiate()` + `development_quality_controls()`)
 
 ## Adding a Subcommand
 

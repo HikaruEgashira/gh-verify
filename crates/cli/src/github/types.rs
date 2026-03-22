@@ -21,12 +21,21 @@ pub struct PrMetadata {
     pub body: Option<String>,
     pub user: Option<PrUser>,
     pub head: PrHead,
+    pub base: PrBase,
 }
 
 /// The head branch/commit info from a PR.
 #[derive(Debug, Clone, Deserialize)]
 pub struct PrHead {
     pub sha: String,
+}
+
+/// The base branch info from a PR.
+#[derive(Debug, Clone, Deserialize)]
+pub struct PrBase {
+    /// The branch name (e.g. "main").
+    #[serde(rename = "ref")]
+    pub ref_name: String,
 }
 
 /// Pull request summary from the list pulls endpoint.

@@ -22,9 +22,10 @@ fn finding_indeterminate_preserves_gaps() {
 
 #[test]
 fn evaluate_all_collects_from_all_controls() {
-    use crate::controls::slsa_foundation_controls;
+    use crate::controls::slsa_controls;
+    use crate::slsa::SlsaLevel;
     let evidence = EvidenceBundle::default();
-    let controls = slsa_foundation_controls();
+    let controls = slsa_controls(SlsaLevel::L1, SlsaLevel::L1);
     let findings = evaluate_all(&controls, &evidence);
     assert!(
         findings

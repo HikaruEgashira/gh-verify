@@ -5,10 +5,10 @@ use crate::evidence::{
     GovernedChange, SourceRevision,
 };
 use crate::profile::GateDecision;
+use crate::slsa::SlsaLevel;
 
 #[test]
 fn assessment_all_pass_scenario() {
-    // Kills: only testing failure scenarios
     let evidence = EvidenceBundle {
         change_requests: vec![GovernedChange {
             id: ChangeRequestId::new("github_pr", "owner/repo#5"),
@@ -16,11 +16,18 @@ fn assessment_all_pass_scenario() {
             summary: None,
             submitted_by: Some("author".into()),
             changed_assets: EvidenceState::complete(vec![]),
-            approval_decisions: EvidenceState::complete(vec![ApprovalDecision {
-                actor: "independent_reviewer".into(),
-                disposition: ApprovalDisposition::Approved,
-                submitted_at: Some("2026-03-15T00:00:00Z".into()),
-            }]),
+            approval_decisions: EvidenceState::complete(vec![
+                ApprovalDecision {
+                    actor: "independent_reviewer_a".into(),
+                    disposition: ApprovalDisposition::Approved,
+                    submitted_at: Some("2026-03-15T00:00:00Z".into()),
+                },
+                ApprovalDecision {
+                    actor: "independent_reviewer_b".into(),
+                    disposition: ApprovalDisposition::Approved,
+                    submitted_at: Some("2026-03-15T00:00:00Z".into()),
+                },
+            ]),
             source_revisions: EvidenceState::complete(vec![SourceRevision {
                 id: "abc123".into(),
                 authored_by: Some("author".into()),
@@ -37,8 +44,8 @@ fn assessment_all_pass_scenario() {
         ..Default::default()
     };
 
-    let report = assess_with_slsa_foundation(&evidence);
-    assert_eq!(report.profile_name, "slsa-foundation");
+    let report = assess_with_slsa_levels(&evidence, SlsaLevel::L1, SlsaLevel::L1);
+    assert_eq!(report.profile_name, "slsa-source-l1-build-l1");
     assert!(
         report
             .outcomes
@@ -55,10 +62,8 @@ fn assessment_all_pass_scenario() {
 
 #[test]
 fn assessment_empty_evidence() {
-    // Kills: panicking on empty evidence
-    // With empty evidence all controls return NotApplicable, which are filtered out.
     let evidence = EvidenceBundle::default();
-    let report = assess_with_slsa_foundation(&evidence);
+    let report = assess_with_slsa_levels(&evidence, SlsaLevel::L1, SlsaLevel::L1);
     assert!(
         report.findings.is_empty(),
         "empty evidence yields no applicable findings"
@@ -68,7 +73,6 @@ fn assessment_empty_evidence() {
 
 #[test]
 fn assessment_findings_count_equals_outcomes_count() {
-    // Kills: not mapping all findings to outcomes
     let evidence = EvidenceBundle {
         change_requests: vec![GovernedChange {
             id: ChangeRequestId::new("test", "1"),
@@ -83,7 +87,7 @@ fn assessment_findings_count_equals_outcomes_count() {
         promotion_batches: vec![],
         ..Default::default()
     };
-    let report = assess_with_slsa_foundation(&evidence);
+    let report = assess_with_slsa_levels(&evidence, SlsaLevel::L1, SlsaLevel::L1);
     assert_eq!(
         report.findings.len(),
         report.outcomes.len(),

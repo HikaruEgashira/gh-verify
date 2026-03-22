@@ -28,7 +28,7 @@ Three-crate workspace:
 
 ### gh-verify-core (crates/core/)
 
-Pure verification logic. No I/O, no unsafe. Entry point: `assess_with_slsa_foundation`.
+Pure verification logic. No I/O, no unsafe. Entry point: `assess_with_slsa_levels`.
 
 ### gh-verify-verif (crates/verif/)
 
@@ -42,10 +42,11 @@ I/O layer. Delegates all judgments to core via the control/evidence assessment p
 
 | Change | Where | Registration |
 |---|---|---|
-| New control | `crates/core/src/controls/<name>.rs` + impl `Control` trait | Add to `controls/mod.rs` |
+| New SLSA control | `crates/core/src/controls/<name>.rs` + impl `Control` trait | Add variant to `ControlId`, map in `slsa.rs`, add to `controls/mod.rs::instantiate()`, add integrity predicate, add Creusot spec |
+| New dev quality control | `crates/core/src/controls/<name>.rs` + impl `Control` trait | Add variant to `ControlId`, add to `controls/mod.rs::instantiate()` + `development_quality_controls()` |
 | New subcommand | Add variant to `Commands` enum in `main.rs` | clap handles dispatch |
 | New output format | `crates/cli/src/output/<name>.rs` | Add case in `output/mod.rs` |
-| New API endpoint | `crates/cli/src/github/<name>.rs` | None |
+| New API endpoint | `crates/cli/src/github/<name>.rs` | Register in `github/mod.rs` |
 | New adapter | `crates/cli/src/adapters/<name>.rs` | None |
 
 ## Naming

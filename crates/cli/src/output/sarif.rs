@@ -88,10 +88,24 @@ fn build_sarif(report: &AssessmentReport) -> serde_json::Value {
 
 fn rule_descriptor(id: ControlId) -> serde_json::Value {
     let desc = match id {
-        ControlId::ReviewIndependence => "Four-eyes: approver must differ from author",
         ControlId::SourceAuthenticity => "All commits must carry verified signatures",
+        ControlId::ReviewIndependence => "Four-eyes: approver must differ from author",
+        ControlId::BranchHistoryIntegrity => {
+            "Branch history must be continuous and protected from force-push"
+        }
+        ControlId::BranchProtectionEnforcement => {
+            "Branch protection rules must be continuously enforced"
+        }
+        ControlId::TwoPartyReview => "At least two independent reviewers must approve changes",
         ControlId::BuildProvenance => "Artifacts must have verified SLSA provenance",
         ControlId::RequiredStatusChecks => "At least one required status check must be configured",
+        ControlId::HostedBuildPlatform => {
+            "Build must run on a hosted platform, not a developer workstation"
+        }
+        ControlId::ProvenanceAuthenticity => {
+            "Provenance attestation must be cryptographically signed"
+        }
+        ControlId::BuildIsolation => "Build must run in an isolated, ephemeral environment",
         ControlId::PrSize => "PR size must be within acceptable limits",
         ControlId::TestCoverage => "Source changes must include matching test updates",
         ControlId::ScopedChange => "PR changes must be well-scoped (single logical unit)",
@@ -119,7 +133,7 @@ mod tests {
 
     fn sample_report() -> AssessmentReport {
         AssessmentReport {
-            profile_name: "slsa-foundation".to_string(),
+            profile_name: "slsa-source-l1-build-l1".to_string(),
             findings: vec![
                 ControlFinding::satisfied(
                     ControlId::ReviewIndependence,

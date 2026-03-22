@@ -1,4 +1,4 @@
-# Default policy matching SLSA Foundation profile behavior.
+# Default OPA policy: all controls are strict (Indeterminate → Fail).
 # Copy and modify this file to customize gate decisions per organization.
 #
 # Input (set per finding):

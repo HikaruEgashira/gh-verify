@@ -9,14 +9,31 @@ use crate::evidence::{EvidenceBundle, EvidenceGap};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum ControlId {
-    /// Four-eyes principle: approver must differ from author and requester.
-    ReviewIndependence,
-    /// Commit signatures must be present and verified.
+    // --- Source Track ---
+    /// Source L1: Commit signatures must be present and verified.
     SourceAuthenticity,
-    /// Build Track: artifact has verified SLSA provenance attestation.
+    /// Source L1: Four-eyes principle: approver must differ from author and requester.
+    ReviewIndependence,
+    /// Source L2: Branch history is continuous, immutable, and protected from force-push.
+    BranchHistoryIntegrity,
+    /// Source L3: Branch protection rules are continuously enforced (required reviews, status checks).
+    BranchProtectionEnforcement,
+    /// Source L4: At least two independent reviewers approved the change.
+    TwoPartyReview,
+
+    // --- Build Track ---
+    /// Build L1: Artifact has verified SLSA provenance attestation.
     BuildProvenance,
-    /// Repo policy: at least one required status check is configured.
+    /// Build L1: At least one required status check is configured and passes.
     RequiredStatusChecks,
+    /// Build L2: Build runs on a hosted platform (not a developer workstation).
+    HostedBuildPlatform,
+    /// Build L2: Provenance attestation is cryptographically signed and authenticated.
+    ProvenanceAuthenticity,
+    /// Build L3: Build runs in an isolated, ephemeral environment.
+    BuildIsolation,
+
+    // --- Development Quality (non-SLSA) ---
     /// Dev quality: PR size is within acceptable limits.
     PrSize,
     /// Dev quality: source changes include matching test updates.
@@ -31,10 +48,16 @@ impl ControlId {
     /// Returns the kebab-case string representation used in serialized output.
     pub fn as_str(&self) -> &'static str {
         match self {
-            Self::ReviewIndependence => "review-independence",
             Self::SourceAuthenticity => "source-authenticity",
+            Self::ReviewIndependence => "review-independence",
+            Self::BranchHistoryIntegrity => "branch-history-integrity",
+            Self::BranchProtectionEnforcement => "branch-protection-enforcement",
+            Self::TwoPartyReview => "two-party-review",
             Self::BuildProvenance => "build-provenance",
             Self::RequiredStatusChecks => "required-status-checks",
+            Self::HostedBuildPlatform => "hosted-build-platform",
+            Self::ProvenanceAuthenticity => "provenance-authenticity",
+            Self::BuildIsolation => "build-isolation",
             Self::PrSize => "pr-size",
             Self::TestCoverage => "test-coverage",
             Self::ScopedChange => "scoped-change",
@@ -65,10 +88,16 @@ impl FromStr for ControlId {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "review-independence" => Ok(Self::ReviewIndependence),
             "source-authenticity" => Ok(Self::SourceAuthenticity),
+            "review-independence" => Ok(Self::ReviewIndependence),
+            "branch-history-integrity" => Ok(Self::BranchHistoryIntegrity),
+            "branch-protection-enforcement" => Ok(Self::BranchProtectionEnforcement),
+            "two-party-review" => Ok(Self::TwoPartyReview),
             "build-provenance" => Ok(Self::BuildProvenance),
             "required-status-checks" => Ok(Self::RequiredStatusChecks),
+            "hosted-build-platform" => Ok(Self::HostedBuildPlatform),
+            "provenance-authenticity" => Ok(Self::ProvenanceAuthenticity),
+            "build-isolation" => Ok(Self::BuildIsolation),
             "pr-size" => Ok(Self::PrSize),
             "test-coverage" => Ok(Self::TestCoverage),
             "scoped-change" => Ok(Self::ScopedChange),
@@ -205,10 +234,16 @@ mod tests {
     #[test]
     fn control_id_display_round_trip() {
         let variants = [
-            ControlId::ReviewIndependence,
             ControlId::SourceAuthenticity,
+            ControlId::ReviewIndependence,
+            ControlId::BranchHistoryIntegrity,
+            ControlId::BranchProtectionEnforcement,
+            ControlId::TwoPartyReview,
             ControlId::BuildProvenance,
             ControlId::RequiredStatusChecks,
+            ControlId::HostedBuildPlatform,
+            ControlId::ProvenanceAuthenticity,
+            ControlId::BuildIsolation,
             ControlId::PrSize,
             ControlId::TestCoverage,
             ControlId::ScopedChange,

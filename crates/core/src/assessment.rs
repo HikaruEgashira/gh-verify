@@ -3,7 +3,8 @@ use serde::{Deserialize, Serialize};
 use crate::control::{Control, ControlFinding, ControlStatus, evaluate_all};
 use crate::controls;
 use crate::evidence::EvidenceBundle;
-use crate::profile::{ControlProfile, ProfileOutcome, SlsaFoundationProfile, apply_profile};
+use crate::profile::{ControlProfile, ProfileOutcome, SlsaLevelProfile, apply_profile};
+use crate::slsa::SlsaLevel;
 
 /// Complete assessment result combining raw control findings with profile-mapped outcomes.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -32,16 +33,28 @@ pub fn assess(
     }
 }
 
-/// Convenience entry point that runs the SLSA foundation control set and profile.
-pub fn assess_with_slsa_foundation(evidence: &EvidenceBundle) -> AssessmentReport {
-    let controls = controls::slsa_foundation_controls();
-    assess(evidence, &controls, &SlsaFoundationProfile)
+/// Assess at specific SLSA levels. Runs SLSA controls for both tracks;
+/// the level-aware profile determines which are required vs advisory.
+pub fn assess_with_slsa_levels(
+    evidence: &EvidenceBundle,
+    source_level: SlsaLevel,
+    build_level: SlsaLevel,
+) -> AssessmentReport {
+    let controls = controls::slsa_controls(source_level, build_level);
+    let profile = SlsaLevelProfile::new(source_level, build_level);
+    assess(evidence, &controls, &profile)
 }
 
-/// Convenience entry point that runs all controls (SLSA + dev quality) with the SLSA profile.
-pub fn assess_with_all_controls(evidence: &EvidenceBundle) -> AssessmentReport {
-    let controls = controls::all_controls();
-    assess(evidence, &controls, &SlsaFoundationProfile)
+/// Assess with all controls (SLSA + dev quality) at specific SLSA levels.
+pub fn assess_all_controls_with_levels(
+    evidence: &EvidenceBundle,
+    source_level: SlsaLevel,
+    build_level: SlsaLevel,
+) -> AssessmentReport {
+    let mut controls = controls::slsa_controls(source_level, build_level);
+    controls.extend(controls::development_quality_controls());
+    let profile = SlsaLevelProfile::new(source_level, build_level);
+    assess(evidence, &controls, &profile)
 }
 
 #[cfg(test)]
@@ -55,7 +68,7 @@ mod tests {
     use crate::profile::{FindingSeverity, GateDecision};
 
     #[test]
-    fn slsa_foundation_assessment_runs_controls_and_profile() {
+    fn l1_assessment_runs_controls_and_profile() {
         let evidence = EvidenceBundle {
             change_requests: vec![GovernedChange {
                 id: ChangeRequestId::new("github_pr", "owner/repo#12"),
@@ -84,9 +97,9 @@ mod tests {
             ..Default::default()
         };
 
-        let report = assess_with_slsa_foundation(&evidence);
+        let report = assess_with_slsa_levels(&evidence, SlsaLevel::L1, SlsaLevel::L1);
 
-        assert_eq!(report.profile_name, "slsa-foundation");
+        assert_eq!(report.profile_name, "slsa-source-l1-build-l1");
         assert!(report.findings.len() >= 2);
         assert!(report.outcomes.iter().any(|outcome| {
             outcome.control_id == ControlId::ReviewIndependence

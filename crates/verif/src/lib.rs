@@ -28,15 +28,6 @@ pub fn is_approver_independent(is_commit_author: bool, is_pr_author: bool) -> bo
     !is_commit_author && !is_pr_author
 }
 
-/// Core predicate for PR coverage check.
-///
-/// A commit is uncovered iff it is **not** a merge commit **and** has
-/// no associated PR.
-#[ensures(result == (!is_merge && !has_pr))]
-pub fn is_uncovered_commit(is_merge: bool, has_pr: bool) -> bool {
-    !is_merge && !has_pr
-}
-
 /// Signature check severity.
 ///
 /// Pass iff zero unsigned commits; Error otherwise.
@@ -44,19 +35,6 @@ pub fn is_uncovered_commit(is_merge: bool, has_pr: bool) -> bool {
 #[ensures(unsigned_count > 0usize ==> result == Severity::Error)]
 pub fn signature_severity(unsigned_count: usize) -> Severity {
     if unsigned_count == 0 {
-        Severity::Pass
-    } else {
-        Severity::Error
-    }
-}
-
-/// PR coverage severity.
-///
-/// Error iff there are uncovered commits; Pass otherwise.
-#[ensures(uncovered_count == 0usize ==> result == Severity::Pass)]
-#[ensures(uncovered_count > 0usize ==> result == Severity::Error)]
-pub fn pr_coverage_severity(uncovered_count: usize) -> Severity {
-    if uncovered_count == 0 {
         Severity::Pass
     } else {
         Severity::Error
@@ -87,16 +65,12 @@ pub fn classify_scope(code_files_count: usize, components: usize) -> Severity {
 
 /// Build provenance severity.
 ///
-/// Pass iff at least one attestation exists and all are verified.
-/// Error if any attestation is unverified. Pass if no attestations
-/// (NotApplicable handled at control level).
-#[ensures(attestation_count == 0usize ==> result == Severity::Pass)]
-#[ensures(attestation_count > 0usize && all_verified ==> result == Severity::Pass)]
-#[ensures(attestation_count > 0usize && !all_verified ==> result == Severity::Error)]
-pub fn build_provenance_severity(attestation_count: usize, all_verified: bool) -> Severity {
-    if attestation_count == 0 {
-        Severity::Pass
-    } else if all_verified {
+/// Pass iff zero unverified attestations; Error otherwise.
+/// Empty attestation lists are handled at control level (NotApplicable).
+#[ensures(unverified_count == 0usize ==> result == Severity::Pass)]
+#[ensures(unverified_count >= 1usize ==> result == Severity::Error)]
+pub fn build_provenance_severity(unverified_count: usize) -> Severity {
+    if unverified_count == 0 {
         Severity::Pass
     } else {
         Severity::Error
@@ -110,6 +84,88 @@ pub fn build_provenance_severity(attestation_count: usize, all_verified: bool) -
 #[ensures(fail_count >= 1usize ==> result == Severity::Error)]
 pub fn required_status_checks_severity(fail_count: usize) -> Severity {
     if fail_count == 0 {
+        Severity::Pass
+    } else {
+        Severity::Error
+    }
+}
+
+// --- SLSA v1.2 Source Track predicates ---
+
+/// Branch history integrity severity (Source L2).
+///
+/// Pass iff zero branches lack force-push/deletion protection.
+#[ensures(unprotected_count == 0usize ==> result == Severity::Pass)]
+#[ensures(unprotected_count >= 1usize ==> result == Severity::Error)]
+pub fn branch_history_severity(unprotected_count: usize) -> Severity {
+    if unprotected_count == 0 {
+        Severity::Pass
+    } else {
+        Severity::Error
+    }
+}
+
+/// Branch protection enforcement severity (Source L3).
+///
+/// Pass iff zero branches lack required reviews, status checks, or admin enforcement.
+#[ensures(non_enforced_count == 0usize ==> result == Severity::Pass)]
+#[ensures(non_enforced_count >= 1usize ==> result == Severity::Error)]
+pub fn branch_protection_enforcement_severity(non_enforced_count: usize) -> Severity {
+    if non_enforced_count == 0 {
+        Severity::Pass
+    } else {
+        Severity::Error
+    }
+}
+
+/// Two-party review severity (Source L4).
+///
+/// Pass iff at least 2 independent reviewers approved.
+#[ensures(independent_count >= 2usize ==> result == Severity::Pass)]
+#[ensures(independent_count < 2usize ==> result == Severity::Error)]
+pub fn two_party_review_severity(independent_count: usize) -> Severity {
+    if independent_count >= 2 {
+        Severity::Pass
+    } else {
+        Severity::Error
+    }
+}
+
+// --- SLSA v1.2 Build Track predicates ---
+
+/// Hosted build platform severity (Build L2).
+///
+/// Pass iff zero build runs are on non-hosted platforms.
+#[ensures(non_hosted_count == 0usize ==> result == Severity::Pass)]
+#[ensures(non_hosted_count >= 1usize ==> result == Severity::Error)]
+pub fn hosted_build_severity(non_hosted_count: usize) -> Severity {
+    if non_hosted_count == 0 {
+        Severity::Pass
+    } else {
+        Severity::Error
+    }
+}
+
+/// Provenance authenticity severity (Build L2).
+///
+/// Pass iff zero attestations lack cryptographic authentication.
+#[ensures(unauthenticated_count == 0usize ==> result == Severity::Pass)]
+#[ensures(unauthenticated_count >= 1usize ==> result == Severity::Error)]
+pub fn provenance_authenticity_severity(unauthenticated_count: usize) -> Severity {
+    if unauthenticated_count == 0 {
+        Severity::Pass
+    } else {
+        Severity::Error
+    }
+}
+
+/// Build isolation severity (Build L3).
+///
+/// Pass iff zero builds lack isolation, ephemerality, or signing key isolation.
+#[ensures(non_isolated_count == 0usize ==> result == Severity::Pass)]
+#[ensures(non_isolated_count >= 1usize ==> result == Severity::Error)]
+pub fn build_isolation_severity(non_isolated_count: usize) -> Severity {
+    if non_isolated_count == 0 {
         Severity::Pass
     } else {
         Severity::Error

@@ -17,10 +17,9 @@ use gh_verify_core::assessment;
 use gh_verify_core::control::Control;
 use gh_verify_core::controls;
 use gh_verify_core::evidence::EvidenceBundle;
-use gh_verify_core::profile::{
-    ControlProfile, GateDecision, SlsaComprehensiveProfile, SlsaFoundationProfile,
-};
+use gh_verify_core::profile::{ControlProfile, GateDecision, SlsaLevelProfile};
 use gh_verify_core::scope::is_non_code_file;
+use gh_verify_core::slsa::SlsaLevel;
 use gh_verify_core::verdict::Severity;
 use serde::Serialize;
 
@@ -37,7 +36,7 @@ struct Cli {
     #[arg(long, default_value = "human")]
     format: String,
     /// Assessment algorithms to benchmark (comma-separated or repeated).
-    /// Available: slsa-foundation, slsa-comprehensive, all-controls, oss, aiops.
+    /// Available: slsa-source-lN-build-lM, all-controls, oss, aiops.
     #[arg(long = "algorithm", value_delimiter = ',', required = true)]
     algorithms: Vec<String>,
     #[command(subcommand)]
@@ -76,28 +75,21 @@ struct CollectRealWorldArgs {
 }
 
 const KNOWN_ALGORITHMS: &[&str] = &[
-    "slsa-foundation",
-    "slsa-comprehensive",
+    "slsa-source-l1-build-l1",
+    "slsa-source-l4-build-l3",
     "all-controls",
     "oss",
     "aiops",
 ];
 
 /// Resolve algorithm name into (controls, profile).
+#[allow(clippy::type_complexity)]
 fn resolve_algorithm(name: &str) -> Result<(Vec<Box<dyn Control>>, Box<dyn ControlProfile>)> {
     match name {
-        "slsa-foundation" => Ok((
-            controls::slsa_foundation_controls(),
-            Box::new(SlsaFoundationProfile),
-        )),
-        "slsa-comprehensive" => Ok((
-            controls::slsa_foundation_controls(),
-            Box::new(SlsaComprehensiveProfile),
-        )),
-        "all-controls" => Ok((
-            controls::all_controls(),
-            Box::new(SlsaFoundationProfile),
-        )),
+        "all-controls" => {
+            let profile = SlsaLevelProfile::new(SlsaLevel::L1, SlsaLevel::L1);
+            Ok((controls::all_controls(), Box::new(profile)))
+        }
         "oss" => Ok((
             controls::all_controls(),
             Box::new(OpaProfile::oss_preset()?),
@@ -106,8 +98,14 @@ fn resolve_algorithm(name: &str) -> Result<(Vec<Box<dyn Control>>, Box<dyn Contr
             controls::all_controls(),
             Box::new(OpaProfile::aiops_preset()?),
         )),
+        s if s.starts_with("slsa-source-l") && s.contains("-build-l") => {
+            let profile = gh_verify_core::profile::parse_profile(s)
+                .ok_or_else(|| anyhow::anyhow!("invalid SLSA level profile: {s}"))?;
+            // Use all SLSA controls; the profile decides what's required vs advisory.
+            Ok((controls::all_slsa_controls(), profile))
+        }
         _ => bail!(
-            "unknown algorithm '{name}'. Available: {}",
+            "unknown algorithm '{name}'. Available: {} (or slsa-source-lN-build-lM)",
             KNOWN_ALGORITHMS.join(", ")
         ),
     }
@@ -242,7 +240,12 @@ fn run() -> Result<()> {
     }
 }
 
-fn fetch_evidence(client: &GitHubClient, owner: &str, repo: &str, pr_number: u32) -> Result<EvidenceBundle> {
+fn fetch_evidence(
+    client: &GitHubClient,
+    owner: &str,
+    repo: &str,
+    pr_number: u32,
+) -> Result<EvidenceBundle> {
     let pr_files = pr_api::get_pr_files(client, owner, repo, pr_number)?;
     let pr_metadata = pr_api::get_pr_metadata(client, owner, repo, pr_number)?;
     let pr_reviews = pr_api::get_pr_reviews(client, owner, repo, pr_number)?;
@@ -393,12 +396,19 @@ fn run_benchmarks(cli: &Cli) -> Result<()> {
             .unwrap_or_else(|| "N/A".into());
         eprintln!(
             "{:<20} {:>6} {:>8} {:>9.1}% {:>10}",
-            name, report.total, report.correct, report.accuracy * 100.0, f1_str
+            name,
+            report.total,
+            report.correct,
+            report.accuracy * 100.0,
+            f1_str
         );
     }
 
     eprintln!();
-    eprintln!("Total elapsed: {:.2}s", bench_started.elapsed().as_secs_f32());
+    eprintln!(
+        "Total elapsed: {:.2}s",
+        bench_started.elapsed().as_secs_f32()
+    );
 
     if cli.format == "json" {
         let json_map: HashMap<String, &Report> = algo_reports
@@ -560,8 +570,9 @@ fn discover_repo(
         let code_files = code_paths.len();
         let observed = match fetch_evidence(github, owner, repo, pr.number) {
             Ok(bundle) => {
-                let ctrls = controls::slsa_foundation_controls();
-                assess_bundle(&bundle, &ctrls, &SlsaFoundationProfile)
+                let ctrls = controls::slsa_controls(SlsaLevel::L1, SlsaLevel::L1);
+                let profile = SlsaLevelProfile::new(SlsaLevel::L1, SlsaLevel::L1);
+                assess_bundle(&bundle, &ctrls, &profile)
             }
             Err(e) => ActualResult::FetchError(format!("{e}")),
         };

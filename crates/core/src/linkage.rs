@@ -37,8 +37,8 @@ const TICKET_BLOCKLIST: &[&str] = &[
 
 /// Known project tracker URL host patterns that indicate issue linkage.
 const TRACKER_URL_PATTERNS: &[&str] = &[
-    "/issues/",  // GitHub, GitLab
-    "/browse/",  // Jira
+    "/issues/",          // GitHub, GitLab
+    "/browse/",          // Jira
     "linear.app/",       // Linear
     "app.shortcut.com/", // Shortcut
     "notion.so/",        // Notion
@@ -631,10 +631,8 @@ mod tests {
 
     #[test]
     fn shortcut_url_matched() {
-        let refs = extract_issue_references(
-            "https://app.shortcut.com/myorg/story/12345/fix-bug",
-            &[],
-        );
+        let refs =
+            extract_issue_references("https://app.shortcut.com/myorg/story/12345/fix-bug", &[]);
         assert!(has_issue_linkage(&refs));
         assert_eq!(refs[0].kind, IssueRefKind::Url);
     }
@@ -643,10 +641,7 @@ mod tests {
 
     #[test]
     fn notion_url_matched() {
-        let refs = extract_issue_references(
-            "https://notion.so/myworkspace/Task-abc123def456",
-            &[],
-        );
+        let refs = extract_issue_references("https://notion.so/myworkspace/Task-abc123def456", &[]);
         assert!(has_issue_linkage(&refs));
         assert_eq!(refs[0].kind, IssueRefKind::Url);
     }

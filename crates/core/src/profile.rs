@@ -3,6 +3,7 @@ use std::fmt;
 use serde::{Deserialize, Serialize};
 
 use crate::control::{ControlFinding, ControlId, ControlStatus};
+use crate::slsa::{SlsaLevel, SlsaTrack, control_slsa_mapping};
 
 /// Severity level assigned to a control finding by a profile.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -55,64 +56,74 @@ pub struct ProfileOutcome {
 
 /// Maps raw control findings to severity and gate decisions for a given policy.
 pub trait ControlProfile {
-    /// Returns the human-readable profile name (e.g. "slsa-foundation").
+    /// Returns the human-readable profile name (e.g. "slsa-source-l3-build-l2").
     fn name(&self) -> &'static str;
     /// Converts a control finding into a profile outcome with severity and gate decision.
     fn map(&self, finding: &ControlFinding) -> ProfileOutcome;
 }
 
-/// Default profile implementing SLSA Build L1 / Source L1 gate policy.
-pub struct SlsaFoundationProfile;
+/// SLSA level-aware profile.
+///
+/// Controls at or below the configured level are required (Indeterminate → Fail).
+/// Controls above the configured level are advisory (Indeterminate → Review).
+/// Non-SLSA controls are always advisory.
+pub struct SlsaLevelProfile {
+    pub source_level: SlsaLevel,
+    pub build_level: SlsaLevel,
+    profile_name: &'static str,
+}
 
-impl ControlProfile for SlsaFoundationProfile {
-    fn name(&self) -> &'static str {
-        "slsa-foundation"
+impl SlsaLevelProfile {
+    pub fn new(source_level: SlsaLevel, build_level: SlsaLevel) -> Self {
+        let profile_name = match (source_level, build_level) {
+            (SlsaLevel::L0, SlsaLevel::L0) => "slsa-source-l0-build-l0",
+            (SlsaLevel::L1, SlsaLevel::L0) => "slsa-source-l1-build-l0",
+            (SlsaLevel::L0, SlsaLevel::L1) => "slsa-source-l0-build-l1",
+            (SlsaLevel::L1, SlsaLevel::L1) => "slsa-source-l1-build-l1",
+            (SlsaLevel::L2, SlsaLevel::L1) => "slsa-source-l2-build-l1",
+            (SlsaLevel::L2, SlsaLevel::L2) => "slsa-source-l2-build-l2",
+            (SlsaLevel::L3, SlsaLevel::L2) => "slsa-source-l3-build-l2",
+            (SlsaLevel::L3, SlsaLevel::L3) => "slsa-source-l3-build-l3",
+            (SlsaLevel::L4, SlsaLevel::L3) => "slsa-source-l4-build-l3",
+            _ => "slsa-custom",
+        };
+        Self {
+            source_level,
+            build_level,
+            profile_name,
+        }
     }
 
-    fn map(&self, finding: &ControlFinding) -> ProfileOutcome {
-        let (severity, decision) = match finding.status {
-            ControlStatus::Satisfied | ControlStatus::NotApplicable => {
-                (FindingSeverity::Info, GateDecision::Pass)
+    /// Returns true if the given control is required at the configured levels.
+    fn is_required(&self, control_id: ControlId) -> bool {
+        match control_slsa_mapping(control_id) {
+            Some(mapping) => {
+                let target_level = match mapping.track {
+                    SlsaTrack::Source => self.source_level,
+                    SlsaTrack::Build => self.build_level,
+                };
+                mapping.level <= target_level
             }
-            // Intentionally separate from Violated: other profiles may map
-            // Indeterminate → Review. SLSA Foundation treats insufficient evidence as failure
-            // to align with Creusot's four_eyes_gate proof.
-            ControlStatus::Indeterminate => (FindingSeverity::Error, GateDecision::Fail),
-            ControlStatus::Violated => (FindingSeverity::Error, GateDecision::Fail),
-        };
-
-        ProfileOutcome {
-            control_id: finding.control_id,
-            severity,
-            decision,
-            rationale: finding.rationale.clone(),
+            // Non-SLSA controls are never required
+            None => false,
         }
     }
 }
 
-/// Comprehensive profile covering Source Track + Build Track.
-///
-/// Source controls (ReviewIndependence, SourceAuthenticity): strict — Indeterminate → Fail.
-/// Build controls (BuildProvenance): lenient — Indeterminate → Review.
-pub struct SlsaComprehensiveProfile;
-
-impl ControlProfile for SlsaComprehensiveProfile {
+impl ControlProfile for SlsaLevelProfile {
     fn name(&self) -> &'static str {
-        "slsa-comprehensive"
+        self.profile_name
     }
 
     fn map(&self, finding: &ControlFinding) -> ProfileOutcome {
-        let is_source_control = matches!(
-            finding.control_id,
-            ControlId::ReviewIndependence | ControlId::SourceAuthenticity
-        );
+        let required = self.is_required(finding.control_id);
 
         let (severity, decision) = match finding.status {
             ControlStatus::Satisfied | ControlStatus::NotApplicable => {
                 (FindingSeverity::Info, GateDecision::Pass)
             }
             ControlStatus::Indeterminate => {
-                if is_source_control {
+                if required {
                     (FindingSeverity::Error, GateDecision::Fail)
                 } else {
                     (FindingSeverity::Warning, GateDecision::Review)
@@ -131,10 +142,39 @@ impl ControlProfile for SlsaComprehensiveProfile {
 }
 
 /// Parses a profile name into the corresponding profile instance.
+///
+/// Format: `slsa-source-l{N}-build-l{M}` where N is 0-4 and M is 0-3.
 pub fn parse_profile(name: &str) -> Option<Box<dyn ControlProfile>> {
-    match name {
-        "slsa-foundation" => Some(Box::new(SlsaFoundationProfile)),
-        "slsa-comprehensive" => Some(Box::new(SlsaComprehensiveProfile)),
+    if name.starts_with("slsa-source-l") && name.contains("-build-l") {
+        parse_level_profile(name).map(|p| Box::new(p) as Box<dyn ControlProfile>)
+    } else {
+        None
+    }
+}
+
+fn parse_level_profile(name: &str) -> Option<SlsaLevelProfile> {
+    let rest = name.strip_prefix("slsa-source-l")?;
+    let dash_pos = rest.find("-build-l")?;
+    let source_str = &rest[..dash_pos];
+    let build_str = &rest[dash_pos + 8..];
+
+    let source_level = parse_level_num(source_str)?;
+    let build_level = parse_level_num(build_str)?;
+
+    if !build_level.is_valid_for_track(SlsaTrack::Build) {
+        return None;
+    }
+
+    Some(SlsaLevelProfile::new(source_level, build_level))
+}
+
+fn parse_level_num(s: &str) -> Option<SlsaLevel> {
+    match s {
+        "0" => Some(SlsaLevel::L0),
+        "1" => Some(SlsaLevel::L1),
+        "2" => Some(SlsaLevel::L2),
+        "3" => Some(SlsaLevel::L3),
+        "4" => Some(SlsaLevel::L4),
         _ => None,
     }
 }
@@ -154,101 +194,153 @@ pub fn apply_profile(
 mod tests {
     use super::*;
 
+    fn l1_profile() -> SlsaLevelProfile {
+        SlsaLevelProfile::new(SlsaLevel::L1, SlsaLevel::L1)
+    }
+
     #[test]
-    fn indeterminate_finding_maps_to_fail_gate() {
-        let outcome = SlsaFoundationProfile.map(&ControlFinding::indeterminate(
-            ControlId::ReviewIndependence,
+    fn l1_indeterminate_required_control_fails() {
+        let profile = l1_profile();
+        let outcome = profile.map(&ControlFinding::indeterminate(
+            ControlId::ReviewIndependence, // Source L1 → required
             "Evidence is partial",
             vec!["github_pr:owner/repo#10".to_string()],
             vec![],
         ));
-
         assert_eq!(outcome.severity, FindingSeverity::Error);
         assert_eq!(outcome.decision, GateDecision::Fail);
     }
 
     #[test]
-    fn satisfied_finding_maps_to_pass_info() {
-        let outcome = SlsaFoundationProfile.map(&ControlFinding::satisfied(
+    fn l1_satisfied_maps_to_pass() {
+        let profile = l1_profile();
+        let outcome = profile.map(&ControlFinding::satisfied(
             ControlId::ReviewIndependence,
             "Independent reviewer approved",
             vec!["github_pr:owner/repo#10".to_string()],
         ));
-
         assert_eq!(outcome.severity, FindingSeverity::Info);
         assert_eq!(outcome.decision, GateDecision::Pass);
         assert_eq!(outcome.control_id, ControlId::ReviewIndependence);
     }
 
     #[test]
-    fn violated_finding_maps_to_fail_error() {
-        let outcome = SlsaFoundationProfile.map(&ControlFinding::violated(
+    fn violated_always_fails() {
+        let profile = l1_profile();
+        let outcome = profile.map(&ControlFinding::violated(
             ControlId::SourceAuthenticity,
             "No valid signature found",
             vec!["github_release:owner/repo@v1.0".to_string()],
         ));
-
         assert_eq!(outcome.severity, FindingSeverity::Error);
         assert_eq!(outcome.decision, GateDecision::Fail);
-        assert_eq!(outcome.control_id, ControlId::SourceAuthenticity);
     }
 
     #[test]
-    fn not_applicable_finding_maps_to_pass_info() {
-        let outcome = SlsaFoundationProfile.map(&ControlFinding::not_applicable(
+    fn not_applicable_maps_to_pass() {
+        let profile = l1_profile();
+        let outcome = profile.map(&ControlFinding::not_applicable(
             ControlId::SourceAuthenticity,
             "No release artifacts to verify",
         ));
-
         assert_eq!(outcome.severity, FindingSeverity::Info);
         assert_eq!(outcome.decision, GateDecision::Pass);
-        assert_eq!(outcome.control_id, ControlId::SourceAuthenticity);
     }
 
     #[test]
-    fn comprehensive_indeterminate_build_maps_to_review() {
-        let outcome = SlsaComprehensiveProfile.map(&ControlFinding::indeterminate(
-            ControlId::BuildProvenance,
-            "gh attestation verify not available",
-            vec!["artifact:binary".to_string()],
+    fn level_profile_required_control_indeterminate_fails() {
+        let profile = SlsaLevelProfile::new(SlsaLevel::L3, SlsaLevel::L2);
+        let outcome = profile.map(&ControlFinding::indeterminate(
+            ControlId::BranchHistoryIntegrity, // Source L2, required at L3
+            "Evidence incomplete",
+            vec!["branch:main".to_string()],
             vec![],
         ));
+        assert_eq!(outcome.decision, GateDecision::Fail);
+        assert_eq!(outcome.severity, FindingSeverity::Error);
+    }
+
+    #[test]
+    fn level_profile_above_level_indeterminate_reviews() {
+        let profile = l1_profile();
+        let outcome = profile.map(&ControlFinding::indeterminate(
+            ControlId::BranchHistoryIntegrity, // Source L2, not required at L1
+            "Evidence incomplete",
+            vec!["branch:main".to_string()],
+            vec![],
+        ));
+        assert_eq!(outcome.decision, GateDecision::Review);
         assert_eq!(outcome.severity, FindingSeverity::Warning);
+    }
+
+    #[test]
+    fn level_profile_violated_above_level_still_fails() {
+        let profile = l1_profile();
+        let outcome = profile.map(&ControlFinding::violated(
+            ControlId::TwoPartyReview, // Source L4, above L1 but violated
+            "Only 1 reviewer",
+            vec!["github_pr:owner/repo#5".to_string()],
+        ));
+        assert_eq!(outcome.decision, GateDecision::Fail);
+        assert_eq!(outcome.severity, FindingSeverity::Error);
+    }
+
+    #[test]
+    fn dev_quality_indeterminate_reviews() {
+        let profile = SlsaLevelProfile::new(SlsaLevel::L4, SlsaLevel::L3);
+        let outcome = profile.map(&ControlFinding::indeterminate(
+            ControlId::PrSize,
+            "Cannot determine PR size",
+            vec!["github_pr:owner/repo#5".to_string()],
+            vec![],
+        ));
+        assert_eq!(outcome.decision, GateDecision::Review);
+        assert_eq!(outcome.severity, FindingSeverity::Warning);
+    }
+
+    #[test]
+    fn build_l2_hosted_required() {
+        let profile = SlsaLevelProfile::new(SlsaLevel::L1, SlsaLevel::L2);
+        let outcome = profile.map(&ControlFinding::indeterminate(
+            ControlId::HostedBuildPlatform,
+            "Cannot determine if hosted",
+            vec!["build:ci".to_string()],
+            vec![],
+        ));
+        assert_eq!(outcome.decision, GateDecision::Fail);
+    }
+
+    #[test]
+    fn build_l3_isolation_not_required_at_l2() {
+        let profile = SlsaLevelProfile::new(SlsaLevel::L1, SlsaLevel::L2);
+        let outcome = profile.map(&ControlFinding::indeterminate(
+            ControlId::BuildIsolation,
+            "Cannot determine isolation",
+            vec!["build:ci".to_string()],
+            vec![],
+        ));
         assert_eq!(outcome.decision, GateDecision::Review);
     }
 
     #[test]
-    fn comprehensive_indeterminate_source_maps_to_fail() {
-        let outcome = SlsaComprehensiveProfile.map(&ControlFinding::indeterminate(
-            ControlId::ReviewIndependence,
-            "Evidence is partial",
-            vec!["github_pr:owner/repo#10".to_string()],
-            vec![],
-        ));
-        assert_eq!(outcome.severity, FindingSeverity::Error);
-        assert_eq!(outcome.decision, GateDecision::Fail);
-    }
-
-    #[test]
-    fn comprehensive_violated_always_fails() {
-        let outcome = SlsaComprehensiveProfile.map(&ControlFinding::violated(
-            ControlId::BuildProvenance,
-            "Unverified attestation",
-            vec!["artifact:binary".to_string()],
-        ));
-        assert_eq!(outcome.severity, FindingSeverity::Error);
-        assert_eq!(outcome.decision, GateDecision::Fail);
-    }
-
-    #[test]
-    fn parse_profile_known_names() {
-        assert!(parse_profile("slsa-foundation").is_some());
-        assert!(parse_profile("slsa-comprehensive").is_some());
+    fn parse_profile_level_based() {
+        assert!(parse_profile("slsa-source-l1-build-l1").is_some());
+        assert!(parse_profile("slsa-source-l3-build-l2").is_some());
+        assert!(parse_profile("slsa-source-l4-build-l3").is_some());
+        assert!(parse_profile("slsa-source-l4-build-l4").is_none());
+        assert!(parse_profile("slsa-source-l5-build-l1").is_none());
         assert!(parse_profile("unknown").is_none());
     }
 
     #[test]
+    fn parse_profile_level_names() {
+        let p = parse_profile("slsa-source-l3-build-l2").unwrap();
+        assert_eq!(p.name(), "slsa-source-l3-build-l2");
+    }
+
+    #[test]
     fn apply_profile_processes_all_findings() {
+        let profile = l1_profile();
         let findings = vec![
             ControlFinding::satisfied(
                 ControlId::ReviewIndependence,
@@ -269,7 +361,7 @@ mod tests {
             ),
         ];
 
-        let outcomes = apply_profile(&SlsaFoundationProfile, &findings);
+        let outcomes = apply_profile(&profile, &findings);
 
         assert_eq!(outcomes.len(), 4);
         assert_eq!(outcomes[0].decision, GateDecision::Pass);

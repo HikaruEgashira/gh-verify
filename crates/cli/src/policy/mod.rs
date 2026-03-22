@@ -28,7 +28,7 @@ impl OpaProfile {
 
     /// Creates a profile using the built-in default policy (SLSA Foundation equivalent).
     pub fn default_policy() -> Result<Self> {
-        Self::from_rego_with_name("default.rego", DEFAULT_POLICY, "slsa-foundation")
+        Self::from_rego_with_name("default.rego", DEFAULT_POLICY, "opa-default")
     }
 
     /// Creates a profile using the built-in OSS preset.
@@ -157,11 +157,12 @@ mod tests {
     }
 
     #[test]
-    fn default_policy_matches_slsa_foundation() {
-        use gh_verify_core::profile::SlsaFoundationProfile;
+    fn default_policy_matches_slsa_l1() {
+        use gh_verify_core::profile::SlsaLevelProfile;
+        use gh_verify_core::slsa::SlsaLevel;
 
         let opa = OpaProfile::default_policy().unwrap();
-        let slsa = SlsaFoundationProfile;
+        let slsa = SlsaLevelProfile::new(SlsaLevel::L1, SlsaLevel::L1);
 
         let cases = [
             (ControlId::ReviewIndependence, ControlStatus::Satisfied),

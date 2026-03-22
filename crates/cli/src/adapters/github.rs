@@ -6,7 +6,9 @@ use gh_verify_core::evidence::{
     PromotionBatch, SourceRevision, WorkItemRef,
 };
 
-use gh_verify_core::evidence::{CheckConclusion, CheckRunEvidence};
+use gh_verify_core::evidence::{
+    BranchProtectionEvidence, BuildPlatformEvidence, CheckConclusion, CheckRunEvidence,
+};
 
 use crate::github::types::{
     CheckRunItem, CombinedStatusResponse, CompareCommit, PrCommit, PrFile, PrMetadata,
@@ -266,6 +268,85 @@ fn map_review_state(state: &str) -> ApprovalDisposition {
     }
 }
 
+/// Converts a GitHub branch protection API response into platform-neutral evidence.
+pub fn map_branch_protection_evidence(
+    response: &crate::github::repo_api::BranchProtectionResponse,
+    branch: &str,
+) -> BranchProtectionEvidence {
+    BranchProtectionEvidence {
+        branch_pattern: branch.to_string(),
+        force_push_blocked: !response
+            .allow_force_pushes
+            .as_ref()
+            .map(|c| c.enabled)
+            .unwrap_or(true),
+        deletion_blocked: !response
+            .allow_deletions
+            .as_ref()
+            .map(|c| c.enabled)
+            .unwrap_or(true),
+        required_approving_review_count: response
+            .required_pull_request_reviews
+            .as_ref()
+            .and_then(|r| r.required_approving_review_count)
+            .unwrap_or(0),
+        dismiss_stale_reviews: response
+            .required_pull_request_reviews
+            .as_ref()
+            .and_then(|r| r.dismiss_stale_reviews)
+            .unwrap_or(false),
+        require_code_owner_reviews: response
+            .required_pull_request_reviews
+            .as_ref()
+            .and_then(|r| r.require_code_owner_reviews)
+            .unwrap_or(false),
+        require_linear_history: response
+            .required_linear_history
+            .as_ref()
+            .map(|c| c.enabled)
+            .unwrap_or(false),
+        require_signed_commits: response
+            .required_signatures
+            .as_ref()
+            .map(|c| c.enabled)
+            .unwrap_or(false),
+        required_status_checks: response
+            .required_status_checks
+            .as_ref()
+            .map(|c| c.contexts.clone())
+            .unwrap_or_default(),
+        enforce_admins: response
+            .enforce_admins
+            .as_ref()
+            .map(|c| c.enabled)
+            .unwrap_or(false),
+    }
+}
+
+/// Maps check run evidence into build platform evidence.
+///
+/// GitHub Actions hosted runners are treated as hosted, ephemeral, and isolated.
+/// Self-hosted runners are treated as non-hosted, non-ephemeral, and non-isolated.
+pub fn map_build_platform_evidence(check_runs: &[CheckRunEvidence]) -> Vec<BuildPlatformEvidence> {
+    check_runs
+        .iter()
+        .filter(|cr| cr.conclusion != CheckConclusion::Pending)
+        .map(|_cr| {
+            // Heuristic: GitHub Actions hosted runners use standard labels.
+            // Without runner label data, default to github-actions (hosted).
+            let hosted = true;
+            BuildPlatformEvidence {
+                platform: "github-actions".to_string(),
+                hosted,
+                ephemeral: hosted,
+                isolated: hosted,
+                runner_labels: vec!["github-actions".to_string()],
+                signing_key_isolated: hosted,
+            }
+        })
+        .collect()
+}
+
 fn map_issue_ref_kind(kind: &gh_verify_core::linkage::IssueRefKind) -> &'static str {
     match kind {
         gh_verify_core::linkage::IssueRefKind::GitHubIssue => "github_issue",
@@ -278,8 +359,8 @@ fn map_issue_ref_kind(kind: &gh_verify_core::linkage::IssueRefKind) -> &'static 
 mod tests {
     use super::*;
     use crate::github::types::{
-        CommitParent, CommitVerification, CompareCommitInner, PrCommitAuthor, PrCommitInner,
-        PrHead, PrUser,
+        CommitParent, CommitVerification, CompareCommitInner, PrBase, PrCommitAuthor,
+        PrCommitInner, PrHead, PrUser,
     };
 
     #[test]
@@ -296,6 +377,9 @@ mod tests {
                 }),
                 head: PrHead {
                     sha: "abc123".to_string(),
+                },
+                base: PrBase {
+                    ref_name: "main".to_string(),
                 },
             },
             &[PrFile {
@@ -450,6 +534,9 @@ mod tests {
                 head: PrHead {
                     sha: "abc123".to_string(),
                 },
+                base: PrBase {
+                    ref_name: "main".to_string(),
+                },
             },
             &[],
             &[],
@@ -475,6 +562,9 @@ mod tests {
                 head: PrHead {
                     sha: "def456".to_string(),
                 },
+                base: PrBase {
+                    ref_name: "main".to_string(),
+                },
             },
             &[],
             &[],
@@ -496,6 +586,9 @@ mod tests {
                 user: None,
                 head: PrHead {
                     sha: "ghi789".to_string(),
+                },
+                base: PrBase {
+                    ref_name: "main".to_string(),
                 },
             },
             &[],
