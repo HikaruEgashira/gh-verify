@@ -15,6 +15,8 @@ pub enum ControlId {
     SourceAuthenticity,
     /// Build Track: artifact has verified SLSA provenance attestation.
     BuildProvenance,
+    /// Repo policy: at least one required status check is configured.
+    RequiredStatusChecks,
 }
 
 impl ControlId {
@@ -24,6 +26,7 @@ impl ControlId {
             Self::ReviewIndependence => "review-independence",
             Self::SourceAuthenticity => "source-authenticity",
             Self::BuildProvenance => "build-provenance",
+            Self::RequiredStatusChecks => "required-status-checks",
         }
     }
 }
@@ -53,6 +56,7 @@ impl FromStr for ControlId {
             "review-independence" => Ok(Self::ReviewIndependence),
             "source-authenticity" => Ok(Self::SourceAuthenticity),
             "build-provenance" => Ok(Self::BuildProvenance),
+            "required-status-checks" => Ok(Self::RequiredStatusChecks),
             _ => Err(UnknownControlId(s.to_string())),
         }
     }
@@ -171,6 +175,7 @@ mod tests {
             ControlId::ReviewIndependence,
             ControlId::SourceAuthenticity,
             ControlId::BuildProvenance,
+            ControlId::RequiredStatusChecks,
         ];
         for id in &variants {
             let s = id.to_string();

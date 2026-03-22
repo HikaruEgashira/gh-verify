@@ -120,3 +120,15 @@ pub struct PrCommitAuthor {
     pub date: Option<String>,
 }
 
+/// Branch protection response from GitHub API (subset for status checks).
+#[derive(Debug, Clone, Deserialize)]
+pub struct BranchProtectionResponse {
+    pub required_status_checks: Option<RequiredStatusChecksResponse>,
+}
+
+/// Required status checks from the branch protection API.
+#[derive(Debug, Clone, Deserialize)]
+pub struct RequiredStatusChecksResponse {
+    pub strict: bool,
+    pub contexts: Vec<String>,
+}

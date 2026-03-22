@@ -230,6 +230,8 @@ pub struct EvidenceBundle {
     pub promotion_batches: Vec<PromotionBatch>,
     /// Build Track: artifact provenance attestations.
     pub artifact_attestations: EvidenceState<Vec<ArtifactAttestation>>,
+    /// Repo policy: required status checks on the default branch.
+    pub required_status_checks: EvidenceState<Vec<String>>,
 }
 
 #[cfg(test)]
