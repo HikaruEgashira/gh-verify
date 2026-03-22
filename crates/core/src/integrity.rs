@@ -203,48 +203,6 @@ pub fn release_traceability_severity(linked_cr_count: usize) -> Severity {
     }
 }
 
-// --- NIST SSDF / OpenSSF Scorecard predicates ---
-
-/// Core predicate for SAST tool presence severity (NIST PW.7).
-/// At least one SAST tool detected -> Pass, none -> Error.
-pub fn sast_tool_presence_severity(sast_count: usize) -> Severity {
-    if sast_count > 0 {
-        Severity::Pass
-    } else {
-        Severity::Error
-    }
-}
-
-/// Core predicate for binary artifact check severity (OpenSSF Binary-Artifacts).
-/// Zero binary artifacts -> Pass, any -> Error.
-pub fn binary_artifact_check_severity(binary_count: usize) -> Severity {
-    if binary_count == 0 {
-        Severity::Pass
-    } else {
-        Severity::Error
-    }
-}
-
-/// Core predicate for dependency pinning severity (OpenSSF Pinned-Dependencies).
-/// Zero unpinned references -> Pass, any -> Error.
-pub fn dependency_pinning_severity(unpinned_count: usize) -> Severity {
-    if unpinned_count == 0 {
-        Severity::Pass
-    } else {
-        Severity::Error
-    }
-}
-
-/// Core predicate for workflow permissions severity (OpenSSF Token-Permissions).
-/// Zero excessive permissions -> Pass, any -> Error.
-pub fn workflow_permissions_severity(violation_count: usize) -> Severity {
-    if violation_count == 0 {
-        Severity::Pass
-    } else {
-        Severity::Error
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -471,54 +429,6 @@ mod tests {
                 release_traceability_severity(count),
                 Severity::Pass,
                 "release_traceability_severity({count}) should be Pass"
-            );
-        }
-    }
-
-    #[test]
-    fn sast_tool_presence_severity_equivalence() {
-        assert_eq!(sast_tool_presence_severity(0), Severity::Error);
-        for count in 1..=10 {
-            assert_eq!(
-                sast_tool_presence_severity(count),
-                Severity::Pass,
-                "sast_tool_presence_severity({count}) should be Pass"
-            );
-        }
-    }
-
-    #[test]
-    fn binary_artifact_check_severity_equivalence() {
-        assert_eq!(binary_artifact_check_severity(0), Severity::Pass);
-        for count in 1..=10 {
-            assert_eq!(
-                binary_artifact_check_severity(count),
-                Severity::Error,
-                "binary_artifact_check_severity({count}) should be Error"
-            );
-        }
-    }
-
-    #[test]
-    fn dependency_pinning_severity_equivalence() {
-        assert_eq!(dependency_pinning_severity(0), Severity::Pass);
-        for count in 1..=10 {
-            assert_eq!(
-                dependency_pinning_severity(count),
-                Severity::Error,
-                "dependency_pinning_severity({count}) should be Error"
-            );
-        }
-    }
-
-    #[test]
-    fn workflow_permissions_severity_equivalence() {
-        assert_eq!(workflow_permissions_severity(0), Severity::Pass);
-        for count in 1..=10 {
-            assert_eq!(
-                workflow_permissions_severity(count),
-                Severity::Error,
-                "workflow_permissions_severity({count}) should be Error"
             );
         }
     }

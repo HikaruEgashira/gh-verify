@@ -85,10 +85,10 @@ fn evaluate_all_compliance_controls_against_empty_evidence() {
     let evidence = EvidenceBundle::default();
     let controls = compliance_controls();
     let findings = evaluate_all(&controls, &evidence);
-    // All 14 compliance controls should return NotApplicable for empty evidence
+    // All 10 compliance controls should return NotApplicable for empty evidence
     assert_eq!(
         findings.len(),
-        14,
+        10,
         "each compliance control should produce exactly one finding for empty evidence"
     );
     for f in &findings {

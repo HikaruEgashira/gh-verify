@@ -11,8 +11,7 @@
 ---
 
 gh-verify verifies that pull requests and releases follow
-[SLSA v1.2](https://slsa.dev/), [NIST SSDF (SP 800-218)](https://csrc.nist.gov/pubs/sp/800/218/final),
-and [OpenSSF Scorecard](https://scorecard.dev/) supply chain security practices.
+[SLSA v1.2](https://slsa.dev/) supply chain security practices.
 It runs as a `gh` CLI extension, built in Rust with core verification
 logic formally proven via [Creusot](https://github.com/creusot-rs/creusot).
 
@@ -81,21 +80,11 @@ Compliance controls always run alongside SLSA controls.
 | CC7.2 (Anomaly detection) | `stale-review`, `security-file-change` |
 | CC8.1 (Change management) | `pr-size`, `test-coverage`, `scoped-change`, `description-quality`, `merge-commit-policy`, `conventional-title` |
 
-### NIST SSDF (SP 800-218) / OpenSSF Scorecard
-
-| NIST Practice | Scorecard Check | Control |
-|---------------|-----------------|---------|
-| PW.7 (Vuln testing) | SAST | `sast-tool-presence` |
-| PS.1 (Protect code) | Binary-Artifacts | `binary-artifact-check` |
-| PS.1 (Protect code) | Pinned-Dependencies | `dependency-pinning` |
-| PS.1 (Protect code) | Token-Permissions | `workflow-permissions` |
-
 ### Policy presets
 
 ```bash
-gh verify pr 123 --repo owner/repo --policy nist-ssdf.rego   # NIST SSDF aligned
-gh verify pr 123 --repo owner/repo --policy openssf.rego     # OpenSSF Scorecard aligned
 gh verify pr 123 --repo owner/repo --policy oss.rego          # OSS/solo dev tolerant
+gh verify pr 123 --repo owner/repo --policy aiops.rego         # Human review escalation
 ```
 
 ## Architecture

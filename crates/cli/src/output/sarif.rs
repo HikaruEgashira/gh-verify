@@ -126,18 +126,6 @@ fn rule_descriptor(id: ControlId) -> serde_json::Value {
         ControlId::ReleaseTraceability => {
             "Release batches must trace to governed change requests"
         }
-        ControlId::SastToolPresence => {
-            "At least one SAST tool must run in CI checks"
-        }
-        ControlId::BinaryArtifactCheck => {
-            "No binary artifacts should be added to source"
-        }
-        ControlId::DependencyPinning => {
-            "GitHub Actions dependencies must use SHA-pinned references"
-        }
-        ControlId::WorkflowPermissions => {
-            "Workflow tokens must follow principle of least privilege"
-        }
     };
     serde_json::json!({
         "id": id.as_str(),

@@ -54,16 +54,6 @@ pub enum ControlId {
     SecurityFileChange,
     /// Compliance CC7.1: release batches must trace to governed change requests.
     ReleaseTraceability,
-
-    // --- NIST SSDF / OpenSSF Scorecard ---
-    /// NIST PW.7 / OpenSSF SAST: at least one SAST tool must run in CI.
-    SastToolPresence,
-    /// OpenSSF Binary-Artifacts: no binary artifacts added to source.
-    BinaryArtifactCheck,
-    /// OpenSSF Pinned-Dependencies: GitHub Actions uses SHA-pinned references.
-    DependencyPinning,
-    /// OpenSSF Token-Permissions: workflow tokens follow least privilege.
-    WorkflowPermissions,
 }
 
 impl ControlId {
@@ -90,10 +80,6 @@ impl ControlId {
             Self::ConventionalTitle => "conventional-title",
             Self::SecurityFileChange => "security-file-change",
             Self::ReleaseTraceability => "release-traceability",
-            Self::SastToolPresence => "sast-tool-presence",
-            Self::BinaryArtifactCheck => "binary-artifact-check",
-            Self::DependencyPinning => "dependency-pinning",
-            Self::WorkflowPermissions => "workflow-permissions",
         }
     }
 }
@@ -140,10 +126,6 @@ impl FromStr for ControlId {
             "conventional-title" => Ok(Self::ConventionalTitle),
             "security-file-change" => Ok(Self::SecurityFileChange),
             "release-traceability" => Ok(Self::ReleaseTraceability),
-            "sast-tool-presence" => Ok(Self::SastToolPresence),
-            "binary-artifact-check" => Ok(Self::BinaryArtifactCheck),
-            "dependency-pinning" => Ok(Self::DependencyPinning),
-            "workflow-permissions" => Ok(Self::WorkflowPermissions),
             _ => Err(UnknownControlId(s.to_string())),
         }
     }
@@ -296,10 +278,6 @@ mod tests {
             ControlId::ConventionalTitle,
             ControlId::SecurityFileChange,
             ControlId::ReleaseTraceability,
-            ControlId::SastToolPresence,
-            ControlId::BinaryArtifactCheck,
-            ControlId::DependencyPinning,
-            ControlId::WorkflowPermissions,
         ];
         for id in &variants {
             let s = id.to_string();

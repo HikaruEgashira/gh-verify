@@ -1,10 +1,8 @@
-pub mod binary_artifact_check;
 pub mod branch_history_integrity;
 pub mod branch_protection_enforcement;
 pub mod build_isolation;
 pub mod build_provenance;
 pub mod conventional_title;
-pub mod dependency_pinning;
 pub mod description_quality;
 pub mod hosted_build_platform;
 pub mod issue_linkage;
@@ -14,14 +12,12 @@ pub mod release_traceability;
 pub mod provenance_authenticity;
 pub mod required_status_checks;
 pub mod review_independence;
-pub mod sast_tool_presence;
 pub mod scoped_change;
 pub mod security_file_change;
 pub mod source_authenticity;
 pub mod stale_review;
 pub mod test_coverage;
 pub mod two_party_review;
-pub mod workflow_permissions;
 
 use crate::control::Control;
 use crate::slsa::{SlsaLevel, SlsaTrack};
@@ -29,10 +25,8 @@ use crate::slsa::{SlsaLevel, SlsaTrack};
 use self::branch_history_integrity::BranchHistoryIntegrityControl;
 use self::branch_protection_enforcement::BranchProtectionEnforcementControl;
 use self::build_isolation::BuildIsolationControl;
-use self::binary_artifact_check::BinaryArtifactCheckControl;
 use self::build_provenance::BuildProvenanceControl;
 use self::conventional_title::ConventionalTitleControl;
-use self::dependency_pinning::DependencyPinningControl;
 use self::description_quality::DescriptionQualityControl;
 use self::hosted_build_platform::HostedBuildPlatformControl;
 use self::issue_linkage::IssueLinkageControl;
@@ -42,13 +36,11 @@ use self::release_traceability::ReleaseTraceabilityControl;
 use self::provenance_authenticity::ProvenanceAuthenticityControl;
 use self::required_status_checks::RequiredStatusChecksControl;
 use self::review_independence::ReviewIndependenceControl;
-use self::sast_tool_presence::SastToolPresenceControl;
 use self::scoped_change::ScopedChangeControl;
 use self::security_file_change::SecurityFileChangeControl;
 use self::source_authenticity::SourceAuthenticityControl;
 use self::stale_review::StaleReviewControl;
 use self::test_coverage::TestCoverageControl;
-use self::workflow_permissions::WorkflowPermissionsControl;
 use self::two_party_review::TwoPartyReviewControl;
 
 /// Instantiates a control by its ID.
@@ -75,10 +67,6 @@ fn instantiate(id: crate::control::ControlId) -> Box<dyn Control> {
         ControlId::ConventionalTitle => Box::new(ConventionalTitleControl),
         ControlId::SecurityFileChange => Box::new(SecurityFileChangeControl),
         ControlId::ReleaseTraceability => Box::new(ReleaseTraceabilityControl),
-        ControlId::SastToolPresence => Box::new(SastToolPresenceControl),
-        ControlId::BinaryArtifactCheck => Box::new(BinaryArtifactCheckControl),
-        ControlId::DependencyPinning => Box::new(DependencyPinningControl),
-        ControlId::WorkflowPermissions => Box::new(WorkflowPermissionsControl),
     }
 }
 
@@ -115,10 +103,6 @@ pub fn compliance_controls() -> Vec<Box<dyn Control>> {
         Box::new(ConventionalTitleControl),
         Box::new(SecurityFileChangeControl),
         Box::new(ReleaseTraceabilityControl),
-        Box::new(SastToolPresenceControl),
-        Box::new(BinaryArtifactCheckControl),
-        Box::new(DependencyPinningControl),
-        Box::new(WorkflowPermissionsControl),
     ]
 }
 
@@ -169,8 +153,8 @@ mod tests {
         let controls = compliance_controls();
         assert_eq!(
             controls.len(),
-            14,
-            "compliance_controls() should return exactly 14 controls"
+            10,
+            "compliance_controls() should return exactly 10 controls"
         );
     }
 
