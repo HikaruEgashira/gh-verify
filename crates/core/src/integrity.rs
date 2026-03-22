@@ -61,6 +61,18 @@ pub fn pr_coverage_severity(uncovered_count: usize) -> Severity {
     }
 }
 
+/// Core predicate for required status checks severity.
+/// Pass iff at least one status check is configured.
+///
+/// Verified by Creusot in `gh-verify-verif` crate.
+pub fn required_status_checks_severity(check_count: usize) -> Severity {
+    if check_count >= 1 {
+        Severity::Pass
+    } else {
+        Severity::Error
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -156,4 +168,15 @@ mod tests {
         }
     }
 
+    #[test]
+    fn required_status_checks_severity_equivalence() {
+        assert_eq!(required_status_checks_severity(0), Severity::Error);
+        for count in 1..=10 {
+            assert_eq!(
+                required_status_checks_severity(count),
+                Severity::Pass,
+                "required_status_checks_severity({count}) should be Pass"
+            );
+        }
+    }
 }

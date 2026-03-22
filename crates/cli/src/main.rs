@@ -9,6 +9,7 @@ use gh_verify::github;
 use gh_verify::github::client::GitHubClient;
 use gh_verify::output;
 use gh_verify::policy::OpaProfile;
+use gh_verify_core::evidence::{EvidenceGap, EvidenceState};
 
 const VERSION: &str = env!("GH_VERIFY_VERSION");
 
@@ -84,8 +85,10 @@ fn run() -> Result<()> {
             let pr_commits = github::pr_api::get_pr_commits(&client, &owner, &repo_name, pr_number)
                 .context("failed to fetch PR commits")?;
 
+            let status_checks = fetch_required_status_checks(&client, &owner, &repo_name);
+
             let repo_full = format!("{owner}/{repo_name}");
-            let bundle = adapters::github::build_pull_request_bundle(
+            let mut bundle = adapters::github::build_pull_request_bundle(
                 &repo_full,
                 pr_number,
                 &pr_metadata,
@@ -93,6 +96,7 @@ fn run() -> Result<()> {
                 &pr_reviews,
                 &pr_commits,
             );
+            bundle.required_status_checks = status_checks;
             let report = assess_bundle(&bundle, policy.as_deref())?;
             output::print(fmt, &report)?;
             exit_if_assessment_fails(&report);
@@ -140,14 +144,17 @@ fn run() -> Result<()> {
                 });
             }
 
+            let status_checks = fetch_required_status_checks(&client, &owner, &repo_name);
+
             let repo_full = format!("{owner}/{repo_name}");
-            let bundle = adapters::github::build_release_bundle(
+            let mut bundle = adapters::github::build_release_bundle(
                 &repo_full,
                 &base_tag,
                 &head_tag,
                 &commits,
                 &commit_prs,
             );
+            bundle.required_status_checks = status_checks;
             let report = assess_bundle(&bundle, policy.as_deref())?;
             output::print(fmt, &report)?;
             exit_if_assessment_fails(&report);
@@ -192,6 +199,23 @@ fn parse_release_arg(
         }
     }
     bail!("tag not found: {head_tag}");
+}
+
+fn fetch_required_status_checks(
+    client: &GitHubClient,
+    owner: &str,
+    repo: &str,
+) -> EvidenceState<Vec<String>> {
+    match github::repo_api::get_default_branch(client, owner, repo)
+        .and_then(|branch| github::repo_api::get_branch_protection(client, owner, repo, &branch))
+    {
+        Ok(bp_response) => adapters::github::map_required_status_checks_evidence(&bp_response),
+        Err(e) => EvidenceState::missing(vec![EvidenceGap::CollectionFailed {
+            source: "github".to_string(),
+            subject: "branch-protection".to_string(),
+            detail: format!("{e:#}"),
+        }]),
+    }
 }
 
 fn assess_bundle(

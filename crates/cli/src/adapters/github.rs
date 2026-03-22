@@ -7,7 +7,8 @@ use gh_verify_core::evidence::{
 };
 
 use crate::github::types::{
-    CompareCommit, PrCommit, PrFile, PrMetadata, PullRequestSummary, Review,
+    BranchProtectionResponse, CompareCommit, PrCommit, PrFile, PrMetadata, PullRequestSummary,
+    Review,
 };
 
 /// Associates a commit SHA with the pull requests that introduced it.
@@ -165,6 +166,16 @@ pub fn map_promotion_batch_evidence(
                 .collect(),
         ),
         linked_change_requests: EvidenceState::complete(linked_change_requests),
+    }
+}
+
+/// Extracts the required status check contexts from a branch protection response.
+pub fn map_required_status_checks_evidence(
+    response: &BranchProtectionResponse,
+) -> EvidenceState<Vec<String>> {
+    match &response.required_status_checks {
+        Some(checks) => EvidenceState::complete(checks.contexts.clone()),
+        None => EvidenceState::complete(vec![]),
     }
 }
 
