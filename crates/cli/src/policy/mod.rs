@@ -6,6 +6,8 @@ use gh_verify_core::profile::{ControlProfile, FindingSeverity, GateDecision, Pro
 const DEFAULT_POLICY: &str = include_str!("default.rego");
 const OSS_POLICY: &str = include_str!("oss.rego");
 const AIOPS_POLICY: &str = include_str!("aiops.rego");
+const SOC1_POLICY: &str = include_str!("soc1.rego");
+const SOC2_POLICY: &str = include_str!("soc2.rego");
 const RULE_PATH: &str = "data.verify.profile.map";
 
 /// OPA-based profile that evaluates Rego policies to map control findings
@@ -20,7 +22,7 @@ impl OpaProfile {
     pub fn from_file(path: &str) -> Result<Self> {
         let policy = std::fs::read_to_string(path).with_context(|| {
             format!(
-                "reading policy '{path}'. Use a built-in preset (default, oss, aiops) or a path to a .rego file"
+                "reading policy '{path}'. Use a built-in preset (default, oss, aiops, soc1, soc2) or a path to a .rego file"
             )
         })?;
         Self::from_rego_with_name(path, &policy, "opa-custom")
@@ -43,13 +45,27 @@ impl OpaProfile {
         Self::from_rego_with_name("aiops.rego", AIOPS_POLICY, "aiops")
     }
 
+    /// Creates a profile using the built-in SOC1 (SSAE 18 / ISAE 3402) preset.
+    /// Strict on ICFR-relevant controls; advisory on dev-quality controls.
+    pub fn soc1_preset() -> Result<Self> {
+        Self::from_rego_with_name("soc1.rego", SOC1_POLICY, "soc1")
+    }
+
+    /// Creates a profile using the built-in SOC2 (Trust Services Criteria) preset.
+    /// Strict on all CC7/CC8 and security controls; review on build-track indeterminate.
+    pub fn soc2_preset() -> Result<Self> {
+        Self::from_rego_with_name("soc2.rego", SOC2_POLICY, "soc2")
+    }
+
     /// Loads a built-in preset by name, or falls back to file path.
-    /// Recognised preset names: "default", "oss", "aiops".
+    /// Recognised preset names: "default", "oss", "aiops", "soc1", "soc2".
     pub fn from_preset_or_file(name: &str) -> Result<Self> {
         match name {
             "default" => Self::default_policy(),
             "oss" => Self::oss_preset(),
             "aiops" => Self::aiops_preset(),
+            "soc1" => Self::soc1_preset(),
+            "soc2" => Self::soc2_preset(),
             path => Self::from_file(path),
         }
     }
@@ -345,5 +361,104 @@ map := {"severity": "error", "decision": "fail"} if {
         assert!(OpaProfile::from_preset_or_file("default").is_ok());
         assert!(OpaProfile::from_preset_or_file("oss").is_ok());
         assert!(OpaProfile::from_preset_or_file("aiops").is_ok());
+        assert!(OpaProfile::from_preset_or_file("soc1").is_ok());
+        assert!(OpaProfile::from_preset_or_file("soc2").is_ok());
+    }
+
+    // --- SOC1 preset tests ---
+
+    #[test]
+    fn soc1_preset_icfr_violated_fails() {
+        let profile = OpaProfile::soc1_preset().unwrap();
+        // review-independence is ICFR-critical (change management)
+        let finding = make_finding(ControlId::ReviewIndependence, ControlStatus::Violated);
+        let outcome = profile.map(&finding);
+        assert_eq!(outcome.severity, FindingSeverity::Error);
+        assert_eq!(outcome.decision, GateDecision::Fail);
+    }
+
+    #[test]
+    fn soc1_preset_advisory_violated_is_review() {
+        let profile = OpaProfile::soc1_preset().unwrap();
+        // pr-size is advisory in SOC1 (not ICFR-relevant)
+        let finding = make_finding(ControlId::PrSize, ControlStatus::Violated);
+        let outcome = profile.map(&finding);
+        assert_eq!(outcome.severity, FindingSeverity::Warning);
+        assert_eq!(outcome.decision, GateDecision::Review);
+    }
+
+    #[test]
+    fn soc1_preset_advisory_indeterminate_is_review() {
+        let profile = OpaProfile::soc1_preset().unwrap();
+        let finding = make_finding(ControlId::ConventionalTitle, ControlStatus::Indeterminate);
+        let outcome = profile.map(&finding);
+        assert_eq!(outcome.severity, FindingSeverity::Warning);
+        assert_eq!(outcome.decision, GateDecision::Review);
+    }
+
+    #[test]
+    fn soc1_preset_source_authenticity_violated_is_review() {
+        let profile = OpaProfile::soc1_preset().unwrap();
+        let finding = make_finding(ControlId::SourceAuthenticity, ControlStatus::Violated);
+        let outcome = profile.map(&finding);
+        assert_eq!(outcome.severity, FindingSeverity::Warning);
+        assert_eq!(outcome.decision, GateDecision::Review);
+    }
+
+    #[test]
+    fn soc1_preset_satisfied_passes() {
+        let profile = OpaProfile::soc1_preset().unwrap();
+        let finding = make_finding(ControlId::ReviewIndependence, ControlStatus::Satisfied);
+        let outcome = profile.map(&finding);
+        assert_eq!(outcome.severity, FindingSeverity::Info);
+        assert_eq!(outcome.decision, GateDecision::Pass);
+    }
+
+    // --- SOC2 preset tests ---
+
+    #[test]
+    fn soc2_preset_violated_always_fails() {
+        let profile = OpaProfile::soc2_preset().unwrap();
+        for id in [
+            ControlId::ReviewIndependence,
+            ControlId::PrSize,
+            ControlId::SourceAuthenticity,
+            ControlId::SecurityFileChange,
+        ] {
+            let finding = make_finding(id, ControlStatus::Violated);
+            let outcome = profile.map(&finding);
+            assert_eq!(
+                outcome.decision,
+                GateDecision::Fail,
+                "SOC2: {id:?} violated should fail"
+            );
+        }
+    }
+
+    #[test]
+    fn soc2_preset_build_indeterminate_is_review() {
+        let profile = OpaProfile::soc2_preset().unwrap();
+        let finding = make_finding(ControlId::BuildProvenance, ControlStatus::Indeterminate);
+        let outcome = profile.map(&finding);
+        assert_eq!(outcome.severity, FindingSeverity::Warning);
+        assert_eq!(outcome.decision, GateDecision::Review);
+    }
+
+    #[test]
+    fn soc2_preset_non_build_indeterminate_fails() {
+        let profile = OpaProfile::soc2_preset().unwrap();
+        let finding = make_finding(ControlId::ReviewIndependence, ControlStatus::Indeterminate);
+        let outcome = profile.map(&finding);
+        assert_eq!(outcome.severity, FindingSeverity::Error);
+        assert_eq!(outcome.decision, GateDecision::Fail);
+    }
+
+    #[test]
+    fn soc2_preset_satisfied_passes() {
+        let profile = OpaProfile::soc2_preset().unwrap();
+        let finding = make_finding(ControlId::SecurityFileChange, ControlStatus::Satisfied);
+        let outcome = profile.map(&finding);
+        assert_eq!(outcome.severity, FindingSeverity::Info);
+        assert_eq!(outcome.decision, GateDecision::Pass);
     }
 }

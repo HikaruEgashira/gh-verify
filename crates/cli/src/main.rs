@@ -34,7 +34,7 @@ enum Commands {
         /// Repository in OWNER/REPO format
         #[arg(long)]
         repo: Option<String>,
-        /// Path to OPA policy file (.rego) for custom gate decisions
+        /// OPA policy: preset name (default, oss, aiops, soc1, soc2) or .rego file path
         #[arg(long)]
         policy: Option<String>,
         /// SLSA level target: source-l{N}-build-l{M} (e.g. "source-l3-build-l2")
@@ -51,7 +51,7 @@ enum Commands {
         /// Repository in OWNER/REPO format
         #[arg(long)]
         repo: Option<String>,
-        /// Path to OPA policy file (.rego) for custom gate decisions
+        /// OPA policy: preset name (default, oss, aiops, soc1, soc2) or .rego file path
         #[arg(long)]
         policy: Option<String>,
         /// SLSA level target: source-l{N}-build-l{M} (e.g. "source-l3-build-l2")
