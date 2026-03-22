@@ -129,6 +129,122 @@ pub fn build_isolation_severity(non_isolated_count: usize) -> Severity {
     }
 }
 
+// --- Compliance control predicates ---
+
+/// Core predicate for stale review severity (CC7.2).
+/// Zero stale approvals -> Pass, any stale -> Error.
+///
+/// Verified by Creusot in `gh-verify-verif` crate.
+pub fn stale_review_severity(stale_count: usize) -> Severity {
+    if stale_count == 0 {
+        Severity::Pass
+    } else {
+        Severity::Error
+    }
+}
+
+/// Core predicate for description quality severity (CC8.1).
+/// Body length >= minimum -> Pass, otherwise -> Error.
+///
+/// Verified by Creusot in `gh-verify-verif` crate.
+pub fn description_quality_severity(body_length: usize, min_length: usize) -> Severity {
+    if body_length >= min_length {
+        Severity::Pass
+    } else {
+        Severity::Error
+    }
+}
+
+/// Core predicate for merge commit policy severity (CC8.1).
+/// Zero merge commits -> Pass, any merge commits -> Error.
+///
+/// Verified by Creusot in `gh-verify-verif` crate.
+pub fn merge_commit_policy_severity(merge_count: usize) -> Severity {
+    if merge_count == 0 {
+        Severity::Pass
+    } else {
+        Severity::Error
+    }
+}
+
+/// Core predicate for conventional title severity (CC8.1).
+/// Title is conventional -> Pass, otherwise -> Error.
+///
+/// Verified by Creusot in `gh-verify-verif` crate.
+pub fn conventional_title_severity(is_conventional: bool) -> Severity {
+    if is_conventional {
+        Severity::Pass
+    } else {
+        Severity::Error
+    }
+}
+
+/// Core predicate for security file change severity (CC7.2).
+/// Zero sensitive files changed -> Pass, any sensitive -> Error.
+///
+/// Verified by Creusot in `gh-verify-verif` crate.
+pub fn security_file_change_severity(sensitive_count: usize) -> Severity {
+    if sensitive_count == 0 {
+        Severity::Pass
+    } else {
+        Severity::Error
+    }
+}
+
+/// Core predicate for release traceability severity (CC7.1).
+/// At least one linked change request -> Pass, none -> Error.
+///
+/// Verified by Creusot in `gh-verify-verif` crate.
+pub fn release_traceability_severity(linked_cr_count: usize) -> Severity {
+    if linked_cr_count > 0 {
+        Severity::Pass
+    } else {
+        Severity::Error
+    }
+}
+
+// --- NIST SSDF / OpenSSF Scorecard predicates ---
+
+/// Core predicate for SAST tool presence severity (NIST PW.7).
+/// At least one SAST tool detected -> Pass, none -> Error.
+pub fn sast_tool_presence_severity(sast_count: usize) -> Severity {
+    if sast_count > 0 {
+        Severity::Pass
+    } else {
+        Severity::Error
+    }
+}
+
+/// Core predicate for binary artifact check severity (OpenSSF Binary-Artifacts).
+/// Zero binary artifacts -> Pass, any -> Error.
+pub fn binary_artifact_check_severity(binary_count: usize) -> Severity {
+    if binary_count == 0 {
+        Severity::Pass
+    } else {
+        Severity::Error
+    }
+}
+
+/// Core predicate for dependency pinning severity (OpenSSF Pinned-Dependencies).
+/// Zero unpinned references -> Pass, any -> Error.
+pub fn dependency_pinning_severity(unpinned_count: usize) -> Severity {
+    if unpinned_count == 0 {
+        Severity::Pass
+    } else {
+        Severity::Error
+    }
+}
+
+/// Core predicate for workflow permissions severity (OpenSSF Token-Permissions).
+/// Zero excessive permissions -> Pass, any -> Error.
+pub fn workflow_permissions_severity(violation_count: usize) -> Severity {
+    if violation_count == 0 {
+        Severity::Pass
+    } else {
+        Severity::Error
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -280,6 +396,129 @@ mod tests {
                 build_isolation_severity(count),
                 Severity::Error,
                 "build_isolation_severity({count}) should be Error"
+            );
+        }
+    }
+
+    // --- Compliance predicate equivalence tests ---
+
+    #[test]
+    fn stale_review_severity_equivalence() {
+        assert_eq!(stale_review_severity(0), Severity::Pass);
+        for count in 1..=10 {
+            assert_eq!(
+                stale_review_severity(count),
+                Severity::Error,
+                "stale_review_severity({count}) should be Error"
+            );
+        }
+    }
+
+    #[test]
+    fn description_quality_severity_equivalence() {
+        let min = 10;
+        for len in 0..min {
+            assert_eq!(
+                description_quality_severity(len, min),
+                Severity::Error,
+                "description_quality_severity({len}, {min}) should be Error"
+            );
+        }
+        for len in min..=50 {
+            assert_eq!(
+                description_quality_severity(len, min),
+                Severity::Pass,
+                "description_quality_severity({len}, {min}) should be Pass"
+            );
+        }
+    }
+
+    #[test]
+    fn merge_commit_policy_severity_equivalence() {
+        assert_eq!(merge_commit_policy_severity(0), Severity::Pass);
+        for count in 1..=10 {
+            assert_eq!(
+                merge_commit_policy_severity(count),
+                Severity::Error,
+                "merge_commit_policy_severity({count}) should be Error"
+            );
+        }
+    }
+
+    #[test]
+    fn conventional_title_severity_equivalence() {
+        assert_eq!(conventional_title_severity(true), Severity::Pass);
+        assert_eq!(conventional_title_severity(false), Severity::Error);
+    }
+
+    #[test]
+    fn security_file_change_severity_equivalence() {
+        assert_eq!(security_file_change_severity(0), Severity::Pass);
+        for count in 1..=10 {
+            assert_eq!(
+                security_file_change_severity(count),
+                Severity::Error,
+                "security_file_change_severity({count}) should be Error"
+            );
+        }
+    }
+
+    #[test]
+    fn release_traceability_severity_equivalence() {
+        assert_eq!(release_traceability_severity(0), Severity::Error);
+        for count in 1..=10 {
+            assert_eq!(
+                release_traceability_severity(count),
+                Severity::Pass,
+                "release_traceability_severity({count}) should be Pass"
+            );
+        }
+    }
+
+    #[test]
+    fn sast_tool_presence_severity_equivalence() {
+        assert_eq!(sast_tool_presence_severity(0), Severity::Error);
+        for count in 1..=10 {
+            assert_eq!(
+                sast_tool_presence_severity(count),
+                Severity::Pass,
+                "sast_tool_presence_severity({count}) should be Pass"
+            );
+        }
+    }
+
+    #[test]
+    fn binary_artifact_check_severity_equivalence() {
+        assert_eq!(binary_artifact_check_severity(0), Severity::Pass);
+        for count in 1..=10 {
+            assert_eq!(
+                binary_artifact_check_severity(count),
+                Severity::Error,
+                "binary_artifact_check_severity({count}) should be Error"
+            );
+        }
+    }
+
+    #[test]
+    fn dependency_pinning_severity_equivalence() {
+        assert_eq!(dependency_pinning_severity(0), Severity::Pass);
+        for count in 1..=10 {
+            assert_eq!(
+                dependency_pinning_severity(count),
+                Severity::Error,
+                "dependency_pinning_severity({count}) should be Error"
+            );
+        }
+    }
+
+    #[test]
+    fn workflow_permissions_severity_equivalence() {
+        assert_eq!(workflow_permissions_severity(0), Severity::Pass);
+        for count in 1..=10 {
+            assert_eq!(
+                workflow_permissions_severity(count),
+                Severity::Error,
+                "workflow_permissions_severity({count}) should be Error"
             );
         }
     }

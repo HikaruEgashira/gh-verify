@@ -1,17 +1,27 @@
+pub mod binary_artifact_check;
 pub mod branch_history_integrity;
 pub mod branch_protection_enforcement;
 pub mod build_isolation;
 pub mod build_provenance;
+pub mod conventional_title;
+pub mod dependency_pinning;
+pub mod description_quality;
 pub mod hosted_build_platform;
 pub mod issue_linkage;
+pub mod merge_commit_policy;
 pub mod pr_size;
+pub mod release_traceability;
 pub mod provenance_authenticity;
 pub mod required_status_checks;
 pub mod review_independence;
+pub mod sast_tool_presence;
 pub mod scoped_change;
+pub mod security_file_change;
 pub mod source_authenticity;
+pub mod stale_review;
 pub mod test_coverage;
 pub mod two_party_review;
+pub mod workflow_permissions;
 
 use crate::control::Control;
 use crate::slsa::{SlsaLevel, SlsaTrack};
@@ -19,16 +29,26 @@ use crate::slsa::{SlsaLevel, SlsaTrack};
 use self::branch_history_integrity::BranchHistoryIntegrityControl;
 use self::branch_protection_enforcement::BranchProtectionEnforcementControl;
 use self::build_isolation::BuildIsolationControl;
+use self::binary_artifact_check::BinaryArtifactCheckControl;
 use self::build_provenance::BuildProvenanceControl;
+use self::conventional_title::ConventionalTitleControl;
+use self::dependency_pinning::DependencyPinningControl;
+use self::description_quality::DescriptionQualityControl;
 use self::hosted_build_platform::HostedBuildPlatformControl;
 use self::issue_linkage::IssueLinkageControl;
+use self::merge_commit_policy::MergeCommitPolicyControl;
 use self::pr_size::PrSizeControl;
+use self::release_traceability::ReleaseTraceabilityControl;
 use self::provenance_authenticity::ProvenanceAuthenticityControl;
 use self::required_status_checks::RequiredStatusChecksControl;
 use self::review_independence::ReviewIndependenceControl;
+use self::sast_tool_presence::SastToolPresenceControl;
 use self::scoped_change::ScopedChangeControl;
+use self::security_file_change::SecurityFileChangeControl;
 use self::source_authenticity::SourceAuthenticityControl;
+use self::stale_review::StaleReviewControl;
 use self::test_coverage::TestCoverageControl;
+use self::workflow_permissions::WorkflowPermissionsControl;
 use self::two_party_review::TwoPartyReviewControl;
 
 /// Instantiates a control by its ID.
@@ -49,6 +69,16 @@ fn instantiate(id: crate::control::ControlId) -> Box<dyn Control> {
         ControlId::TestCoverage => Box::new(TestCoverageControl),
         ControlId::ScopedChange => Box::new(ScopedChangeControl),
         ControlId::IssueLinkage => Box::new(IssueLinkageControl),
+        ControlId::StaleReview => Box::new(StaleReviewControl),
+        ControlId::DescriptionQuality => Box::new(DescriptionQualityControl),
+        ControlId::MergeCommitPolicy => Box::new(MergeCommitPolicyControl),
+        ControlId::ConventionalTitle => Box::new(ConventionalTitleControl),
+        ControlId::SecurityFileChange => Box::new(SecurityFileChangeControl),
+        ControlId::ReleaseTraceability => Box::new(ReleaseTraceabilityControl),
+        ControlId::SastToolPresence => Box::new(SastToolPresenceControl),
+        ControlId::BinaryArtifactCheck => Box::new(BinaryArtifactCheckControl),
+        ControlId::DependencyPinning => Box::new(DependencyPinningControl),
+        ControlId::WorkflowPermissions => Box::new(WorkflowPermissionsControl),
     }
 }
 
@@ -79,6 +109,16 @@ pub fn compliance_controls() -> Vec<Box<dyn Control>> {
         Box::new(TestCoverageControl),
         Box::new(ScopedChangeControl),
         Box::new(IssueLinkageControl),
+        Box::new(StaleReviewControl),
+        Box::new(DescriptionQualityControl),
+        Box::new(MergeCommitPolicyControl),
+        Box::new(ConventionalTitleControl),
+        Box::new(SecurityFileChangeControl),
+        Box::new(ReleaseTraceabilityControl),
+        Box::new(SastToolPresenceControl),
+        Box::new(BinaryArtifactCheckControl),
+        Box::new(DependencyPinningControl),
+        Box::new(WorkflowPermissionsControl),
     ]
 }
 
@@ -122,6 +162,51 @@ mod tests {
         let ids: Vec<_> = controls.iter().map(|c| c.id()).collect();
         assert!(ids.contains(&crate::control::ControlId::PrSize));
         assert!(ids.contains(&crate::control::ControlId::IssueLinkage));
+    }
+
+    #[test]
+    fn compliance_controls_count() {
+        let controls = compliance_controls();
+        assert_eq!(
+            controls.len(),
+            14,
+            "compliance_controls() should return exactly 14 controls"
+        );
+    }
+
+    #[test]
+    fn compliance_controls_are_not_slsa_mapped() {
+        use crate::slsa::control_slsa_mapping;
+        let controls = compliance_controls();
+        for c in &controls {
+            assert!(
+                control_slsa_mapping(c.id()).is_none(),
+                "{:?} should not be SLSA-mapped",
+                c.id()
+            );
+        }
+    }
+
+    #[test]
+    fn compliance_controls_have_unique_ids() {
+        let controls = compliance_controls();
+        let mut ids: Vec<_> = controls.iter().map(|c| c.id()).collect();
+        let original_len = ids.len();
+        ids.sort_by_key(|id| id.as_str());
+        ids.dedup();
+        assert_eq!(ids.len(), original_len, "all compliance control IDs must be unique");
+    }
+
+    #[test]
+    fn all_controls_count() {
+        let slsa = all_slsa_controls();
+        let compliance = compliance_controls();
+        let all = all_controls();
+        assert_eq!(
+            all.len(),
+            slsa.len() + compliance.len(),
+            "all_controls = SLSA + compliance"
+        );
     }
 
     #[test]

@@ -129,7 +129,17 @@ pub fn control_slsa_mapping(id: ControlId) -> Option<SlsaMapping> {
         ControlId::PrSize
         | ControlId::TestCoverage
         | ControlId::ScopedChange
-        | ControlId::IssueLinkage => None,
+        | ControlId::IssueLinkage
+        | ControlId::StaleReview
+        | ControlId::DescriptionQuality
+        | ControlId::MergeCommitPolicy
+        | ControlId::ConventionalTitle
+        | ControlId::SecurityFileChange
+        | ControlId::ReleaseTraceability
+        | ControlId::SastToolPresence
+        | ControlId::BinaryArtifactCheck
+        | ControlId::DependencyPinning
+        | ControlId::WorkflowPermissions => None,
     }
 }
 

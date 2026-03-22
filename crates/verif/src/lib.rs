@@ -171,3 +171,137 @@ pub fn build_isolation_severity(non_isolated_count: usize) -> Severity {
         Severity::Error
     }
 }
+
+// --- Compliance control predicates (SOC2 CC7/CC8) ---
+
+/// Stale review severity (CC7.2).
+///
+/// Pass iff zero approval decisions predate the latest source revision.
+#[ensures(stale_count == 0usize ==> result == Severity::Pass)]
+#[ensures(stale_count >= 1usize ==> result == Severity::Error)]
+pub fn stale_review_severity(stale_count: usize) -> Severity {
+    if stale_count == 0 {
+        Severity::Pass
+    } else {
+        Severity::Error
+    }
+}
+
+/// Description quality severity (CC8.1).
+///
+/// Pass iff body length meets or exceeds the minimum threshold.
+#[ensures(body_length >= min_length ==> result == Severity::Pass)]
+#[ensures(body_length < min_length ==> result == Severity::Error)]
+pub fn description_quality_severity(body_length: usize, min_length: usize) -> Severity {
+    if body_length >= min_length {
+        Severity::Pass
+    } else {
+        Severity::Error
+    }
+}
+
+/// Merge commit policy severity (CC8.1).
+///
+/// Pass iff zero merge commits are present in the change request.
+#[ensures(merge_count == 0usize ==> result == Severity::Pass)]
+#[ensures(merge_count >= 1usize ==> result == Severity::Error)]
+pub fn merge_commit_policy_severity(merge_count: usize) -> Severity {
+    if merge_count == 0 {
+        Severity::Pass
+    } else {
+        Severity::Error
+    }
+}
+
+/// Conventional title severity (CC8.1).
+///
+/// Pass iff the title follows the Conventional Commits format.
+#[ensures(is_conventional == true ==> result == Severity::Pass)]
+#[ensures(is_conventional == false ==> result == Severity::Error)]
+pub fn conventional_title_severity(is_conventional: bool) -> Severity {
+    if is_conventional {
+        Severity::Pass
+    } else {
+        Severity::Error
+    }
+}
+
+/// Security file change severity (CC7.2).
+///
+/// Pass iff zero security-sensitive files are changed.
+#[ensures(sensitive_count == 0usize ==> result == Severity::Pass)]
+#[ensures(sensitive_count >= 1usize ==> result == Severity::Error)]
+pub fn security_file_change_severity(sensitive_count: usize) -> Severity {
+    if sensitive_count == 0 {
+        Severity::Pass
+    } else {
+        Severity::Error
+    }
+}
+
+/// Release traceability severity (CC7.1).
+///
+/// Pass iff at least one linked change request exists.
+#[ensures(linked_cr_count >= 1usize ==> result == Severity::Pass)]
+#[ensures(linked_cr_count == 0usize ==> result == Severity::Error)]
+pub fn release_traceability_severity(linked_cr_count: usize) -> Severity {
+    if linked_cr_count > 0 {
+        Severity::Pass
+    } else {
+        Severity::Error
+    }
+}
+
+// --- NIST SSDF / OpenSSF Scorecard predicates ---
+
+/// SAST tool presence severity (NIST PW.7 / OpenSSF SAST).
+///
+/// Pass iff at least one SAST tool was detected in CI checks.
+#[ensures(sast_count >= 1usize ==> result == Severity::Pass)]
+#[ensures(sast_count == 0usize ==> result == Severity::Error)]
+pub fn sast_tool_presence_severity(sast_count: usize) -> Severity {
+    if sast_count > 0 {
+        Severity::Pass
+    } else {
+        Severity::Error
+    }
+}
+
+/// Binary artifact check severity (OpenSSF Binary-Artifacts).
+///
+/// Pass iff zero binary artifacts are added to source.
+#[ensures(binary_count == 0usize ==> result == Severity::Pass)]
+#[ensures(binary_count >= 1usize ==> result == Severity::Error)]
+pub fn binary_artifact_check_severity(binary_count: usize) -> Severity {
+    if binary_count == 0 {
+        Severity::Pass
+    } else {
+        Severity::Error
+    }
+}
+
+/// Dependency pinning severity (OpenSSF Pinned-Dependencies).
+///
+/// Pass iff zero action references are unpinned.
+#[ensures(unpinned_count == 0usize ==> result == Severity::Pass)]
+#[ensures(unpinned_count >= 1usize ==> result == Severity::Error)]
+pub fn dependency_pinning_severity(unpinned_count: usize) -> Severity {
+    if unpinned_count == 0 {
+        Severity::Pass
+    } else {
+        Severity::Error
+    }
+}
+
+/// Workflow permissions severity (OpenSSF Token-Permissions).
+///
+/// Pass iff zero excessive permission grants detected.
+#[ensures(violation_count == 0usize ==> result == Severity::Pass)]
+#[ensures(violation_count >= 1usize ==> result == Severity::Error)]
+pub fn workflow_permissions_severity(violation_count: usize) -> Severity {
+    if violation_count == 0 {
+        Severity::Pass
+    } else {
+        Severity::Error
+    }
+}

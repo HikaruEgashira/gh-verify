@@ -78,3 +78,40 @@ fn evaluate_all_empty_controls_returns_empty() {
     let findings = evaluate_all(&controls, &evidence);
     assert!(findings.is_empty());
 }
+
+#[test]
+fn evaluate_all_compliance_controls_against_empty_evidence() {
+    use crate::controls::compliance_controls;
+    let evidence = EvidenceBundle::default();
+    let controls = compliance_controls();
+    let findings = evaluate_all(&controls, &evidence);
+    // All 14 compliance controls should return NotApplicable for empty evidence
+    assert_eq!(
+        findings.len(),
+        14,
+        "each compliance control should produce exactly one finding for empty evidence"
+    );
+    for f in &findings {
+        assert_eq!(
+            f.status,
+            ControlStatus::NotApplicable,
+            "{:?} should be NotApplicable for empty evidence, got {:?}",
+            f.control_id,
+            f.status
+        );
+    }
+}
+
+#[test]
+fn evaluate_all_compliance_controls_findings_have_valid_ids() {
+    use crate::controls::compliance_controls;
+    let controls = compliance_controls();
+    let evidence = EvidenceBundle::default();
+    let findings = evaluate_all(&controls, &evidence);
+    for f in &findings {
+        // Every finding's control_id should round-trip through as_str/parse
+        let s = f.control_id.as_str();
+        let parsed: ControlId = s.parse().expect("control_id should round-trip");
+        assert_eq!(f.control_id, parsed);
+    }
+}

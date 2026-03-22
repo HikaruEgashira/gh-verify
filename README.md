@@ -11,7 +11,8 @@
 ---
 
 gh-verify verifies that pull requests and releases follow
-[SLSA v1.2](https://slsa.dev/) supply chain security practices.
+[SLSA v1.2](https://slsa.dev/), [NIST SSDF (SP 800-218)](https://csrc.nist.gov/pubs/sp/800/218/final),
+and [OpenSSF Scorecard](https://scorecard.dev/) supply chain security practices.
 It runs as a `gh` CLI extension, built in Rust with core verification
 logic formally proven via [Creusot](https://github.com/creusot-rs/creusot).
 
@@ -57,7 +58,10 @@ See [action.yml](action.yml) for full input/output details.
 
 ## Controls
 
-Level selection via `--slsa-level` determines which controls are enforced.
+Level selection via `--slsa-level` determines which SLSA controls are enforced.
+Compliance controls always run alongside SLSA controls.
+
+### SLSA v1.2
 
 | Track | Level | Control |
 |-------|-------|---------|
@@ -68,7 +72,31 @@ Level selection via `--slsa-level` determines which controls are enforced.
 | Build | L1 | `build-provenance`, `required-status-checks` |
 | Build | L2 | `hosted-build-platform`, `provenance-authenticity` |
 | Build | L3 | `build-isolation` |
-| Compliance | — | `pr-size`, `test-coverage`, `scoped-change`, `issue-linkage` |
+
+### SOC2 CC7/CC8
+
+| Criteria | Control |
+|----------|---------|
+| CC7.1 (Traceability) | `issue-linkage`, `release-traceability` |
+| CC7.2 (Anomaly detection) | `stale-review`, `security-file-change` |
+| CC8.1 (Change management) | `pr-size`, `test-coverage`, `scoped-change`, `description-quality`, `merge-commit-policy`, `conventional-title` |
+
+### NIST SSDF (SP 800-218) / OpenSSF Scorecard
+
+| NIST Practice | Scorecard Check | Control |
+|---------------|-----------------|---------|
+| PW.7 (Vuln testing) | SAST | `sast-tool-presence` |
+| PS.1 (Protect code) | Binary-Artifacts | `binary-artifact-check` |
+| PS.1 (Protect code) | Pinned-Dependencies | `dependency-pinning` |
+| PS.1 (Protect code) | Token-Permissions | `workflow-permissions` |
+
+### Policy presets
+
+```bash
+gh verify pr 123 --repo owner/repo --policy nist-ssdf.rego   # NIST SSDF aligned
+gh verify pr 123 --repo owner/repo --policy openssf.rego     # OpenSSF Scorecard aligned
+gh verify pr 123 --repo owner/repo --policy oss.rego          # OSS/solo dev tolerant
+```
 
 ## Architecture
 

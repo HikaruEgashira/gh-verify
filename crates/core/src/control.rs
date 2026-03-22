@@ -42,6 +42,28 @@ pub enum ControlId {
     ScopedChange,
     /// Compliance CC7.1: PR references at least one issue or ticket.
     IssueLinkage,
+    /// Compliance CC7.2: approvals must postdate the latest source revision.
+    StaleReview,
+    /// Compliance CC8.1: change requests must include a meaningful description.
+    DescriptionQuality,
+    /// Compliance CC8.1: source revisions must follow linear history (no merge commits).
+    MergeCommitPolicy,
+    /// Compliance CC8.1: change request titles must follow Conventional Commits format.
+    ConventionalTitle,
+    /// Compliance CC7.2: changes to security-sensitive files require heightened scrutiny.
+    SecurityFileChange,
+    /// Compliance CC7.1: release batches must trace to governed change requests.
+    ReleaseTraceability,
+
+    // --- NIST SSDF / OpenSSF Scorecard ---
+    /// NIST PW.7 / OpenSSF SAST: at least one SAST tool must run in CI.
+    SastToolPresence,
+    /// OpenSSF Binary-Artifacts: no binary artifacts added to source.
+    BinaryArtifactCheck,
+    /// OpenSSF Pinned-Dependencies: GitHub Actions uses SHA-pinned references.
+    DependencyPinning,
+    /// OpenSSF Token-Permissions: workflow tokens follow least privilege.
+    WorkflowPermissions,
 }
 
 impl ControlId {
@@ -62,6 +84,16 @@ impl ControlId {
             Self::TestCoverage => "test-coverage",
             Self::ScopedChange => "scoped-change",
             Self::IssueLinkage => "issue-linkage",
+            Self::StaleReview => "stale-review",
+            Self::DescriptionQuality => "description-quality",
+            Self::MergeCommitPolicy => "merge-commit-policy",
+            Self::ConventionalTitle => "conventional-title",
+            Self::SecurityFileChange => "security-file-change",
+            Self::ReleaseTraceability => "release-traceability",
+            Self::SastToolPresence => "sast-tool-presence",
+            Self::BinaryArtifactCheck => "binary-artifact-check",
+            Self::DependencyPinning => "dependency-pinning",
+            Self::WorkflowPermissions => "workflow-permissions",
         }
     }
 }
@@ -102,6 +134,16 @@ impl FromStr for ControlId {
             "test-coverage" => Ok(Self::TestCoverage),
             "scoped-change" => Ok(Self::ScopedChange),
             "issue-linkage" => Ok(Self::IssueLinkage),
+            "stale-review" => Ok(Self::StaleReview),
+            "description-quality" => Ok(Self::DescriptionQuality),
+            "merge-commit-policy" => Ok(Self::MergeCommitPolicy),
+            "conventional-title" => Ok(Self::ConventionalTitle),
+            "security-file-change" => Ok(Self::SecurityFileChange),
+            "release-traceability" => Ok(Self::ReleaseTraceability),
+            "sast-tool-presence" => Ok(Self::SastToolPresence),
+            "binary-artifact-check" => Ok(Self::BinaryArtifactCheck),
+            "dependency-pinning" => Ok(Self::DependencyPinning),
+            "workflow-permissions" => Ok(Self::WorkflowPermissions),
             _ => Err(UnknownControlId(s.to_string())),
         }
     }
@@ -248,6 +290,16 @@ mod tests {
             ControlId::TestCoverage,
             ControlId::ScopedChange,
             ControlId::IssueLinkage,
+            ControlId::StaleReview,
+            ControlId::DescriptionQuality,
+            ControlId::MergeCommitPolicy,
+            ControlId::ConventionalTitle,
+            ControlId::SecurityFileChange,
+            ControlId::ReleaseTraceability,
+            ControlId::SastToolPresence,
+            ControlId::BinaryArtifactCheck,
+            ControlId::DependencyPinning,
+            ControlId::WorkflowPermissions,
         ];
         for id in &variants {
             let s = id.to_string();

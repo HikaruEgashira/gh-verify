@@ -110,6 +110,34 @@ fn rule_descriptor(id: ControlId) -> serde_json::Value {
         ControlId::TestCoverage => "Source changes must include matching test updates",
         ControlId::ScopedChange => "PR changes must be well-scoped (single logical unit)",
         ControlId::IssueLinkage => "PR must reference at least one issue or ticket",
+        ControlId::StaleReview => "Approvals must postdate the latest source revision",
+        ControlId::DescriptionQuality => {
+            "Change requests must include a meaningful description"
+        }
+        ControlId::MergeCommitPolicy => {
+            "Source revisions must follow linear history (no merge commits)"
+        }
+        ControlId::ConventionalTitle => {
+            "Change request titles must follow Conventional Commits format"
+        }
+        ControlId::SecurityFileChange => {
+            "Changes to security-sensitive files require heightened scrutiny"
+        }
+        ControlId::ReleaseTraceability => {
+            "Release batches must trace to governed change requests"
+        }
+        ControlId::SastToolPresence => {
+            "At least one SAST tool must run in CI checks"
+        }
+        ControlId::BinaryArtifactCheck => {
+            "No binary artifacts should be added to source"
+        }
+        ControlId::DependencyPinning => {
+            "GitHub Actions dependencies must use SHA-pinned references"
+        }
+        ControlId::WorkflowPermissions => {
+            "Workflow tokens must follow principle of least privilege"
+        }
     };
     serde_json::json!({
         "id": id.as_str(),
