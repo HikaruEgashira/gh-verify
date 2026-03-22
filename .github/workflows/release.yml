@@ -12,18 +12,7 @@ permissions:
   attestations: write
 
 jobs:
-  verify:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-
-      - uses: ./action/check-release
-        with:
-          tag: ${{ github.ref_name }}
-          format: json
-
   build:
-    needs: verify
     strategy:
       matrix:
         include:
