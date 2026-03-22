@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="HACKING.md">Hacking</a> · <a href="action/check-pr/README.md">PR Action</a> · <a href="action/check-release/README.md">Release Action</a> · <a href="benchmarks/README.md">Benchmarks</a>
+  <a href="HACKING.md">Hacking</a> · <a href="benchmarks/README.md">Benchmarks</a>
 </p>
 
 ---
