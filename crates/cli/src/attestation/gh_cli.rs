@@ -5,6 +5,7 @@ use std::process::Command;
 
 /// Raw JSON structure from `gh attestation verify --format json`
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct GhAttestationOutput {
     pub verification_result: VerificationResult,
 }
@@ -99,13 +100,14 @@ pub fn to_artifact_attestations(
                 .as_ref()
                 .and_then(|s| s.certificate.as_ref());
 
-            // Extract the attestation-claimed SHA256 from the in-toto statement subjects.
+            // Extract the attestation-claimed SHA256 for this specific artifact.
             let claimed_digest = r
                 .verification_result
                 .statement
                 .subject
                 .iter()
-                .find_map(|s| s.digest.get("sha256"))
+                .find(|s| s.name == artifact)
+                .and_then(|s| s.digest.get("sha256"))
                 .map(|hex| format!("sha256:{hex}"));
 
             // Cross-check local digest against attestation-claimed digest.
