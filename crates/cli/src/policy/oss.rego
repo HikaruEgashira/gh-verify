@@ -39,10 +39,17 @@ map := {"severity": "warning", "decision": "review"} if {
 	input.status == "indeterminate"
 }
 
-# Generic indeterminate -> fail (except review-independence, handled above)
+# required-status-checks indeterminate -> review (CI may not be configured in personal repos)
+map := {"severity": "warning", "decision": "review"} if {
+	input.control_id == "required-status-checks"
+	input.status == "indeterminate"
+}
+
+# Generic indeterminate -> fail (except those handled above)
 map := {"severity": "error", "decision": "fail"} if {
 	input.status == "indeterminate"
 	input.control_id != "review-independence"
+	input.control_id != "required-status-checks"
 }
 
 # Generic violated -> fail (except source-authenticity, handled above)

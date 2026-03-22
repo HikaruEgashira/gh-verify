@@ -12,31 +12,35 @@ const RULE_PATH: &str = "data.verify.profile.map";
 /// to gate decisions, enabling per-organization customization.
 pub struct OpaProfile {
     engine: regorus::Engine,
+    profile_name: &'static str,
 }
 
 impl OpaProfile {
     /// Loads a custom Rego policy from the given file path.
     pub fn from_file(path: &str) -> Result<Self> {
-        let policy =
-            std::fs::read_to_string(path).with_context(|| format!("reading policy {path}"))?;
-        Self::from_rego(path, &policy)
+        let policy = std::fs::read_to_string(path).with_context(|| {
+            format!(
+                "reading policy '{path}'. Use a built-in preset (default, oss, aiops) or a path to a .rego file"
+            )
+        })?;
+        Self::from_rego_with_name(path, &policy, "opa-custom")
     }
 
     /// Creates a profile using the built-in default policy (SLSA Foundation equivalent).
     pub fn default_policy() -> Result<Self> {
-        Self::from_rego("default.rego", DEFAULT_POLICY)
+        Self::from_rego_with_name("default.rego", DEFAULT_POLICY, "slsa-foundation")
     }
 
     /// Creates a profile using the built-in OSS preset.
     /// Tolerates unsigned commits and self-reviewed merges.
     pub fn oss_preset() -> Result<Self> {
-        Self::from_rego("oss.rego", OSS_POLICY)
+        Self::from_rego_with_name("oss.rego", OSS_POLICY, "oss")
     }
 
     /// Creates a profile using the built-in AI-ops audit preset.
     /// Maps all indeterminate findings to review instead of fail.
     pub fn aiops_preset() -> Result<Self> {
-        Self::from_rego("aiops.rego", AIOPS_POLICY)
+        Self::from_rego_with_name("aiops.rego", AIOPS_POLICY, "aiops")
     }
 
     /// Loads a built-in preset by name, or falls back to file path.
@@ -50,12 +54,12 @@ impl OpaProfile {
         }
     }
 
-    fn from_rego(name: &str, rego: &str) -> Result<Self> {
+    fn from_rego_with_name(name: &str, rego: &str, profile_name: &'static str) -> Result<Self> {
         let mut engine = regorus::Engine::new();
         engine
             .add_policy(name.to_string(), rego.to_string())
             .with_context(|| format!("parsing policy {name}"))?;
-        Ok(Self { engine })
+        Ok(Self { engine, profile_name })
     }
 
     fn eval_finding(&self, finding: &ControlFinding) -> Result<(FindingSeverity, GateDecision)> {
@@ -85,7 +89,7 @@ impl OpaProfile {
 
 impl ControlProfile for OpaProfile {
     fn name(&self) -> &'static str {
-        "opa-custom"
+        self.profile_name
     }
 
     fn map(&self, finding: &ControlFinding) -> ProfileOutcome {
@@ -205,7 +209,7 @@ map := {"severity": "error", "decision": "fail"} if {
     input.status == "violated"
 }
 "#;
-        let profile = OpaProfile::from_rego("custom.rego", custom_rego).unwrap();
+        let profile = OpaProfile::from_rego_with_name("custom.rego", custom_rego, "opa-custom").unwrap();
 
         let finding = make_finding(ControlId::ReviewIndependence, ControlStatus::Indeterminate);
         let outcome = profile.map(&finding);
@@ -241,7 +245,7 @@ map := {"severity": "error", "decision": "fail"} if {
     input.status == "indeterminate"
 }
 "#;
-        let profile = OpaProfile::from_rego("custom.rego", custom_rego).unwrap();
+        let profile = OpaProfile::from_rego_with_name("custom.rego", custom_rego, "opa-custom").unwrap();
 
         // source-authenticity violated -> review
         let finding = make_finding(ControlId::SourceAuthenticity, ControlStatus::Violated);
@@ -256,7 +260,7 @@ map := {"severity": "error", "decision": "fail"} if {
 
     #[test]
     fn invalid_policy_returns_error() {
-        let result = OpaProfile::from_rego("bad.rego", "this is not valid rego!!!");
+        let result = OpaProfile::from_rego_with_name("bad.rego", "this is not valid rego!!!", "opa-custom");
         assert!(result.is_err());
     }
 
@@ -336,3 +340,4 @@ map := {"severity": "error", "decision": "fail"} if {
         assert!(OpaProfile::from_preset_or_file("aiops").is_ok());
     }
 }
+
