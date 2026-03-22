@@ -586,7 +586,11 @@ end_of_record
         // Hunk header `+5 @@` has no comma — single-line hunk
         let patch = "@@ -1,1 +5 @@\n+new_line\n";
         let lines = extract_changed_lines(patch);
-        assert_eq!(lines, vec![5], "single-line hunk start must parse correctly");
+        assert_eq!(
+            lines,
+            vec![5],
+            "single-line hunk start must parse correctly"
+        );
     }
 
     /// Kills L216: `replace > with ==` in analyze_coverage.

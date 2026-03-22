@@ -125,9 +125,7 @@ fn evaluate_change(id: ControlId, cr: &GovernedChange) -> ControlFinding {
 mod tests {
     use super::*;
     use crate::control::ControlStatus;
-    use crate::evidence::{
-        ApprovalDecision, ChangeRequestId, EvidenceGap, SourceRevision,
-    };
+    use crate::evidence::{ApprovalDecision, ChangeRequestId, EvidenceGap, SourceRevision};
 
     fn make_change(
         approvals: EvidenceState<Vec<ApprovalDecision>>,

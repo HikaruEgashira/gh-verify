@@ -1,7 +1,7 @@
 use super::*;
 use crate::control::{ControlId, ControlStatus};
 use crate::evidence::{
-    ApprovalDecision, ApprovalDisposition, AuthenticityEvidence, ChangedAsset, ChangeRequestId,
+    ApprovalDecision, ApprovalDisposition, AuthenticityEvidence, ChangeRequestId, ChangedAsset,
     EvidenceState, GovernedChange, PromotionBatch, SourceRevision, WorkItemRef,
 };
 use crate::profile::{FindingSeverity, GateDecision};
@@ -160,7 +160,11 @@ fn assess_all_controls_includes_compliance() {
     }
 
     // Compliance controls that are violated should map to Fail
-    for outcome in report.outcomes.iter().filter(|o| compliance_ids.contains(&o.control_id)) {
+    for outcome in report
+        .outcomes
+        .iter()
+        .filter(|o| compliance_ids.contains(&o.control_id))
+    {
         if outcome.severity == FindingSeverity::Error {
             assert_eq!(
                 outcome.decision,

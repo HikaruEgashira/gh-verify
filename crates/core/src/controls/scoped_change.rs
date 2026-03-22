@@ -133,12 +133,12 @@ fn evaluate_change(id: ControlId, cr: &GovernedChange) -> ControlFinding {
     // Feature namespace bridging
     if aux_count > 0 {
         let paths: Vec<&str> = code_files.iter().map(|a| a.path.as_str()).collect();
-        if let Some(ns) = extract_feature_namespace(&paths) {
-            if ns.member_indices.len() >= 2 {
-                let anchor = file_nodes[ns.member_indices[0]];
-                for &idx in &ns.member_indices[1..] {
-                    graph.merge(anchor, file_nodes[idx]);
-                }
+        if let Some(ns) = extract_feature_namespace(&paths)
+            && ns.member_indices.len() >= 2
+        {
+            let anchor = file_nodes[ns.member_indices[0]];
+            for &idx in &ns.member_indices[1..] {
+                graph.merge(anchor, file_nodes[idx]);
             }
         }
     }

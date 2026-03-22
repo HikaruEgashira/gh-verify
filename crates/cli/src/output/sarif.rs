@@ -111,9 +111,7 @@ fn rule_descriptor(id: ControlId) -> serde_json::Value {
         ControlId::ScopedChange => "PR changes must be well-scoped (single logical unit)",
         ControlId::IssueLinkage => "PR must reference at least one issue or ticket",
         ControlId::StaleReview => "Approvals must postdate the latest source revision",
-        ControlId::DescriptionQuality => {
-            "Change requests must include a meaningful description"
-        }
+        ControlId::DescriptionQuality => "Change requests must include a meaningful description",
         ControlId::MergeCommitPolicy => {
             "Source revisions must follow linear history (no merge commits)"
         }
@@ -123,9 +121,7 @@ fn rule_descriptor(id: ControlId) -> serde_json::Value {
         ControlId::SecurityFileChange => {
             "Changes to security-sensitive files require heightened scrutiny"
         }
-        ControlId::ReleaseTraceability => {
-            "Release batches must trace to governed change requests"
-        }
+        ControlId::ReleaseTraceability => "Release batches must trace to governed change requests",
     };
     serde_json::json!({
         "id": id.as_str(),

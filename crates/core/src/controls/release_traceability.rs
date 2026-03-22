@@ -72,9 +72,7 @@ mod tests {
     use crate::control::ControlStatus;
     use crate::evidence::{ChangeRequestId, EvidenceGap, SourceRevision};
 
-    fn make_batch(
-        linked_crs: EvidenceState<Vec<ChangeRequestId>>,
-    ) -> PromotionBatch {
+    fn make_batch(linked_crs: EvidenceState<Vec<ChangeRequestId>>) -> PromotionBatch {
         PromotionBatch {
             id: "github_release:owner/repo:v0.1.0..v0.2.0".to_string(),
             source_revisions: EvidenceState::complete(vec![SourceRevision {

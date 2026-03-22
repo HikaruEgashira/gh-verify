@@ -58,10 +58,7 @@ fn evaluate_change(id: ControlId, cr: &GovernedChange) -> ControlFinding {
 
     ControlFinding::satisfied(
         id,
-        format!(
-            "{cr_subject}: description present ({} chars)",
-            body.len()
-        ),
+        format!("{cr_subject}: description present ({} chars)", body.len()),
         vec![cr_subject],
     )
 }
@@ -100,7 +97,9 @@ mod tests {
 
     #[test]
     fn satisfied_when_body_present() {
-        let cr = make_change(Some("This PR adds a new compliance control for description quality."));
+        let cr = make_change(Some(
+            "This PR adds a new compliance control for description quality.",
+        ));
         let findings = DescriptionQualityControl.evaluate(&bundle(vec![cr]));
         assert_eq!(findings[0].status, ControlStatus::Satisfied);
     }

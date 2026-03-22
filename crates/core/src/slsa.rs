@@ -135,8 +135,7 @@ pub fn control_slsa_mapping(id: ControlId) -> Option<SlsaMapping> {
         | ControlId::MergeCommitPolicy
         | ControlId::ConventionalTitle
         | ControlId::SecurityFileChange
-        | ControlId::ReleaseTraceability
-        => None,
+        | ControlId::ReleaseTraceability => None,
     }
 }
 

@@ -8,8 +8,8 @@ pub mod hosted_build_platform;
 pub mod issue_linkage;
 pub mod merge_commit_policy;
 pub mod pr_size;
-pub mod release_traceability;
 pub mod provenance_authenticity;
+pub mod release_traceability;
 pub mod required_status_checks;
 pub mod review_independence;
 pub mod scoped_change;
@@ -32,8 +32,8 @@ use self::hosted_build_platform::HostedBuildPlatformControl;
 use self::issue_linkage::IssueLinkageControl;
 use self::merge_commit_policy::MergeCommitPolicyControl;
 use self::pr_size::PrSizeControl;
-use self::release_traceability::ReleaseTraceabilityControl;
 use self::provenance_authenticity::ProvenanceAuthenticityControl;
+use self::release_traceability::ReleaseTraceabilityControl;
 use self::required_status_checks::RequiredStatusChecksControl;
 use self::review_independence::ReviewIndependenceControl;
 use self::scoped_change::ScopedChangeControl;
@@ -178,7 +178,11 @@ mod tests {
         let original_len = ids.len();
         ids.sort_by_key(|id| id.as_str());
         ids.dedup();
-        assert_eq!(ids.len(), original_len, "all compliance control IDs must be unique");
+        assert_eq!(
+            ids.len(),
+            original_len,
+            "all compliance control IDs must be unique"
+        );
     }
 
     #[test]
