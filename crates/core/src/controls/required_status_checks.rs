@@ -49,10 +49,7 @@ impl Control for RequiredStatusChecksControl {
         if failed.is_empty() {
             vec![ControlFinding::satisfied(
                 id,
-                format!(
-                    "{} check run(s) passed",
-                    runs.len()
-                ),
+                format!("{} check run(s) passed", runs.len()),
                 vec!["commit".to_string()],
             )]
         } else {
@@ -105,9 +102,10 @@ mod tests {
 
     #[test]
     fn all_checks_success_is_satisfied() {
-        let findings = RequiredStatusChecksControl.evaluate(&make_bundle(vec![
-            run("ci/build", CheckConclusion::Success),
-        ]));
+        let findings = RequiredStatusChecksControl.evaluate(&make_bundle(vec![run(
+            "ci/build",
+            CheckConclusion::Success,
+        )]));
         assert_eq!(findings.len(), 1);
         assert_eq!(findings[0].status, ControlStatus::Satisfied);
         assert_eq!(findings[0].subjects, vec!["commit"]);
@@ -150,25 +148,28 @@ mod tests {
 
     #[test]
     fn cancelled_check_is_violated() {
-        let findings = RequiredStatusChecksControl.evaluate(&make_bundle(vec![
-            run("ci/build", CheckConclusion::Cancelled),
-        ]));
+        let findings = RequiredStatusChecksControl.evaluate(&make_bundle(vec![run(
+            "ci/build",
+            CheckConclusion::Cancelled,
+        )]));
         assert_eq!(findings[0].status, ControlStatus::Violated);
     }
 
     #[test]
     fn timed_out_check_is_violated() {
-        let findings = RequiredStatusChecksControl.evaluate(&make_bundle(vec![
-            run("ci/build", CheckConclusion::TimedOut),
-        ]));
+        let findings = RequiredStatusChecksControl.evaluate(&make_bundle(vec![run(
+            "ci/build",
+            CheckConclusion::TimedOut,
+        )]));
         assert_eq!(findings[0].status, ControlStatus::Violated);
     }
 
     #[test]
     fn pending_check_is_violated() {
-        let findings = RequiredStatusChecksControl.evaluate(&make_bundle(vec![
-            run("ci/deploy", CheckConclusion::Pending),
-        ]));
+        let findings = RequiredStatusChecksControl.evaluate(&make_bundle(vec![run(
+            "ci/deploy",
+            CheckConclusion::Pending,
+        )]));
         assert_eq!(findings[0].status, ControlStatus::Violated);
     }
 

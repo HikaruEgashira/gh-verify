@@ -17,6 +17,14 @@ pub enum ControlId {
     BuildProvenance,
     /// Repo policy: at least one required status check is configured.
     RequiredStatusChecks,
+    /// Dev quality: PR size is within acceptable limits.
+    PrSize,
+    /// Dev quality: source changes include matching test updates.
+    TestCoverage,
+    /// Dev quality: PR changes are well-scoped (single logical unit).
+    ScopedChange,
+    /// Dev quality: PR references at least one issue or ticket.
+    IssueLinkage,
 }
 
 impl ControlId {
@@ -27,6 +35,10 @@ impl ControlId {
             Self::SourceAuthenticity => "source-authenticity",
             Self::BuildProvenance => "build-provenance",
             Self::RequiredStatusChecks => "required-status-checks",
+            Self::PrSize => "pr-size",
+            Self::TestCoverage => "test-coverage",
+            Self::ScopedChange => "scoped-change",
+            Self::IssueLinkage => "issue-linkage",
         }
     }
 }
@@ -57,6 +69,10 @@ impl FromStr for ControlId {
             "source-authenticity" => Ok(Self::SourceAuthenticity),
             "build-provenance" => Ok(Self::BuildProvenance),
             "required-status-checks" => Ok(Self::RequiredStatusChecks),
+            "pr-size" => Ok(Self::PrSize),
+            "test-coverage" => Ok(Self::TestCoverage),
+            "scoped-change" => Ok(Self::ScopedChange),
+            "issue-linkage" => Ok(Self::IssueLinkage),
             _ => Err(UnknownControlId(s.to_string())),
         }
     }
@@ -193,6 +209,10 @@ mod tests {
             ControlId::SourceAuthenticity,
             ControlId::BuildProvenance,
             ControlId::RequiredStatusChecks,
+            ControlId::PrSize,
+            ControlId::TestCoverage,
+            ControlId::ScopedChange,
+            ControlId::IssueLinkage,
         ];
         for id in &variants {
             let s = id.to_string();

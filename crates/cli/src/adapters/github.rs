@@ -234,6 +234,10 @@ fn map_changed_assets(pr_files: &[PrFile]) -> EvidenceState<Vec<ChangedAsset>> {
         .map(|file| ChangedAsset {
             path: file.filename.clone(),
             diff_available: file.patch.is_some(),
+            additions: file.additions,
+            deletions: file.deletions,
+            status: file.status.clone(),
+            diff: file.patch.clone(),
         })
         .collect();
 
@@ -265,7 +269,7 @@ fn map_review_state(state: &str) -> ApprovalDisposition {
 fn map_issue_ref_kind(kind: &gh_verify_core::linkage::IssueRefKind) -> &'static str {
     match kind {
         gh_verify_core::linkage::IssueRefKind::GitHubIssue => "github_issue",
-        gh_verify_core::linkage::IssueRefKind::JiraTicket => "jira_ticket",
+        gh_verify_core::linkage::IssueRefKind::ProjectTicket => "project_ticket",
         gh_verify_core::linkage::IssueRefKind::Url => "url",
     }
 }
@@ -274,8 +278,8 @@ fn map_issue_ref_kind(kind: &gh_verify_core::linkage::IssueRefKind) -> &'static 
 mod tests {
     use super::*;
     use crate::github::types::{
-        CommitParent, CommitVerification, CompareCommitInner, PrCommitAuthor, PrCommitInner, PrHead,
-        PrUser,
+        CommitParent, CommitVerification, CompareCommitInner, PrCommitAuthor, PrCommitInner,
+        PrHead, PrUser,
     };
 
     #[test]
@@ -290,11 +294,16 @@ mod tests {
                 user: Some(PrUser {
                     login: "author".to_string(),
                 }),
-                head: PrHead { sha: "abc123".to_string() },
+                head: PrHead {
+                    sha: "abc123".to_string(),
+                },
             },
             &[PrFile {
                 filename: "src/lib.rs".to_string(),
                 patch: None,
+                additions: 0,
+                deletions: 0,
+                status: "modified".to_string(),
             }],
             &[Review {
                 user: PrUser {
@@ -438,7 +447,9 @@ mod tests {
                 user: Some(PrUser {
                     login: "author".to_string(),
                 }),
-                head: PrHead { sha: "abc123".to_string() },
+                head: PrHead {
+                    sha: "abc123".to_string(),
+                },
             },
             &[],
             &[],
@@ -461,7 +472,9 @@ mod tests {
                 user: Some(PrUser {
                     login: "octocat".to_string(),
                 }),
-                head: PrHead { sha: "def456".to_string() },
+                head: PrHead {
+                    sha: "def456".to_string(),
+                },
             },
             &[],
             &[],
@@ -481,7 +494,9 @@ mod tests {
                 title: "feat: anonymous".to_string(),
                 body: None,
                 user: None,
-                head: PrHead { sha: "ghi789".to_string() },
+                head: PrHead {
+                    sha: "ghi789".to_string(),
+                },
             },
             &[],
             &[],

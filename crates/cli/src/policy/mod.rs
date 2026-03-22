@@ -59,7 +59,10 @@ impl OpaProfile {
         engine
             .add_policy(name.to_string(), rego.to_string())
             .with_context(|| format!("parsing policy {name}"))?;
-        Ok(Self { engine, profile_name })
+        Ok(Self {
+            engine,
+            profile_name,
+        })
     }
 
     fn eval_finding(&self, finding: &ControlFinding) -> Result<(FindingSeverity, GateDecision)> {
@@ -209,7 +212,8 @@ map := {"severity": "error", "decision": "fail"} if {
     input.status == "violated"
 }
 "#;
-        let profile = OpaProfile::from_rego_with_name("custom.rego", custom_rego, "opa-custom").unwrap();
+        let profile =
+            OpaProfile::from_rego_with_name("custom.rego", custom_rego, "opa-custom").unwrap();
 
         let finding = make_finding(ControlId::ReviewIndependence, ControlStatus::Indeterminate);
         let outcome = profile.map(&finding);
@@ -245,7 +249,8 @@ map := {"severity": "error", "decision": "fail"} if {
     input.status == "indeterminate"
 }
 "#;
-        let profile = OpaProfile::from_rego_with_name("custom.rego", custom_rego, "opa-custom").unwrap();
+        let profile =
+            OpaProfile::from_rego_with_name("custom.rego", custom_rego, "opa-custom").unwrap();
 
         // source-authenticity violated -> review
         let finding = make_finding(ControlId::SourceAuthenticity, ControlStatus::Violated);
@@ -260,7 +265,8 @@ map := {"severity": "error", "decision": "fail"} if {
 
     #[test]
     fn invalid_policy_returns_error() {
-        let result = OpaProfile::from_rego_with_name("bad.rego", "this is not valid rego!!!", "opa-custom");
+        let result =
+            OpaProfile::from_rego_with_name("bad.rego", "this is not valid rego!!!", "opa-custom");
         assert!(result.is_err());
     }
 
@@ -340,4 +346,3 @@ map := {"severity": "error", "decision": "fail"} if {
         assert!(OpaProfile::from_preset_or_file("aiops").is_ok());
     }
 }
-

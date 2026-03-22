@@ -38,6 +38,12 @@ pub fn assess_with_slsa_foundation(evidence: &EvidenceBundle) -> AssessmentRepor
     assess(evidence, &controls, &SlsaFoundationProfile)
 }
 
+/// Convenience entry point that runs all controls (SLSA + dev quality) with the SLSA profile.
+pub fn assess_with_all_controls(evidence: &EvidenceBundle) -> AssessmentReport {
+    let controls = controls::all_controls();
+    assess(evidence, &controls, &SlsaFoundationProfile)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -87,7 +87,8 @@ fn run() -> Result<()> {
                 .context("failed to fetch PR commits")?;
 
             let head_sha = &pr_metadata.head.sha;
-            let check_runs_evidence = fetch_check_runs_evidence(&client, &owner, &repo_name, head_sha);
+            let check_runs_evidence =
+                fetch_check_runs_evidence(&client, &owner, &repo_name, head_sha);
 
             let repo_full = format!("{owner}/{repo_name}");
             let mut bundle = adapters::github::build_pull_request_bundle(
@@ -251,12 +252,12 @@ fn assess_bundle(
     match policy_path {
         Some(name) => {
             let profile = OpaProfile::from_preset_or_file(name)?;
-            let controls = gh_verify_core::controls::slsa_foundation_controls();
+            let controls = gh_verify_core::controls::all_controls();
             Ok(gh_verify_core::assessment::assess(
                 bundle, &controls, &profile,
             ))
         }
-        None => Ok(gh_verify_core::assessment::assess_with_slsa_foundation(
+        None => Ok(gh_verify_core::assessment::assess_with_all_controls(
             bundle,
         )),
     }

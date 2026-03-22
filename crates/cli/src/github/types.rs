@@ -5,6 +5,12 @@ use serde::Deserialize;
 pub struct PrFile {
     pub filename: String,
     pub patch: Option<String>,
+    #[serde(default)]
+    pub additions: u32,
+    #[serde(default)]
+    pub deletions: u32,
+    #[serde(default)]
+    pub status: String,
 }
 
 /// GitHub API response type for PR metadata.

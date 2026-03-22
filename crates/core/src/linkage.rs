@@ -5,8 +5,15 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "kebab-case")]
 pub enum IssueRefKind {
     GitHubIssue,
-    JiraTicket,
+    /// Project ticket in KEY-123 format (Jira, Linear, Shortcut, etc.).
+    ProjectTicket,
     Url,
+}
+
+// Backward-compatible alias for callers that reference JiraTicket.
+#[allow(non_upper_case_globals)]
+impl IssueRefKind {
+    pub const JiraTicket: Self = Self::ProjectTicket;
 }
 
 /// A single issue reference extracted from PR text.
@@ -21,19 +28,29 @@ const CLOSING_KEYWORDS: &[&str] = &[
     "fixes", "fix", "fixed", "closes", "close", "closed", "resolves", "resolve", "resolved",
 ];
 
-/// Common acronym prefixes that should NOT be treated as Jira project keys.
-const JIRA_BLOCKLIST: &[&str] = &[
+/// Common acronym prefixes that should NOT be treated as project ticket keys.
+const TICKET_BLOCKLIST: &[&str] = &[
     "UTF", "HTTP", "RFC", "CVE", "ISO", "SHA", "SSL", "TLS", "TCP", "UDP", "DNS", "SSH", "API",
     "URL", "URI", "XML", "JSON", "YAML", "TOML", "HTML", "CSS", "ANSI", "ASCII", "IEEE", "IETF",
     "SMTP", "IMAP", "LDAP", "SAML", "CORS", "CSRF", "ECDSA", "HMAC",
+];
+
+/// Known project tracker URL host patterns that indicate issue linkage.
+const TRACKER_URL_PATTERNS: &[&str] = &[
+    "/issues/",  // GitHub, GitLab
+    "/browse/",  // Jira
+    "linear.app/",       // Linear
+    "app.shortcut.com/", // Shortcut
+    "notion.so/",        // Notion
 ];
 
 /// Extract issue references from a PR body.
 ///
 /// Recognized patterns:
 /// - GitHub issue: `#123`, `fixes #456`, `closes #789`, `resolves #012`
-/// - Jira format: `PROJ-123` (uppercase letters followed by dash and digits)
-/// - URL format: URLs containing `/issues/` or `/browse/`
+/// - Project ticket: `PROJ-123`, `ENG-456` (Jira, Linear, etc.)
+/// - Shortcut: `sc-12345` (case-insensitive two-letter prefix)
+/// - URL: URLs containing known tracker patterns (GitHub, Jira, Linear, Notion, Shortcut)
 /// - Custom patterns provided by the caller
 pub fn extract_issue_references(body: &str, custom_patterns: &[&str]) -> Vec<IssueReference> {
     let mut refs = Vec::new();
@@ -44,8 +61,8 @@ pub fn extract_issue_references(body: &str, custom_patterns: &[&str]) -> Vec<Iss
     // Extract GitHub issue references (#N and keyword #N)
     extract_github_issues(body, &mut refs);
 
-    // Extract Jira ticket references (PROJ-123)
-    extract_jira_tickets(body, &mut refs);
+    // Extract project ticket references (PROJ-123, ENG-456, sc-12345)
+    extract_project_tickets(body, &mut refs);
 
     // Extract custom pattern matches
     for pattern in custom_patterns {
@@ -153,10 +170,25 @@ fn parse_digits(chars: &[char], start: usize) -> Option<(String, usize)> {
     Some((s, end))
 }
 
-/// Extract Jira-style ticket references: `[A-Z]{2,}-\d+`.
+/// Known lowercase ticket prefixes (e.g. Shortcut `sc-12345`).
+const LOWERCASE_TICKET_PREFIXES: &[&str] = &["sc"];
+
+/// Extract project ticket references.
 ///
-/// Rejects prefixes in [`JIRA_BLOCKLIST`] (common acronyms like UTF, HTTP, etc.).
-fn extract_jira_tickets(body: &str, refs: &mut Vec<IssueReference>) {
+/// Matches two patterns:
+/// 1. Uppercase: `[A-Z]{2,}-\d+` — Jira (`PROJ-123`), Linear (`ENG-456`), etc.
+/// 2. Known lowercase: `sc-\d+` — Shortcut
+///
+/// Rejects prefixes in [`TICKET_BLOCKLIST`] (common acronyms like UTF, HTTP, etc.).
+fn extract_project_tickets(body: &str, refs: &mut Vec<IssueReference>) {
+    // Pass 1: uppercase prefixes (Jira, Linear, etc.)
+    extract_uppercase_tickets(body, refs);
+    // Pass 2: known lowercase prefixes (Shortcut, etc.)
+    extract_lowercase_tickets(body, refs);
+}
+
+/// Extract uppercase ticket references: `[A-Z]{2,}-\d+`.
+fn extract_uppercase_tickets(body: &str, refs: &mut Vec<IssueReference>) {
     let chars: Vec<char> = body.chars().collect();
     let mut i = 0;
 
@@ -205,7 +237,7 @@ fn extract_jira_tickets(body: &str, refs: &mut Vec<IssueReference>) {
         let prefix: String = chars[alpha_start..alpha_start + alpha_len].iter().collect();
 
         // Reject well-known acronyms
-        if JIRA_BLOCKLIST.iter().any(|b| *b == prefix) {
+        if TICKET_BLOCKLIST.iter().any(|b| *b == prefix) {
             i = j;
             continue;
         }
@@ -215,7 +247,7 @@ fn extract_jira_tickets(body: &str, refs: &mut Vec<IssueReference>) {
         // Skip if this was already captured as part of a URL
         if !refs.iter().any(|r| r.value.contains(&ticket)) {
             refs.push(IssueReference {
-                kind: IssueRefKind::JiraTicket,
+                kind: IssueRefKind::ProjectTicket,
                 value: ticket,
             });
         }
@@ -224,16 +256,78 @@ fn extract_jira_tickets(body: &str, refs: &mut Vec<IssueReference>) {
     }
 }
 
-/// Extract URL references containing `/issues/` or `/browse/`.
+/// Extract known lowercase ticket references (e.g. Shortcut `sc-12345`).
+fn extract_lowercase_tickets(body: &str, refs: &mut Vec<IssueReference>) {
+    let chars: Vec<char> = body.chars().collect();
+    let mut i = 0;
+
+    while i < chars.len() {
+        // Must start at word boundary
+        if i > 0 && (chars[i - 1].is_alphanumeric() || chars[i - 1] == '-') {
+            i += 1;
+            continue;
+        }
+
+        for prefix in LOWERCASE_TICKET_PREFIXES {
+            let prefix_chars: Vec<char> = prefix.chars().collect();
+            let plen = prefix_chars.len();
+            if i + plen >= chars.len() {
+                continue;
+            }
+
+            // Match prefix (case-insensitive)
+            let body_slice: String = chars[i..i + plen].iter().collect();
+            if body_slice.to_ascii_lowercase() != *prefix {
+                continue;
+            }
+
+            // Must be followed by '-'
+            let mut j = i + plen;
+            if j >= chars.len() || chars[j] != '-' {
+                continue;
+            }
+            j += 1;
+
+            // Must be followed by digits
+            let digit_start = j;
+            while j < chars.len() && chars[j].is_ascii_digit() {
+                j += 1;
+            }
+            if j == digit_start {
+                continue;
+            }
+
+            // Must end at word boundary
+            if j < chars.len() && (chars[j].is_alphanumeric() || chars[j] == '-') {
+                continue;
+            }
+
+            let ticket: String = chars[i..j].iter().collect();
+            if !refs.iter().any(|r| r.value.contains(&ticket)) {
+                refs.push(IssueReference {
+                    kind: IssueRefKind::ProjectTicket,
+                    value: ticket,
+                });
+            }
+            i = j;
+            break;
+        }
+
+        i += 1;
+    }
+}
+
+/// Extract URL references pointing to known issue trackers.
+///
+/// Matches URLs containing patterns from [`TRACKER_URL_PATTERNS`]:
+/// GitHub/GitLab (`/issues/`), Jira (`/browse/`), Linear (`linear.app/`),
+/// Shortcut (`app.shortcut.com/`), Notion (`notion.so/`).
 ///
 /// Handles both whitespace-delimited URLs and Markdown link syntax
 /// `[text](url)`.
 fn extract_urls(body: &str, refs: &mut Vec<IssueReference>) {
-    // Strategy 1: scan for `https://` or `http://` anywhere in the text
-    // and extract to the next whitespace or closing delimiter.
     let mut search_start = 0;
     while search_start < body.len() {
-        // Find next URL-like prefix
         let rest = &body[search_start..];
         let offset = rest.find("https://").or_else(|| rest.find("http://"));
 
@@ -248,7 +342,7 @@ fn extract_urls(body: &str, refs: &mut Vec<IssueReference>) {
 
         let url = body[url_start..url_end].trim_end_matches(['.', ',']);
 
-        if url.contains("/issues/") || url.contains("/browse/") {
+        if TRACKER_URL_PATTERNS.iter().any(|p| url.contains(p)) {
             refs.push(IssueReference {
                 kind: IssueRefKind::Url,
                 value: url.to_string(),
@@ -503,6 +597,58 @@ mod tests {
         // Backward: no references => no linkage
         let without_refs = extract_issue_references("plain text", &[]);
         assert!(!has_issue_linkage(&without_refs));
+    }
+
+    // --- Linear ---
+
+    #[test]
+    fn linear_ticket_matched() {
+        let refs = extract_issue_references("Implements ENG-456", &[]);
+        assert!(has_issue_linkage(&refs));
+        assert_eq!(refs[0].kind, IssueRefKind::ProjectTicket);
+        assert_eq!(refs[0].value, "ENG-456");
+    }
+
+    #[test]
+    fn linear_url_matched() {
+        let refs = extract_issue_references(
+            "https://linear.app/myteam/issue/ENG-456/implement-feature",
+            &[],
+        );
+        assert!(has_issue_linkage(&refs));
+        assert_eq!(refs[0].kind, IssueRefKind::Url);
+    }
+
+    // --- Shortcut ---
+
+    #[test]
+    fn shortcut_ticket_matched() {
+        let refs = extract_issue_references("Fixes sc-12345", &[]);
+        assert!(has_issue_linkage(&refs));
+        assert_eq!(refs[0].kind, IssueRefKind::ProjectTicket);
+        assert_eq!(refs[0].value, "sc-12345");
+    }
+
+    #[test]
+    fn shortcut_url_matched() {
+        let refs = extract_issue_references(
+            "https://app.shortcut.com/myorg/story/12345/fix-bug",
+            &[],
+        );
+        assert!(has_issue_linkage(&refs));
+        assert_eq!(refs[0].kind, IssueRefKind::Url);
+    }
+
+    // --- Notion ---
+
+    #[test]
+    fn notion_url_matched() {
+        let refs = extract_issue_references(
+            "https://notion.so/myworkspace/Task-abc123def456",
+            &[],
+        );
+        assert!(has_issue_linkage(&refs));
+        assert_eq!(refs[0].kind, IssueRefKind::Url);
     }
 }
 

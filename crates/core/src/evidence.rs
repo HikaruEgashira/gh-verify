@@ -96,13 +96,21 @@ pub enum EvidenceGap {
 impl fmt::Display for EvidenceGap {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::CollectionFailed { source, subject, detail } => {
+            Self::CollectionFailed {
+                source,
+                subject,
+                detail,
+            } => {
                 write!(f, "collection failed: {source}/{subject}: {detail}")
             }
             Self::Truncated { source, subject } => {
                 write!(f, "truncated: {source}/{subject}")
             }
-            Self::MissingField { source, subject, field } => {
+            Self::MissingField {
+                source,
+                subject,
+                field,
+            } => {
                 write!(f, "missing field: {source}/{subject}.{field}")
             }
             Self::DiffUnavailable { subject } => {
@@ -150,6 +158,18 @@ pub struct WorkItemRef {
 pub struct ChangedAsset {
     pub path: String,
     pub diff_available: bool,
+    /// Number of lines added.
+    #[serde(default)]
+    pub additions: u32,
+    /// Number of lines deleted.
+    #[serde(default)]
+    pub deletions: u32,
+    /// File status: "added", "modified", "removed", "renamed", etc.
+    #[serde(default)]
+    pub status: String,
+    /// Unified diff patch text, if available.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub diff: Option<String>,
 }
 
 /// Normalized outcome of a review action, independent of platform terminology.
@@ -292,6 +312,10 @@ mod tests {
             vec![ChangedAsset {
                 path: "src/main.rs".to_string(),
                 diff_available: false,
+                additions: 0,
+                deletions: 0,
+                status: String::new(),
+                diff: None,
             }],
             vec![EvidenceGap::DiffUnavailable {
                 subject: "src/main.rs".to_string(),

@@ -79,7 +79,9 @@ pub fn get_commit_check_runs(
     git_ref: &str,
 ) -> Result<CheckRunsResponse> {
     let path = format!("/repos/{owner}/{repo}/commits/{git_ref}/check-runs?per_page=100");
-    let body = client.get(&path).context("failed to fetch commit check runs")?;
+    let body = client
+        .get(&path)
+        .context("failed to fetch commit check runs")?;
     serde_json::from_str(&body).context("failed to parse check runs response")
 }
 
