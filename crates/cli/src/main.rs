@@ -26,8 +26,8 @@ struct Cli {
 enum Commands {
     /// Verify a pull request
     Pr {
-        /// PR number
-        arg: String,
+        /// PR number (omit to detect from current branch)
+        arg: Option<String>,
         /// Output format (human, json, or sarif)
         #[arg(long, default_value = "human")]
         format: String,
@@ -43,8 +43,8 @@ enum Commands {
     },
     /// Verify release integrity
     Release {
-        /// Tag or BASE..HEAD range
-        arg: String,
+        /// Tag or BASE..HEAD range (omit to use latest release)
+        arg: Option<String>,
         /// Output format (human, json, or sarif)
         #[arg(long, default_value = "human")]
         format: String,
@@ -78,7 +78,11 @@ fn run() -> Result<()> {
             policy,
             slsa_level,
         } => {
-            let pr_number: u32 = arg.parse().context("invalid PR number")?;
+            let pr_number: u32 = match arg {
+                Some(a) => a.parse().context("invalid PR number")?,
+                None => detect_pr_number()
+                    .context("could not detect PR for current branch. Pass a PR number explicitly")?,
+            };
             let fmt = output::parse_format(&format)?;
             let cfg = Config::load()?;
             let (owner, repo_name) = resolve_repo(&cfg, repo_override.as_deref())?;
@@ -133,7 +137,12 @@ fn run() -> Result<()> {
             let (owner, repo_name) = resolve_repo(&cfg, repo_override.as_deref())?;
             let client = GitHubClient::new(&cfg)?;
 
-            let (base_tag, head_tag) = parse_release_arg(&arg, &client, &owner, &repo_name)?;
+            let release_arg = match arg {
+                Some(a) => a,
+                None => detect_latest_release_tag(&client, &owner, &repo_name)
+                    .context("could not detect latest release. Pass a tag explicitly")?,
+            };
+            let (base_tag, head_tag) = parse_release_arg(&release_arg, &client, &owner, &repo_name)?;
 
             println!("Checking release: {base_tag}..{head_tag}");
 
@@ -200,14 +209,76 @@ fn run() -> Result<()> {
     Ok(())
 }
 
-fn resolve_repo<'a>(cfg: &'a Config, override_repo: Option<&'a str>) -> Result<(String, String)> {
-    let repo_str = override_repo.unwrap_or(&cfg.repo);
+fn resolve_repo(cfg: &Config, override_repo: Option<&str>) -> Result<(String, String)> {
+    let repo_str: String = match override_repo {
+        Some(s) if !s.is_empty() => s.to_string(),
+        _ if !cfg.repo.is_empty() => cfg.repo.clone(),
+        _ => detect_repo_from_git_remote()
+            .context("could not resolve repo. Use --repo OWNER/REPO, set GH_REPO, or run from a git repo with a GitHub remote")?,
+    };
     let slash_idx = repo_str
         .find('/')
         .context("could not resolve repo. Use --repo OWNER/REPO or set GH_REPO env var")?;
     let owner = repo_str[..slash_idx].to_string();
     let repo_name = repo_str[slash_idx + 1..].to_string();
     Ok((owner, repo_name))
+}
+
+fn detect_repo_from_git_remote() -> Option<String> {
+    let output = std::process::Command::new("git")
+        .args(["remote", "get-url", "origin"])
+        .output()
+        .ok()?;
+    if !output.status.success() {
+        return None;
+    }
+    let url = String::from_utf8(output.stdout).ok()?.trim().to_string();
+    parse_github_remote_url(&url)
+}
+
+fn parse_github_remote_url(url: &str) -> Option<String> {
+    // SSH: git@github.com:OWNER/REPO.git
+    if let Some(path) = url.strip_prefix("git@github.com:") {
+        return Some(path.trim_end_matches(".git").to_string());
+    }
+    // HTTPS: https://github.com/OWNER/REPO.git
+    let url = url.trim_end_matches(".git");
+    let path = url
+        .strip_prefix("https://github.com/")
+        .or_else(|| url.strip_prefix("http://github.com/"))?;
+    // Ensure it has exactly owner/repo
+    if path.matches('/').count() == 1 && !path.starts_with('/') {
+        Some(path.to_string())
+    } else {
+        None
+    }
+}
+
+fn detect_pr_number() -> Option<u32> {
+    let output = std::process::Command::new("gh")
+        .args(["pr", "view", "--json", "number", "--jq", ".number"])
+        .output()
+        .ok()?;
+    if !output.status.success() {
+        return None;
+    }
+    String::from_utf8(output.stdout)
+        .ok()?
+        .trim()
+        .parse()
+        .ok()
+}
+
+fn detect_latest_release_tag(
+    client: &GitHubClient,
+    owner: &str,
+    repo: &str,
+) -> Result<String> {
+    let tags = github::release_api::get_tags(client, owner, repo)?;
+    tags.into_iter()
+        .next()
+        .map(|t| t.name)
+        .context("no tags found in repository")
 }
 
 fn parse_release_arg(
