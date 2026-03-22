@@ -72,10 +72,10 @@ impl ControlProfile for SlsaFoundationProfile {
     }
 }
 
-/// Comprehensive profile covering Source Track + Build Track + Repository Policy.
+/// Comprehensive profile covering Source Track + Build Track.
 ///
 /// Source controls (ReviewIndependence, SourceAuthenticity): strict — Indeterminate → Fail.
-/// Build/Repo controls (BuildProvenance, BranchProtection, RequiredReviewers): lenient — Indeterminate → Review.
+/// Build controls (BuildProvenance): lenient — Indeterminate → Review.
 pub struct SlsaComprehensiveProfile;
 
 impl ControlProfile for SlsaComprehensiveProfile {
@@ -214,9 +214,9 @@ mod tests {
     #[test]
     fn comprehensive_violated_always_fails() {
         let outcome = SlsaComprehensiveProfile.map(&ControlFinding::violated(
-            ControlId::BranchProtection,
-            "Admin enforcement disabled",
-            vec!["repository".to_string()],
+            ControlId::BuildProvenance,
+            "Unverified attestation",
+            vec!["artifact:binary".to_string()],
         ));
         assert_eq!(outcome.severity, FindingSeverity::Error);
         assert_eq!(outcome.decision, GateDecision::Fail);

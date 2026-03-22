@@ -28,20 +28,7 @@ Three-crate workspace:
 
 ### gh-verify-core (crates/core/)
 
-Pure verification logic. No I/O, no unsafe.
-
-| Module | Purpose |
-|--------|---------|
-| `verdict.rs` | `Severity` enum (Pass/Warning/Error) |
-| `evidence.rs` | Platform-neutral evidence types (`EvidenceBundle`, `GovernedChange`, etc.) |
-| `control.rs` | `Control` trait, `ControlId` enum, `ControlFinding`, `evaluate_all` |
-| `controls/` | Control implementations (`ReviewIndependence`, `SourceAuthenticity`) |
-| `assessment.rs` | `assess_with_slsa_foundation` — top-level entry point |
-| `profile.rs` | `ControlProfile` trait, `SlsaFoundationProfile`, gate decision mapping |
-| `integrity.rs` | Creusot-verified predicates (`is_approver_independent`, `signature_severity`, etc.) |
-| `scope.rs` | PR scope classification by connected components |
-| `union_find.rs` | Disjoint set union for call graph connectivity |
-| `linkage.rs` | Issue/ticket reference extraction from PR body |
+Pure verification logic. No I/O, no unsafe. Entry point: `assess_with_slsa_foundation`.
 
 ### gh-verify-verif (crates/verif/)
 
@@ -49,21 +36,9 @@ Creusot verification targets. Core predicates with `#[ensures]` specs
 in a crate free of Creusot-unsupported constructs (`format!`, `String`, `Vec`).
 Runtime implementations in `gh-verify-core` must match these verified predicates.
 
-Verified predicates: `is_approver_independent`, `is_uncovered_commit`,
-`signature_severity`, `pr_coverage_severity`, `classify_scope`.
-
 ### gh-verify (crates/cli/)
 
 I/O layer. Delegates all judgments to core via the control/evidence assessment path.
-
-| Module | Purpose |
-|--------|---------|
-| `config.rs` | GH_TOKEN / GH_REPO env resolution |
-| `github/client.rs` | HTTP client with User-Agent |
-| `github/pr_api.rs` | PR files / metadata / reviews / commits fetch |
-| `github/release_api.rs` | Tag comparison, commit-PR association, reviews |
-| `adapters/github.rs` | GitHub API → `EvidenceBundle` mapping |
-| `output/` | human / json formatters for `AssessmentReport` |
 
 | Change | Where | Registration |
 |---|---|---|
@@ -78,28 +53,6 @@ I/O layer. Delegates all judgments to core via the control/evidence assessment p
 - Control ID: PascalCase enum variant (`ReviewIndependence`)
 - File name: snake_case (`review_independence.rs`)
 - Crate name: kebab-case (`gh-verify-core`)
-
-## Reusable Actions
-
-Two composite actions under `action/` for use in GitHub Actions workflows:
-
-| Action | Trigger | Purpose |
-|---|---|---|
-| `action/check-pr` | `pull_request` + `pull_request_review` | Run SDLC checks on a PR |
-| `action/check-release` | `push: tags: v*` (via `release.yml`) | Gate release build on SDLC checks |
-
-Usage from other repositories:
-
-```yaml
-- uses: HikaruEgashira/gh-verify/action/check-pr@v0.4.0
-  with:
-    pr-number: ${{ github.event.pull_request.number }}
-```
-
-## Exit Codes
-
-- `0`: all control outcomes are Pass/Review
-- `1`: one or more control outcomes are Fail
 
 ## PR Template
 

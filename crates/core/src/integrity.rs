@@ -61,30 +61,6 @@ pub fn pr_coverage_severity(uncovered_count: usize) -> Severity {
     }
 }
 
-/// Core predicate for branch protection severity.
-/// Pass iff both stale review dismissal and admin enforcement are enabled.
-///
-/// Verified by Creusot in `gh-verify-verif` crate.
-pub fn branch_protection_severity(dismiss_stale: bool, enforce_admins: bool) -> Severity {
-    if dismiss_stale && enforce_admins {
-        Severity::Pass
-    } else {
-        Severity::Error
-    }
-}
-
-/// Core predicate for required reviewers severity.
-/// Pass iff at least one reviewer is required.
-///
-/// Verified by Creusot in `gh-verify-verif` crate.
-pub fn required_reviewers_severity(required_reviews: u32) -> Severity {
-    if required_reviews >= 1 {
-        Severity::Pass
-    } else {
-        Severity::Error
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -180,29 +156,4 @@ mod tests {
         }
     }
 
-    #[test]
-    fn branch_protection_severity_exhaustive() {
-        for &ds in &[false, true] {
-            for &ea in &[false, true] {
-                let result = branch_protection_severity(ds, ea);
-                let spec = if ds && ea { Severity::Pass } else { Severity::Error };
-                assert_eq!(
-                    result, spec,
-                    "branch_protection_severity({ds}, {ea}): got {result:?}, spec {spec:?}"
-                );
-            }
-        }
-    }
-
-    #[test]
-    fn required_reviewers_severity_equivalence() {
-        assert_eq!(required_reviewers_severity(0), Severity::Error);
-        for count in 1..=10 {
-            assert_eq!(
-                required_reviewers_severity(count),
-                Severity::Pass,
-                "required_reviewers_severity({count}) should be Pass"
-            );
-        }
-    }
 }

@@ -7,8 +7,7 @@ use gh_verify_core::evidence::{
 };
 
 use crate::github::types::{
-    BranchProtectionResponse, CompareCommit, PrCommit, PrFile, PrMetadata, PullRequestSummary,
-    Review,
+    CompareCommit, PrCommit, PrFile, PrMetadata, PullRequestSummary, Review,
 };
 
 /// Associates a commit SHA with the pull requests that introduced it.
@@ -166,23 +165,6 @@ pub fn map_promotion_batch_evidence(
                 .collect(),
         ),
         linked_change_requests: EvidenceState::complete(linked_change_requests),
-    }
-}
-
-/// Converts a GitHub branch protection API response into a core `BranchProtectionConfig`.
-pub fn map_branch_protection_evidence(
-    response: &BranchProtectionResponse,
-) -> gh_verify_core::evidence::BranchProtectionConfig {
-    let reviews = response.required_pull_request_reviews.as_ref();
-    gh_verify_core::evidence::BranchProtectionConfig {
-        required_reviews: reviews.map_or(0, |r| r.required_approving_review_count),
-        dismiss_stale_reviews: reviews.map_or(false, |r| r.dismiss_stale_reviews),
-        require_code_owner_reviews: reviews.map_or(false, |r| r.require_code_owner_reviews),
-        enforce_admins: response.enforce_admins.enabled,
-        required_signatures: response
-            .required_signatures
-            .as_ref()
-            .map_or(false, |s| s.enabled),
     }
 }
 
