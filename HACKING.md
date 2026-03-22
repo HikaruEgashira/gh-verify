@@ -20,11 +20,11 @@ devenv tasks run ghverify:fmt            # Format + clippy lint
 devenv tasks run ghverify:verify         # Creusot formal verification
 ```
 
-## Adding a Rule
+## Adding a Control
 
-1. Create `crates/core/src/<logic>.rs` if the rule needs pure judgment logic (formally verifiable)
-2. Create `crates/cli/src/rules/<name>.rs` — implement the `Rule` trait
-3. Add `Box::new(YourRule)` to the `run_all` Vec in `crates/cli/src/rules/engine.rs`
+1. Create `crates/core/src/controls/<name>.rs` — implement the `Control` trait
+2. Register in `crates/core/src/controls/mod.rs` (`slsa_foundation_controls` or `development_quality_controls`)
+3. Add `ControlId` variant in `crates/core/src/control.rs`
 
 ## Adding a Subcommand
 
@@ -73,10 +73,13 @@ cp "$CREUSOT_SRC/target/creusot/packages/creusot/creusot/"*.coma "$DEST/"
 # Via devenv task (recommended)
 devenv tasks run ghverify:verify
 
+# Single predicate
+devenv tasks run ghverify:verify-one <predicate_name>
+
 # Or manually
 eval $(opam env --switch=creusot)
 cargo creusot -p gh-verify-verif
-cargo creusot prove "<function_name>" -- -p gh-verify-verif
+cargo creusot prove '<predicate_name>' -- -p gh-verify-verif
 ```
 
 ### Adding a new verified predicate

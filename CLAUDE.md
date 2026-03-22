@@ -42,7 +42,7 @@ I/O layer. Delegates all judgments to core via the control/evidence assessment p
 
 | Change | Where | Registration |
 |---|---|---|
-| New control | `crates/core/src/controls/<name>.rs` + impl `Control` trait | Add to `controls/mod.rs` `slsa_foundation_controls` |
+| New control | `crates/core/src/controls/<name>.rs` + impl `Control` trait | Add to `controls/mod.rs` |
 | New subcommand | Add variant to `Commands` enum in `main.rs` | clap handles dispatch |
 | New output format | `crates/cli/src/output/<name>.rs` | Add case in `output/mod.rs` |
 | New API endpoint | `crates/cli/src/github/<name>.rs` | None |

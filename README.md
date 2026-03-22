@@ -20,12 +20,12 @@ Rust with core verification logic formally specified via
 [Creusot](https://github.com/creusot-rs/creusot).
 
 The tool analyzes diffs, metadata, and release artifacts to detect
-anti-patterns and reports them as pass / warning / error with actionable
+anti-patterns and reports them as pass / review / fail with actionable
 suggestions.
 
 > [!NOTE]
 >
-> This project is under active development. Rules and output format may change.
+> This project is under active development. Controls and output format may change.
 
 ## Why?
 
@@ -38,18 +38,30 @@ solely on human judgement.
 
 All controls are evaluated against an evidence bundle and produce one of four
 statuses: **Satisfied**, **Violated**, **Indeterminate**, or **Not Applicable**.
-The default `slsa-foundation` profile maps Violated and Indeterminate to
-**error / fail**; Satisfied and Not Applicable to **info / pass**.
+The default profile maps Violated and Indeterminate to **fail**; Satisfied and
+Not Applicable to **pass**.
+
+### SLSA Foundation
 
 | Control | Applies to | Description |
 |---|---|---|
 | `review-independence` | PR, Release | Four-eyes principle: at least one approver must be independent from both the commit author and the PR submitter |
 | `source-authenticity` | PR, Release | All source revisions must carry valid, verified cryptographic signatures |
 | `build-provenance` | Release | All artifact attestations must carry verified SLSA provenance |
+| `required-status-checks` | PR | All CI check runs on the PR HEAD commit must pass |
 
 For releases, `review-independence` and `source-authenticity` are evaluated
 per commit in the tag range, checking that each commit's associated PR had
 independent review and signed commits.
+
+### Development Quality
+
+| Control | Applies to | Description |
+|---|---|---|
+| `pr-size` | PR | PR size is within acceptable limits (lines changed, files changed) |
+| `test-coverage` | PR | Source file changes include corresponding test updates |
+| `scoped-change` | PR | PR changes are well-scoped as a single logical unit |
+| `issue-linkage` | PR | PR references at least one issue or ticket |
 
 ## Usage
 
@@ -88,9 +100,10 @@ jobs:
       contents: read
       pull-requests: read
     steps:
-      - uses: HikaruEgashira/gh-verify/action/check-pr@main
+      - uses: HikaruEgashira/gh-verify@v0.4
         with:
-          pr-number: ${{ github.event.pull_request.number }}
+          command: pr
+          argument: ${{ github.event.pull_request.number }}
 ```
 
 **Release verification** — add to `.github/workflows/verify-release.yml`:
@@ -106,17 +119,18 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: HikaruEgashira/gh-verify/action/check-release@main
+      - uses: HikaruEgashira/gh-verify@v0.4
         with:
-          tag: ${{ github.event.release.tag_name }}
+          command: release
+          argument: ${{ github.event.release.tag_name }}
 ```
 
-See [action/check-pr](action/check-pr/README.md) and [action/check-release](action/check-release/README.md) for full input/output details.
+See [action.yml](action.yml) for full input/output details.
 
 ## Exit Codes
 
-- `0` — all rules pass (warnings are non-fatal)
-- `1` — one or more rules returned an error
+- `0` — no control received a **fail** gate decision
+- `1` — one or more controls received a **fail** gate decision
 
 ## Architecture
 
@@ -128,7 +142,7 @@ Three-crate Rust workspace:
 
 | Extension | Create | Register |
 |---|---|---|
-| New control | `crates/core/src/controls/<name>.rs` + impl `Control` trait | Add to `controls/mod.rs` `slsa_foundation_controls` |
+| New control | `crates/core/src/controls/<name>.rs` + impl `Control` trait | Add to `controls/mod.rs` |
 | New subcommand | Add variant to `Commands` in `main.rs` | clap handles dispatch |
 | New output format | `crates/cli/src/output/<name>.rs` | Add case in `output/mod.rs` |
 | New API endpoint | `crates/cli/src/github/<name>.rs` | None |
