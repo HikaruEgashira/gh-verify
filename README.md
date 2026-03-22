@@ -57,14 +57,18 @@ See [action.yml](action.yml) for full input/output details.
 
 ## Controls
 
-Controls are organized by SLSA track and level.
 Level selection via `--slsa-level` determines which controls are enforced.
 
-Source Track — L1: `review-independence`, `source-authenticity` · L2: `branch-history-integrity` · L3: `branch-protection-enforcement` · L4: `two-party-review`
-
-Build Track — L1: `build-provenance`, `required-status-checks` · L2: `hosted-build-platform`, `provenance-authenticity` · L3: `build-isolation`
-
-Development Quality (non-SLSA) — `pr-size` · `test-coverage` · `scoped-change` · `issue-linkage`
+| Track | Level | Control |
+|-------|-------|---------|
+| Source | L1 | `review-independence`, `source-authenticity` |
+| Source | L2 | `branch-history-integrity` |
+| Source | L3 | `branch-protection-enforcement` |
+| Source | L4 | `two-party-review` |
+| Build | L1 | `build-provenance`, `required-status-checks` |
+| Build | L2 | `hosted-build-platform`, `provenance-authenticity` |
+| Build | L3 | `build-isolation` |
+| Dev Quality | — | `pr-size`, `test-coverage`, `scoped-change`, `issue-linkage` |
 
 ## Architecture
 
