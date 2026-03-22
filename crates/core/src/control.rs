@@ -76,6 +76,23 @@ pub enum ControlStatus {
     NotApplicable,
 }
 
+impl ControlStatus {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Satisfied => "satisfied",
+            Self::Violated => "violated",
+            Self::Indeterminate => "indeterminate",
+            Self::NotApplicable => "not_applicable",
+        }
+    }
+}
+
+impl fmt::Display for ControlStatus {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
 /// Result of a single control evaluation, including status and supporting detail.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ControlFinding {
@@ -193,7 +210,6 @@ mod tests {
             "unknown control id: nonexistent-control"
         );
     }
-
 }
 
 #[cfg(test)]

@@ -86,7 +86,8 @@ fn run() -> Result<()> {
             let pr_commits = github::pr_api::get_pr_commits(&client, &owner, &repo_name, pr_number)
                 .context("failed to fetch PR commits")?;
 
-            let status_checks = fetch_required_status_checks(&client, &owner, &repo_name);
+            let head_sha = &pr_metadata.head.sha;
+            let check_runs_evidence = fetch_check_runs_evidence(&client, &owner, &repo_name, head_sha);
 
             let repo_full = format!("{owner}/{repo_name}");
             let mut bundle = adapters::github::build_pull_request_bundle(
@@ -97,7 +98,7 @@ fn run() -> Result<()> {
                 &pr_reviews,
                 &pr_commits,
             );
-            bundle.required_status_checks = status_checks;
+            bundle.check_runs = check_runs_evidence;
             let report = assess_bundle(&bundle, policy.as_deref())?;
             output::print(fmt, &report)?;
             exit_if_assessment_fails(&report);
@@ -145,16 +146,13 @@ fn run() -> Result<()> {
                 });
             }
 
-            let status_checks = fetch_required_status_checks(&client, &owner, &repo_name);
-
             // Collect build-provenance attestations for release assets
-            let release_assets = github::release_api::get_release_assets(
-                &client, &owner, &repo_name, &head_tag,
-            )
-            .unwrap_or_else(|err| {
-                eprintln!("Warning: failed to fetch release assets: {err}");
-                vec![]
-            });
+            let release_assets =
+                github::release_api::get_release_assets(&client, &owner, &repo_name, &head_tag)
+                    .unwrap_or_else(|err| {
+                        eprintln!("Warning: failed to fetch release assets: {err}");
+                        vec![]
+                    });
 
             let artifact_attestations = attestation::release::collect_release_attestations(
                 &owner,
@@ -172,7 +170,8 @@ fn run() -> Result<()> {
                 &commit_prs,
                 artifact_attestations,
             );
-            bundle.required_status_checks = status_checks;
+            // Check runs are PR-scoped; not applicable for release verification.
+            bundle.check_runs = EvidenceState::not_applicable();
             let report = assess_bundle(&bundle, policy.as_deref())?;
             output::print(fmt, &report)?;
             exit_if_assessment_fails(&report);
@@ -219,18 +218,27 @@ fn parse_release_arg(
     bail!("tag not found: {head_tag}");
 }
 
-fn fetch_required_status_checks(
+fn fetch_check_runs_evidence(
     client: &GitHubClient,
     owner: &str,
     repo: &str,
-) -> EvidenceState<Vec<String>> {
-    match github::repo_api::get_default_branch(client, owner, repo)
-        .and_then(|branch| github::repo_api::get_branch_protection(client, owner, repo, &branch))
-    {
-        Ok(bp_response) => adapters::github::map_required_status_checks_evidence(&bp_response),
+    git_ref: &str,
+) -> EvidenceState<Vec<gh_verify_core::evidence::CheckRunEvidence>> {
+    let check_runs_result = github::pr_api::get_commit_check_runs(client, owner, repo, git_ref);
+    let combined_status_result = github::pr_api::get_commit_status(client, owner, repo, git_ref);
+
+    match check_runs_result {
+        Ok(cr_response) => {
+            let combined = combined_status_result.ok();
+            let evidence = adapters::github::map_check_runs_evidence(
+                &cr_response.check_runs,
+                combined.as_ref(),
+            );
+            EvidenceState::complete(evidence)
+        }
         Err(e) => EvidenceState::missing(vec![EvidenceGap::CollectionFailed {
             source: "github".to_string(),
-            subject: "branch-protection".to_string(),
+            subject: format!("commits/{git_ref}/check-runs"),
             detail: format!("{e:#}"),
         }]),
     }
@@ -244,9 +252,13 @@ fn assess_bundle(
         Some(name) => {
             let profile = OpaProfile::from_preset_or_file(name)?;
             let controls = gh_verify_core::controls::slsa_foundation_controls();
-            Ok(gh_verify_core::assessment::assess(bundle, &controls, &profile))
+            Ok(gh_verify_core::assessment::assess(
+                bundle, &controls, &profile,
+            ))
         }
-        None => Ok(gh_verify_core::assessment::assess_with_slsa_foundation(bundle)),
+        None => Ok(gh_verify_core::assessment::assess_with_slsa_foundation(
+            bundle,
+        )),
     }
 }
 

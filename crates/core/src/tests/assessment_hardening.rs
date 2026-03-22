@@ -1,8 +1,8 @@
 use super::*;
 use crate::control::ControlStatus;
 use crate::evidence::{
-    ApprovalDecision, ApprovalDisposition, AuthenticityEvidence, ChangeRequestId,
-    EvidenceState, GovernedChange, SourceRevision,
+    ApprovalDecision, ApprovalDisposition, AuthenticityEvidence, ChangeRequestId, EvidenceState,
+    GovernedChange, SourceRevision,
 };
 use crate::profile::GateDecision;
 
@@ -39,14 +39,18 @@ fn assessment_all_pass_scenario() {
 
     let report = assess_with_slsa_foundation(&evidence);
     assert_eq!(report.profile_name, "slsa-foundation");
-    assert!(report
-        .outcomes
-        .iter()
-        .all(|o| o.decision == GateDecision::Pass));
-    assert!(report
-        .findings
-        .iter()
-        .all(|f| f.status == ControlStatus::Satisfied));
+    assert!(
+        report
+            .outcomes
+            .iter()
+            .all(|o| o.decision == GateDecision::Pass)
+    );
+    assert!(
+        report
+            .findings
+            .iter()
+            .all(|f| f.status == ControlStatus::Satisfied)
+    );
 }
 
 #[test]
@@ -55,7 +59,10 @@ fn assessment_empty_evidence() {
     // With empty evidence all controls return NotApplicable, which are filtered out.
     let evidence = EvidenceBundle::default();
     let report = assess_with_slsa_foundation(&evidence);
-    assert!(report.findings.is_empty(), "empty evidence yields no applicable findings");
+    assert!(
+        report.findings.is_empty(),
+        "empty evidence yields no applicable findings"
+    );
     assert_eq!(report.findings.len(), report.outcomes.len());
 }
 

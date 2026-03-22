@@ -180,7 +180,6 @@ mod tests {
         });
         assert_eq!(findings[0].status, ControlStatus::Indeterminate);
     }
-
 }
 
 #[cfg(test)]

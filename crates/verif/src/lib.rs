@@ -105,11 +105,11 @@ pub fn build_provenance_severity(attestation_count: usize, all_verified: bool) -
 
 /// Required status checks severity.
 ///
-/// Pass iff at least one status check is configured.
-#[ensures(check_count >= 1usize ==> result == Severity::Pass)]
-#[ensures(check_count == 0usize ==> result == Severity::Error)]
-pub fn required_status_checks_severity(check_count: usize) -> Severity {
-    if check_count >= 1 {
+/// Pass iff zero check runs have a failing conclusion.
+#[ensures(fail_count == 0usize ==> result == Severity::Pass)]
+#[ensures(fail_count >= 1usize ==> result == Severity::Error)]
+pub fn required_status_checks_severity(fail_count: usize) -> Severity {
+    if fail_count == 0 {
         Severity::Pass
     } else {
         Severity::Error

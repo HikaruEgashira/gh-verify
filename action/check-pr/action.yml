@@ -1,7 +1,7 @@
-name: "ghverify: check-pr"
+name: "ghverify: check-pr (DEPRECATED)"
 description: >
-  Run gh-verify SDLC checks on a pull request and report results.
-  Fails if any rule returns an error-level finding.
+  DEPRECATED: Use HikaruEgashira/gh-verify@v0.4 with command=pr instead.
+  This wrapper exists only for backwards compatibility and will be removed in v0.5.
 
 inputs:
   pr-number:
@@ -12,7 +12,7 @@ inputs:
     required: false
     default: "${{ github.repository }}"
   format:
-    description: "Output format: human or json"
+    description: "Output format: human, json, or sarif"
     required: false
     default: "human"
   policy:
@@ -20,69 +20,37 @@ inputs:
     required: false
     default: ""
   version:
-    description: "gh-verify version to install (e.g. v0.3.0). Empty = latest."
+    description: "gh-verify version to install (e.g. v0.4.0). Empty = latest."
     required: false
     default: ""
 
 outputs:
   result:
-    description: "Overall result: pass, warning, or error"
-    value: ${{ steps.verify.outputs.result }}
+    description: "Overall result: pass, review, or fail"
+    value: ${{ steps.run.outputs.result }}
+  pass-count:
+    description: "Number of controls with pass decision"
+    value: ${{ steps.run.outputs.pass-count }}
+  review-count:
+    description: "Number of controls with review decision"
+    value: ${{ steps.run.outputs.review-count }}
+  fail-count:
+    description: "Number of controls with fail decision"
+    value: ${{ steps.run.outputs.fail-count }}
 
 runs:
   using: "composite"
   steps:
-    - name: Install gh-verify
+    - name: Deprecation notice
       shell: bash
-      env:
-        GH_TOKEN: ${{ github.token }}
-        INPUT_VERSION: ${{ inputs.version }}
-      run: |
-        if gh extension list | grep -q gh-verify; then
-          gh extension upgrade gh-verify
-        else
-          if [ -n "$INPUT_VERSION" ]; then
-            gh extension install HikaruEgashira/gh-verify --pin "$INPUT_VERSION"
-          else
-            gh extension install HikaruEgashira/gh-verify
-          fi
-        fi
+      run: echo "::warning::ghverify/action/check-pr is deprecated. Use HikaruEgashira/gh-verify@v0.4 with command=pr instead."
 
-    - name: Run gh-verify
-      id: verify
-      shell: bash
-      env:
-        GH_TOKEN: ${{ github.token }}
-        INPUT_PR_NUMBER: ${{ inputs.pr-number }}
-        INPUT_REPO: ${{ inputs.repo }}
-        INPUT_FORMAT: ${{ inputs.format }}
-        INPUT_POLICY: ${{ inputs.policy }}
-      run: |
-        set +e
-        if [ -n "$INPUT_POLICY" ]; then
-          OUTPUT=$(gh verify pr "$INPUT_PR_NUMBER" --repo "$INPUT_REPO" --format "$INPUT_FORMAT" --policy "$INPUT_POLICY" 2>&1)
-        else
-          OUTPUT=$(gh verify pr "$INPUT_PR_NUMBER" --repo "$INPUT_REPO" --format "$INPUT_FORMAT" 2>&1)
-        fi
-        EXIT_CODE=$?
-        set -e
-
-        echo "$OUTPUT"
-
-        {
-          echo "## gh-verify: PR #${INPUT_PR_NUMBER}"
-          echo '```'
-          echo "$OUTPUT"
-          echo '```'
-        } >> "$GITHUB_STEP_SUMMARY"
-
-        if [ $EXIT_CODE -eq 0 ]; then
-          if echo "$OUTPUT" | grep -q "warning:"; then
-            echo "result=warning" >> "$GITHUB_OUTPUT"
-          else
-            echo "result=pass" >> "$GITHUB_OUTPUT"
-          fi
-        else
-          echo "result=error" >> "$GITHUB_OUTPUT"
-          exit 1
-        fi
+    - uses: HikaruEgashira/gh-verify@main
+      id: run
+      with:
+        command: pr
+        argument: ${{ inputs.pr-number }}
+        repo: ${{ inputs.repo }}
+        format: ${{ inputs.format }}
+        policy: ${{ inputs.policy }}
+        version: ${{ inputs.version }}

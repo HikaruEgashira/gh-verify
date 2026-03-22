@@ -93,6 +93,28 @@ pub enum EvidenceGap {
     Unsupported { source: String, capability: String },
 }
 
+impl fmt::Display for EvidenceGap {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::CollectionFailed { source, subject, detail } => {
+                write!(f, "collection failed: {source}/{subject}: {detail}")
+            }
+            Self::Truncated { source, subject } => {
+                write!(f, "truncated: {source}/{subject}")
+            }
+            Self::MissingField { source, subject, field } => {
+                write!(f, "missing field: {source}/{subject}.{field}")
+            }
+            Self::DiffUnavailable { subject } => {
+                write!(f, "diff unavailable: {subject}")
+            }
+            Self::Unsupported { source, capability } => {
+                write!(f, "unsupported: {source}/{capability}")
+            }
+        }
+    }
+}
+
 /// Platform-independent identifier for a change request (e.g. a pull request).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ChangeRequestId {
@@ -219,6 +241,32 @@ pub struct ArtifactAttestation {
     pub verification_detail: Option<String>,
 }
 
+/// Conclusion of a CI check run, normalized across platforms.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CheckConclusion {
+    Success,
+    Failure,
+    Neutral,
+    Cancelled,
+    Skipped,
+    TimedOut,
+    ActionRequired,
+    /// The check is still running (no conclusion yet).
+    Pending,
+    /// The platform returned an unrecognized conclusion.
+    Unknown,
+}
+
+/// Evidence for a single CI check run executed against a commit.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CheckRunEvidence {
+    /// Name of the check (e.g. "ci/build", "lint").
+    pub name: String,
+    /// Conclusion of the check run.
+    pub conclusion: CheckConclusion,
+}
+
 /// Top-level container for all evidence collected from adapters.
 ///
 /// Passed to controls for evaluation; should be platform-agnostic.
@@ -230,8 +278,8 @@ pub struct EvidenceBundle {
     pub promotion_batches: Vec<PromotionBatch>,
     /// Build Track: artifact provenance attestations.
     pub artifact_attestations: EvidenceState<Vec<ArtifactAttestation>>,
-    /// Repo policy: required status checks on the default branch.
-    pub required_status_checks: EvidenceState<Vec<String>>,
+    /// CI check runs executed against the PR HEAD commit.
+    pub check_runs: EvidenceState<Vec<CheckRunEvidence>>,
 }
 
 #[cfg(test)]
@@ -259,7 +307,6 @@ mod tests {
         let id = ChangeRequestId::new("github_pr", "owner/repo#42");
         assert_eq!(id.to_string(), "github_pr:owner/repo#42");
     }
-
 }
 
 #[cfg(test)]

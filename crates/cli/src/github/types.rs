@@ -14,6 +14,13 @@ pub struct PrMetadata {
     pub title: String,
     pub body: Option<String>,
     pub user: Option<PrUser>,
+    pub head: PrHead,
+}
+
+/// The head branch/commit info from a PR.
+#[derive(Debug, Clone, Deserialize)]
+pub struct PrHead {
+    pub sha: String,
 }
 
 /// Pull request summary from the list pulls endpoint.
@@ -134,15 +141,33 @@ pub struct PrCommitAuthor {
     pub date: Option<String>,
 }
 
-/// Branch protection response from GitHub API (subset for status checks).
+/// A single check run from the GitHub Check Runs API.
 #[derive(Debug, Clone, Deserialize)]
-pub struct BranchProtectionResponse {
-    pub required_status_checks: Option<RequiredStatusChecksResponse>,
+pub struct CheckRunItem {
+    pub name: String,
+    /// "completed", "in_progress", "queued", etc.
+    pub status: String,
+    /// "success", "failure", "neutral", "cancelled", "skipped", "timed_out", "action_required", or null if not completed.
+    pub conclusion: Option<String>,
 }
 
-/// Required status checks from the branch protection API.
+/// Response from GET /repos/{owner}/{repo}/commits/{ref}/check-runs.
 #[derive(Debug, Clone, Deserialize)]
-pub struct RequiredStatusChecksResponse {
-    pub strict: bool,
-    pub contexts: Vec<String>,
+pub struct CheckRunsResponse {
+    pub total_count: u32,
+    pub check_runs: Vec<CheckRunItem>,
+}
+
+/// Response from GET /repos/{owner}/{repo}/commits/{ref}/status.
+#[derive(Debug, Clone, Deserialize)]
+pub struct CombinedStatusResponse {
+    pub state: String,
+    pub statuses: Vec<CommitStatusItem>,
+}
+
+/// A single status from the combined status API.
+#[derive(Debug, Clone, Deserialize)]
+pub struct CommitStatusItem {
+    pub context: String,
+    pub state: String,
 }

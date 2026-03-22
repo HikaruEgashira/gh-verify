@@ -1,7 +1,9 @@
 use anyhow::{Context, Result};
 
 use super::client::GitHubClient;
-use super::types::{CompareCommit, CompareResponse, PullRequestSummary, Release, ReleaseAsset, Tag};
+use super::types::{
+    CompareCommit, CompareResponse, PullRequestSummary, Release, ReleaseAsset, Tag,
+};
 
 /// Fetch repository tags (reverse chronological).
 pub fn get_tags(client: &GitHubClient, owner: &str, repo: &str) -> Result<Vec<Tag>> {

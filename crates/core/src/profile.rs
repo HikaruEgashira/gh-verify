@@ -1,3 +1,5 @@
+use std::fmt;
+
 use serde::{Deserialize, Serialize};
 
 use crate::control::{ControlFinding, ControlId, ControlStatus};
@@ -24,6 +26,22 @@ pub enum GateDecision {
     Review,
     /// The control is violated; the gate must not pass.
     Fail,
+}
+
+impl GateDecision {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Pass => "pass",
+            Self::Review => "review",
+            Self::Fail => "fail",
+        }
+    }
+}
+
+impl fmt::Display for GateDecision {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
+    }
 }
 
 /// The profile-mapped result for a single control finding.
@@ -263,5 +281,4 @@ mod tests {
         assert_eq!(outcomes[3].decision, GateDecision::Fail);
         assert_eq!(outcomes[3].severity, FindingSeverity::Error);
     }
-
 }

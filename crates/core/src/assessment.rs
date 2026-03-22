@@ -95,7 +95,6 @@ mod tests {
                 && finding.status == ControlStatus::Violated
         }));
     }
-
 }
 
 #[cfg(test)]

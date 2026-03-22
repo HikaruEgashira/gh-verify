@@ -22,7 +22,8 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
-      - uses: ./action/check-pr
+      - uses: ./
         with:
-          pr-number: ${{ github.event.pull_request.number }}
+          command: pr
+          argument: ${{ github.event.pull_request.number }}
           format: json

@@ -6,9 +6,11 @@ use gh_verify_core::evidence::{
     PromotionBatch, SourceRevision, WorkItemRef,
 };
 
+use gh_verify_core::evidence::{CheckConclusion, CheckRunEvidence};
+
 use crate::github::types::{
-    BranchProtectionResponse, CompareCommit, PrCommit, PrFile, PrMetadata, PullRequestSummary,
-    Review,
+    CheckRunItem, CombinedStatusResponse, CompareCommit, PrCommit, PrFile, PrMetadata,
+    PullRequestSummary, Review,
 };
 
 /// Associates a commit SHA with the pull requests that introduced it.
@@ -171,13 +173,58 @@ pub fn map_promotion_batch_evidence(
     }
 }
 
-/// Extracts the required status check contexts from a branch protection response.
-pub fn map_required_status_checks_evidence(
-    response: &BranchProtectionResponse,
-) -> EvidenceState<Vec<String>> {
-    match &response.required_status_checks {
-        Some(checks) => EvidenceState::complete(checks.contexts.clone()),
-        None => EvidenceState::complete(vec![]),
+/// Maps GitHub check run items and combined commit statuses into platform-neutral evidence.
+pub fn map_check_runs_evidence(
+    check_runs: &[CheckRunItem],
+    combined_status: Option<&CombinedStatusResponse>,
+) -> Vec<CheckRunEvidence> {
+    let mut evidence: Vec<CheckRunEvidence> = check_runs
+        .iter()
+        .map(|cr| CheckRunEvidence {
+            name: cr.name.clone(),
+            conclusion: map_check_run_conclusion(cr.status.as_str(), cr.conclusion.as_deref()),
+        })
+        .collect();
+
+    // Merge legacy commit statuses (reported via the Status API, not Check Runs API)
+    if let Some(status_resp) = combined_status {
+        for s in &status_resp.statuses {
+            // Avoid duplicates if a check run already covers this context
+            if evidence.iter().any(|e| e.name == s.context) {
+                continue;
+            }
+            evidence.push(CheckRunEvidence {
+                name: s.context.clone(),
+                conclusion: map_commit_status_state(&s.state),
+            });
+        }
+    }
+
+    evidence
+}
+
+fn map_check_run_conclusion(status: &str, conclusion: Option<&str>) -> CheckConclusion {
+    if status != "completed" {
+        return CheckConclusion::Pending;
+    }
+    match conclusion {
+        Some("success") => CheckConclusion::Success,
+        Some("failure") => CheckConclusion::Failure,
+        Some("neutral") => CheckConclusion::Neutral,
+        Some("cancelled") => CheckConclusion::Cancelled,
+        Some("skipped") => CheckConclusion::Skipped,
+        Some("timed_out") => CheckConclusion::TimedOut,
+        Some("action_required") => CheckConclusion::ActionRequired,
+        _ => CheckConclusion::Unknown,
+    }
+}
+
+fn map_commit_status_state(state: &str) -> CheckConclusion {
+    match state {
+        "success" => CheckConclusion::Success,
+        "failure" | "error" => CheckConclusion::Failure,
+        "pending" => CheckConclusion::Pending,
+        _ => CheckConclusion::Unknown,
     }
 }
 
@@ -227,7 +274,8 @@ fn map_issue_ref_kind(kind: &gh_verify_core::linkage::IssueRefKind) -> &'static 
 mod tests {
     use super::*;
     use crate::github::types::{
-        CommitParent, CommitVerification, CompareCommitInner, PrCommitAuthor, PrCommitInner, PrUser,
+        CommitParent, CommitVerification, CompareCommitInner, PrCommitAuthor, PrCommitInner, PrHead,
+        PrUser,
     };
 
     #[test]
@@ -242,6 +290,7 @@ mod tests {
                 user: Some(PrUser {
                     login: "author".to_string(),
                 }),
+                head: PrHead { sha: "abc123".to_string() },
             },
             &[PrFile {
                 filename: "src/lib.rs".to_string(),
@@ -389,6 +438,7 @@ mod tests {
                 user: Some(PrUser {
                     login: "author".to_string(),
                 }),
+                head: PrHead { sha: "abc123".to_string() },
             },
             &[],
             &[],
@@ -411,6 +461,7 @@ mod tests {
                 user: Some(PrUser {
                     login: "octocat".to_string(),
                 }),
+                head: PrHead { sha: "def456".to_string() },
             },
             &[],
             &[],
@@ -430,6 +481,7 @@ mod tests {
                 title: "feat: anonymous".to_string(),
                 body: None,
                 user: None,
+                head: PrHead { sha: "ghi789".to_string() },
             },
             &[],
             &[],
@@ -441,16 +493,15 @@ mod tests {
 
     #[test]
     fn release_bundle_includes_artifact_attestations() {
-        let attestations = EvidenceState::complete(vec![
-            gh_verify_core::evidence::ArtifactAttestation {
+        let attestations =
+            EvidenceState::complete(vec![gh_verify_core::evidence::ArtifactAttestation {
                 subject: "binary-linux-amd64".to_string(),
                 predicate_type: "https://slsa.dev/provenance/v1".to_string(),
                 signer_workflow: Some(".github/workflows/release.yml".to_string()),
                 source_repo: Some("owner/repo".to_string()),
                 verified: true,
                 verification_detail: None,
-            },
-        ]);
+            }]);
 
         let bundle = build_release_bundle(
             "owner/repo",

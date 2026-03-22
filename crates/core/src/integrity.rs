@@ -62,11 +62,11 @@ pub fn pr_coverage_severity(uncovered_count: usize) -> Severity {
 }
 
 /// Core predicate for required status checks severity.
-/// Pass iff at least one status check is configured.
+/// Pass iff zero check runs have a failing conclusion.
 ///
 /// Verified by Creusot in `gh-verify-verif` crate.
-pub fn required_status_checks_severity(check_count: usize) -> Severity {
-    if check_count >= 1 {
+pub fn required_status_checks_severity(fail_count: usize) -> Severity {
+    if fail_count == 0 {
         Severity::Pass
     } else {
         Severity::Error
@@ -170,12 +170,12 @@ mod tests {
 
     #[test]
     fn required_status_checks_severity_equivalence() {
-        assert_eq!(required_status_checks_severity(0), Severity::Error);
+        assert_eq!(required_status_checks_severity(0), Severity::Pass);
         for count in 1..=10 {
             assert_eq!(
                 required_status_checks_severity(count),
-                Severity::Pass,
-                "required_status_checks_severity({count}) should be Pass"
+                Severity::Error,
+                "required_status_checks_severity({count}) should be Error"
             );
         }
     }

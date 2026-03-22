@@ -710,8 +710,10 @@ fn collect_rules(root: &Path) -> BTreeMap<String, RuleInfo> {
                     Some("source-authenticity")
                 } else if name.contains("provenance") || name.contains("attestation") {
                     Some("build-provenance")
-                } else if name.contains("branch") || name.contains("protection")
-                    || name.contains("dismiss") || name.contains("enforce_admin")
+                } else if name.contains("branch")
+                    || name.contains("protection")
+                    || name.contains("dismiss")
+                    || name.contains("enforce_admin")
                 {
                     Some("branch-protection")
                 } else if name.contains("required_review") {

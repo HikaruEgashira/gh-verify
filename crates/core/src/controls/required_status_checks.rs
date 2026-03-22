@@ -1,7 +1,7 @@
 use crate::control::{Control, ControlFinding, ControlId};
-use crate::evidence::{EvidenceBundle, EvidenceState};
+use crate::evidence::{CheckConclusion, EvidenceBundle, EvidenceState};
 
-/// Verifies that the repository's default branch has at least one required status check.
+/// Verifies that CI check runs on the PR HEAD commit all passed.
 pub struct RequiredStatusChecksControl;
 
 impl Control for RequiredStatusChecksControl {
@@ -12,18 +12,18 @@ impl Control for RequiredStatusChecksControl {
     fn evaluate(&self, evidence: &EvidenceBundle) -> Vec<ControlFinding> {
         let id = self.id();
 
-        let checks = match &evidence.required_status_checks {
+        let runs = match &evidence.check_runs {
             EvidenceState::NotApplicable => {
                 return vec![ControlFinding::not_applicable(
                     id,
-                    "Required status checks evidence is not applicable",
+                    "Check runs evidence is not applicable",
                 )];
             }
             EvidenceState::Missing { gaps } => {
                 return vec![ControlFinding::indeterminate(
                     id,
-                    "Required status checks evidence is unavailable",
-                    vec!["repository".to_string()],
+                    "Check runs evidence is unavailable",
+                    vec!["commit".to_string()],
                     gaps.clone(),
                 )];
             }
@@ -31,101 +31,165 @@ impl Control for RequiredStatusChecksControl {
             EvidenceState::Partial { value, .. } => value,
         };
 
-        if !checks.is_empty() {
+        if runs.is_empty() {
+            return vec![ControlFinding::indeterminate(
+                id,
+                "No check runs found on the HEAD commit",
+                vec!["commit".to_string()],
+                vec![],
+            )];
+        }
+
+        let failed: Vec<&str> = runs
+            .iter()
+            .filter(|r| is_failing_conclusion(&r.conclusion))
+            .map(|r| r.name.as_str())
+            .collect();
+
+        if failed.is_empty() {
             vec![ControlFinding::satisfied(
                 id,
                 format!(
-                    "{} required status check(s) configured: {}",
-                    checks.len(),
-                    checks.join(", ")
+                    "{} check run(s) passed",
+                    runs.len()
                 ),
-                vec!["repository".to_string()],
+                vec!["commit".to_string()],
             )]
         } else {
             vec![ControlFinding::violated(
                 id,
-                "no required status checks configured",
-                vec!["repository".to_string()],
+                format!(
+                    "{} check run(s) failed: {}",
+                    failed.len(),
+                    failed.join(", ")
+                ),
+                vec!["commit".to_string()],
             )]
         }
     }
+}
+
+/// Returns true if the conclusion represents a failing state.
+fn is_failing_conclusion(conclusion: &CheckConclusion) -> bool {
+    matches!(
+        conclusion,
+        CheckConclusion::Failure
+            | CheckConclusion::Cancelled
+            | CheckConclusion::TimedOut
+            | CheckConclusion::ActionRequired
+            | CheckConclusion::Pending
+    )
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::control::ControlStatus;
-    use crate::evidence::EvidenceGap;
+    use crate::evidence::{CheckConclusion, CheckRunEvidence, EvidenceGap};
 
-    fn make_bundle(checks: Vec<String>) -> EvidenceBundle {
+    fn make_bundle(runs: Vec<CheckRunEvidence>) -> EvidenceBundle {
         EvidenceBundle {
-            required_status_checks: EvidenceState::complete(checks),
+            check_runs: EvidenceState::complete(runs),
             ..Default::default()
+        }
+    }
+
+    fn run(name: &str, conclusion: CheckConclusion) -> CheckRunEvidence {
+        CheckRunEvidence {
+            name: name.to_string(),
+            conclusion,
         }
     }
 
     // --- Satisfied ---
 
     #[test]
-    fn one_status_check_configured_is_satisfied() {
-        let findings =
-            RequiredStatusChecksControl.evaluate(&make_bundle(vec!["ci/build".to_string()]));
-        assert_eq!(findings.len(), 1);
-        assert_eq!(findings[0].status, ControlStatus::Satisfied);
-        assert_eq!(findings[0].subjects, vec!["repository"]);
-        assert!(findings[0].rationale.contains("1 required status check(s)"));
-        assert!(findings[0].rationale.contains("ci/build"));
-    }
-
-    #[test]
-    fn multiple_status_checks_configured_is_satisfied() {
+    fn all_checks_success_is_satisfied() {
         let findings = RequiredStatusChecksControl.evaluate(&make_bundle(vec![
-            "ci/build".to_string(),
-            "ci/test".to_string(),
-            "ci/lint".to_string(),
+            run("ci/build", CheckConclusion::Success),
         ]));
         assert_eq!(findings.len(), 1);
         assert_eq!(findings[0].status, ControlStatus::Satisfied);
-        assert!(findings[0].rationale.contains("3 required status check(s)"));
+        assert_eq!(findings[0].subjects, vec!["commit"]);
+        assert!(findings[0].rationale.contains("1 check run(s) passed"));
+    }
+
+    #[test]
+    fn multiple_checks_all_pass_is_satisfied() {
+        let findings = RequiredStatusChecksControl.evaluate(&make_bundle(vec![
+            run("ci/build", CheckConclusion::Success),
+            run("ci/test", CheckConclusion::Success),
+            run("ci/lint", CheckConclusion::Neutral),
+        ]));
+        assert_eq!(findings.len(), 1);
+        assert_eq!(findings[0].status, ControlStatus::Satisfied);
+        assert!(findings[0].rationale.contains("3 check run(s) passed"));
+    }
+
+    #[test]
+    fn skipped_check_is_satisfied() {
+        let findings = RequiredStatusChecksControl.evaluate(&make_bundle(vec![
+            run("ci/build", CheckConclusion::Success),
+            run("ci/optional", CheckConclusion::Skipped),
+        ]));
+        assert_eq!(findings[0].status, ControlStatus::Satisfied);
     }
 
     // --- Violated ---
 
     #[test]
-    fn no_status_checks_configured_is_violated() {
-        let findings = RequiredStatusChecksControl.evaluate(&make_bundle(vec![]));
+    fn one_check_failed_is_violated() {
+        let findings = RequiredStatusChecksControl.evaluate(&make_bundle(vec![
+            run("ci/build", CheckConclusion::Success),
+            run("ci/test", CheckConclusion::Failure),
+        ]));
         assert_eq!(findings.len(), 1);
         assert_eq!(findings[0].status, ControlStatus::Violated);
-        assert!(findings[0]
-            .rationale
-            .contains("no required status checks configured"));
+        assert!(findings[0].rationale.contains("ci/test"));
     }
 
-    // --- NotApplicable ---
+    #[test]
+    fn cancelled_check_is_violated() {
+        let findings = RequiredStatusChecksControl.evaluate(&make_bundle(vec![
+            run("ci/build", CheckConclusion::Cancelled),
+        ]));
+        assert_eq!(findings[0].status, ControlStatus::Violated);
+    }
 
     #[test]
-    fn not_applicable_when_evidence_not_applicable() {
-        let bundle = EvidenceBundle {
-            required_status_checks: EvidenceState::not_applicable(),
-            ..Default::default()
-        };
-        let findings = RequiredStatusChecksControl.evaluate(&bundle);
-        assert_eq!(findings.len(), 1);
-        assert_eq!(findings[0].status, ControlStatus::NotApplicable);
+    fn timed_out_check_is_violated() {
+        let findings = RequiredStatusChecksControl.evaluate(&make_bundle(vec![
+            run("ci/build", CheckConclusion::TimedOut),
+        ]));
+        assert_eq!(findings[0].status, ControlStatus::Violated);
+    }
+
+    #[test]
+    fn pending_check_is_violated() {
+        let findings = RequiredStatusChecksControl.evaluate(&make_bundle(vec![
+            run("ci/deploy", CheckConclusion::Pending),
+        ]));
+        assert_eq!(findings[0].status, ControlStatus::Violated);
     }
 
     // --- Indeterminate ---
 
     #[test]
+    fn no_check_runs_is_indeterminate() {
+        let findings = RequiredStatusChecksControl.evaluate(&make_bundle(vec![]));
+        assert_eq!(findings.len(), 1);
+        assert_eq!(findings[0].status, ControlStatus::Indeterminate);
+        assert!(findings[0].rationale.contains("No check runs found"));
+    }
+
+    #[test]
     fn indeterminate_when_evidence_missing() {
         let bundle = EvidenceBundle {
-            required_status_checks: EvidenceState::missing(vec![
-                EvidenceGap::CollectionFailed {
-                    source: "github".to_string(),
-                    subject: "repository".to_string(),
-                    detail: "403 Forbidden".to_string(),
-                },
-            ]),
+            check_runs: EvidenceState::missing(vec![EvidenceGap::CollectionFailed {
+                source: "github".to_string(),
+                subject: "commit".to_string(),
+                detail: "403 Forbidden".to_string(),
+            }]),
             ..Default::default()
         };
         let findings = RequiredStatusChecksControl.evaluate(&bundle);
@@ -134,16 +198,29 @@ mod tests {
         assert_eq!(findings[0].evidence_gaps.len(), 1);
     }
 
+    // --- NotApplicable ---
+
+    #[test]
+    fn not_applicable_when_evidence_not_applicable() {
+        let bundle = EvidenceBundle {
+            check_runs: EvidenceState::not_applicable(),
+            ..Default::default()
+        };
+        let findings = RequiredStatusChecksControl.evaluate(&bundle);
+        assert_eq!(findings.len(), 1);
+        assert_eq!(findings[0].status, ControlStatus::NotApplicable);
+    }
+
     // --- Edge cases ---
 
     #[test]
     fn partial_evidence_still_evaluates() {
         let bundle = EvidenceBundle {
-            required_status_checks: EvidenceState::partial(
-                vec!["ci/test".to_string()],
-                vec![EvidenceGap::Unsupported {
+            check_runs: EvidenceState::partial(
+                vec![run("ci/test", CheckConclusion::Success)],
+                vec![EvidenceGap::Truncated {
                     source: "github".to_string(),
-                    capability: "check runs".to_string(),
+                    subject: "check_runs".to_string(),
                 }],
             ),
             ..Default::default()

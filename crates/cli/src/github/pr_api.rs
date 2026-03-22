@@ -1,7 +1,10 @@
 use anyhow::{Context, Result};
 
 use super::client::GitHubClient;
-use super::types::{PrCommit, PrFile, PrMetadata, PullRequestListItem, Review};
+use super::types::{
+    CheckRunsResponse, CombinedStatusResponse, PrCommit, PrFile, PrMetadata, PullRequestListItem,
+    Review,
+};
 
 /// Fetch the list of changed files for a PR.
 pub fn get_pr_files(
@@ -66,4 +69,28 @@ pub fn get_pr_commits(
     client.paginate(&format!(
         "/repos/{owner}/{repo}/pulls/{pr_number}/commits?per_page=100"
     ))
+}
+
+/// Fetch check runs for a specific commit ref.
+pub fn get_commit_check_runs(
+    client: &GitHubClient,
+    owner: &str,
+    repo: &str,
+    git_ref: &str,
+) -> Result<CheckRunsResponse> {
+    let path = format!("/repos/{owner}/{repo}/commits/{git_ref}/check-runs?per_page=100");
+    let body = client.get(&path).context("failed to fetch commit check runs")?;
+    serde_json::from_str(&body).context("failed to parse check runs response")
+}
+
+/// Fetch the combined commit status for a specific commit ref.
+pub fn get_commit_status(
+    client: &GitHubClient,
+    owner: &str,
+    repo: &str,
+    git_ref: &str,
+) -> Result<CombinedStatusResponse> {
+    let path = format!("/repos/{owner}/{repo}/commits/{git_ref}/status");
+    let body = client.get(&path).context("failed to fetch commit status")?;
+    serde_json::from_str(&body).context("failed to parse combined status response")
 }

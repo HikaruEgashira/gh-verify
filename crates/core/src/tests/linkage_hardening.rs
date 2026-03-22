@@ -96,7 +96,10 @@ fn keyword_with_extra_spaces() {
 fn jira_exactly_two_letter_prefix_matches() {
     // Kills: alpha_len < 2 → alpha_len < 3
     let refs = extract_issue_references("AB-123 ticket", &[]);
-    assert!(refs.iter().any(|r| r.kind == IssueRefKind::JiraTicket && r.value == "AB-123"));
+    assert!(
+        refs.iter()
+            .any(|r| r.kind == IssueRefKind::JiraTicket && r.value == "AB-123")
+    );
 }
 
 #[test]
@@ -178,16 +181,14 @@ fn url_without_issues_or_browse_not_matched() {
 
 #[test]
 fn url_trailing_comma_stripped() {
-    let refs =
-        extract_issue_references("See https://github.com/o/r/issues/1, for details", &[]);
+    let refs = extract_issue_references("See https://github.com/o/r/issues/1, for details", &[]);
     assert!(has_issue_linkage(&refs));
     assert!(!refs[0].value.ends_with(','));
 }
 
 #[test]
 fn url_trailing_period_stripped() {
-    let refs =
-        extract_issue_references("See https://github.com/o/r/issues/1. Next sentence.", &[]);
+    let refs = extract_issue_references("See https://github.com/o/r/issues/1. Next sentence.", &[]);
     assert!(has_issue_linkage(&refs));
     assert!(!refs[0].value.ends_with('.'));
 }
@@ -201,8 +202,7 @@ fn url_http_also_matched() {
 
 #[test]
 fn url_in_angle_brackets() {
-    let refs =
-        extract_issue_references("Link: <https://github.com/o/r/issues/1> here", &[]);
+    let refs = extract_issue_references("Link: <https://github.com/o/r/issues/1> here", &[]);
     assert!(has_issue_linkage(&refs));
 }
 
@@ -211,10 +211,7 @@ fn url_in_angle_brackets() {
 #[test]
 fn duplicate_references_deduplicated() {
     let refs = extract_issue_references("#42 and also #42", &[]);
-    assert_eq!(
-        refs.iter().filter(|r| r.value == "#42").count(),
-        1,
-    );
+    assert_eq!(refs.iter().filter(|r| r.value == "#42").count(), 1,);
 }
 
 // --- Custom pattern edge cases ---
@@ -222,7 +219,11 @@ fn duplicate_references_deduplicated() {
 #[test]
 fn custom_empty_pattern_no_match() {
     let refs = extract_issue_references("anything here", &[""]);
-    assert!(!refs.iter().any(|r| r.kind == IssueRefKind::Url && r.value.is_empty()));
+    assert!(
+        !refs
+            .iter()
+            .any(|r| r.kind == IssueRefKind::Url && r.value.is_empty())
+    );
 }
 
 #[test]
@@ -239,7 +240,9 @@ fn jira_in_url_suppresses_standalone() {
     let refs = extract_issue_references("https://jira.example.com/browse/PROJ-123", &[]);
     assert!(refs.iter().any(|r| r.kind == IssueRefKind::Url));
     assert!(
-        !refs.iter().any(|r| r.kind == IssueRefKind::JiraTicket && r.value == "PROJ-123"),
+        !refs
+            .iter()
+            .any(|r| r.kind == IssueRefKind::JiraTicket && r.value == "PROJ-123"),
         "PROJ-123 in URL should not also appear as standalone Jira ticket"
     );
 }

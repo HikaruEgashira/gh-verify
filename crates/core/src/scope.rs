@@ -1064,7 +1064,6 @@ mod tests {
         assert!(!is_structural_token("frobnicator"));
         assert!(!is_structural_token("elements"));
     }
-
 }
 
 #[cfg(test)]

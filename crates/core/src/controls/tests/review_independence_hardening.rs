@@ -49,10 +49,7 @@ fn missing_approval_decisions_is_indeterminate() {
     let mut change = make_change();
     change.approval_decisions = EvidenceState::missing(vec![]);
     let finding = evaluate_change(&change);
-    assert_eq!(
-        finding.status,
-        crate::control::ControlStatus::Indeterminate
-    );
+    assert_eq!(finding.status, crate::control::ControlStatus::Indeterminate);
 }
 
 #[test]
@@ -60,10 +57,7 @@ fn missing_source_revisions_is_indeterminate() {
     let mut change = make_change();
     change.source_revisions = EvidenceState::missing(vec![]);
     let finding = evaluate_change(&change);
-    assert_eq!(
-        finding.status,
-        crate::control::ControlStatus::Indeterminate
-    );
+    assert_eq!(finding.status, crate::control::ControlStatus::Indeterminate);
 }
 
 #[test]
@@ -71,10 +65,7 @@ fn missing_submitted_by_is_indeterminate() {
     let mut change = make_change();
     change.submitted_by = None;
     let finding = evaluate_change(&change);
-    assert_eq!(
-        finding.status,
-        crate::control::ControlStatus::Indeterminate
-    );
+    assert_eq!(finding.status, crate::control::ControlStatus::Indeterminate);
 }
 
 #[test]
