@@ -342,19 +342,43 @@ fn parse_tests(path: &Path, root: &Path) -> Vec<TestCase> {
     tests
 }
 
+/// Convert PascalCase to kebab-case (e.g. "ReviewIndependence" → "review-independence").
+fn pascal_to_kebab(s: &str) -> String {
+    let mut result = String::new();
+    for (i, c) in s.chars().enumerate() {
+        if c.is_uppercase() && i > 0 {
+            result.push('-');
+        }
+        result.push(c.to_ascii_lowercase());
+    }
+    result
+}
+
 fn parse_rule_metadata(path: &Path) -> (String, String, String) {
     let text = match fs::read_to_string(path) {
         Ok(t) => t,
         Err(_) => return (String::new(), String::new(), String::new()),
     };
 
+    // Try legacy `const RULE_ID: &str = "..."` first
     let id_re = Regex::new(r#"const RULE_ID:\s*&str\s*=\s*"([^"]+)""#).unwrap();
-    let rule_id = id_re
+    let mut rule_id = id_re
         .captures(&text)
         .map(|c| c[1].to_string())
         .unwrap_or_default();
 
+    // Fall back to ControlId::Variant in `fn id()` impl
+    if rule_id.is_empty() {
+        let control_id_re = Regex::new(r"ControlId::(\w+)").unwrap();
+        // Look for the variant inside a fn id() method
+        if let Some(cap) = control_id_re.captures(&text) {
+            rule_id = pascal_to_kebab(&cap[1]);
+        }
+    }
+
+    // Extract description from `/// doc comment` on the struct (not `//!` module doc)
     let mut doc_lines = Vec::new();
+    // First try `//!` module doc comments
     for line in text.lines() {
         let trimmed = line.trim();
         if trimmed.starts_with("//!") {
@@ -368,14 +392,40 @@ fn parse_rule_metadata(path: &Path) -> (String, String, String) {
             break;
         }
     }
+    // If no module doc, try `///` doc comment above `pub struct`
+    if doc_lines.is_empty() {
+        let struct_re = Regex::new(r"(?m)^pub struct ").unwrap();
+        if let Some(m) = struct_re.find(&text) {
+            let before = &text[..m.start()];
+            for line in before.lines().rev() {
+                let trimmed = line.trim();
+                if trimmed.starts_with("///") {
+                    let content = trimmed.strip_prefix("///").unwrap().trim();
+                    if !content.is_empty() {
+                        doc_lines.push(content.to_string());
+                    }
+                } else if trimmed.is_empty() {
+                    if !doc_lines.is_empty() {
+                        break;
+                    }
+                } else {
+                    break;
+                }
+            }
+            doc_lines.reverse();
+        }
+    }
     let description = doc_lines.join(" ");
 
+    // Detect context: check for evidence patterns used in evaluate()
     let context = if text.contains("RuleContext::Pr") && text.contains("RuleContext::Release") {
         "PR + Release".to_string()
     } else if text.contains("RuleContext::Pr") {
         "PR".to_string()
     } else if text.contains("RuleContext::Release") {
         "Release".to_string()
+    } else if text.contains("EvidenceBundle") {
+        "PR".to_string()
     } else {
         "Unknown".to_string()
     };
@@ -400,12 +450,13 @@ fn build_module_rule_maps(
     let mut module_to_rules: BTreeMap<String, Vec<String>> = BTreeMap::new();
     let mut fn_to_rules: BTreeMap<String, Vec<String>> = BTreeMap::new();
 
-    let rule_id_re = Regex::new(r#"const RULE_ID:\s*&str\s*=\s*"([^"]+)""#).unwrap();
+    let legacy_rule_id_re = Regex::new(r#"const RULE_ID:\s*&str\s*=\s*"([^"]+)""#).unwrap();
+    let control_id_re = Regex::new(r"ControlId::(\w+)").unwrap();
     let use_re = Regex::new(r"use (?:gh_verify_core|crate)::(\w+)").unwrap();
     let fn_call_re = Regex::new(r"\b([a-z_]\w+)\s*\(").unwrap();
 
     let dirs = [
-        root.join("crates/cli/src/rules"),
+        root.join("crates/core/src/controls"),
         root.join("crates/core/src"),
     ];
 
@@ -415,9 +466,13 @@ fn build_module_rule_maps(
                 Ok(t) => t,
                 Err(_) => continue,
             };
-            let rule_id = match rule_id_re.captures(&text) {
-                Some(cap) => cap[1].to_string(),
-                None => continue,
+            // Try legacy const RULE_ID first, then ControlId::Variant
+            let rule_id = if let Some(cap) = legacy_rule_id_re.captures(&text) {
+                cap[1].to_string()
+            } else if let Some(cap) = control_id_re.captures(&text) {
+                pascal_to_kebab(&cap[1])
+            } else {
+                continue;
             };
 
             for cap in use_re.captures_iter(&text) {
@@ -465,10 +520,23 @@ fn infer_rule_ids_from_file(
         Err(_) => return vec![],
     };
 
-    // Direct: file has RULE_ID
+    // Direct: file has RULE_ID constant
     let id_re = Regex::new(r#"const RULE_ID:\s*&str\s*=\s*"([^"]+)""#).unwrap();
     if let Some(cap) = id_re.captures(&text) {
         return vec![cap[1].to_string()];
+    }
+
+    // Direct: file uses ControlId::Variant
+    let control_id_re = Regex::new(r"ControlId::(\w+)").unwrap();
+    let control_ids: Vec<String> = control_id_re
+        .captures_iter(&text)
+        .map(|cap| pascal_to_kebab(&cap[1]))
+        .collect::<std::collections::BTreeSet<_>>()
+        .into_iter()
+        .filter(|id| rules.contains_key(id))
+        .collect();
+    if control_ids.len() == 1 {
+        return control_ids;
     }
 
     // Indirect: the file's stem matches a core module mapped to rule(s).
@@ -525,9 +593,9 @@ fn walkdir(dir: &Path) -> Vec<PathBuf> {
 fn collect_rules(root: &Path) -> BTreeMap<String, RuleInfo> {
     let mut rules = BTreeMap::new();
 
-    // 1. Auto-discover all rules from cli/src/rules/*.rs and core/src/*.rs
+    // 1. Auto-discover all controls from core/src/controls/*.rs and core/src/*.rs
     let rule_dirs = [
-        root.join("crates/cli/src/rules"),
+        root.join("crates/core/src/controls"),
         root.join("crates/core/src"),
     ];
 
@@ -636,22 +704,24 @@ fn collect_rules(root: &Path) -> BTreeMap<String, RuleInfo> {
             // Strategy 5: keyword-based heuristic for verif lemmas
             if !matched {
                 let name = &spec.fn_name;
-                let inferred = if name.contains("four_eyes")
-                    || name.contains("approver")
-                    || name.contains("signature")
-                    || name.contains("coverage")
+                let inferred = if name.contains("approver") || name.contains("independent") {
+                    Some("review-independence")
+                } else if name.contains("signature") || name.contains("unsigned") {
+                    Some("source-authenticity")
+                } else if name.contains("provenance") || name.contains("attestation") {
+                    Some("build-provenance")
+                } else if name.contains("branch") || name.contains("protection")
+                    || name.contains("dismiss") || name.contains("enforce_admin")
                 {
-                    Some("verify-release-integrity")
-                } else if name.contains("compliance") || name.contains("conventional") {
-                    Some("verify-conventional-commit")
-                } else if name.contains("branch") || name.contains("admin_merge") {
-                    Some("verify-branch-protection")
-                } else if name.contains("linkage") {
-                    Some("verify-issue-linkage")
-                } else if name.contains("stale") || name.contains("approval") {
-                    Some("detect-stale-approval")
-                } else if name.contains("scope") {
-                    Some("detect-unscoped-change")
+                    Some("branch-protection")
+                } else if name.contains("required_review") {
+                    Some("required-reviewers")
+                } else if name.contains("coverage") || name.contains("uncovered") {
+                    Some("source-authenticity")
+                } else if name.contains("scope") || name.contains("classify") {
+                    // classify_scope is used by controls but doesn't map to a single one;
+                    // skip rather than guess
+                    None
                 } else {
                     None
                 };
