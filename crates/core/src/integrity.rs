@@ -58,7 +58,7 @@ pub fn required_status_checks_severity(fail_count: usize) -> Severity {
 }
 
 /// Core predicate for branch history integrity severity (Source L2).
-/// Zero unprotected branches -> Pass, any unprotected -> Error.
+/// Zero merge commits (linear history) -> Pass, any merge commits -> Error.
 ///
 /// Verified by Creusot in `gh-verify-verif` crate.
 pub fn branch_history_severity(unprotected_count: usize) -> Severity {
@@ -69,8 +69,8 @@ pub fn branch_history_severity(unprotected_count: usize) -> Severity {
     }
 }
 
-/// Core predicate for branch protection enforcement severity (Source L3).
-/// Zero non-enforced rules -> Pass, any non-enforced -> Error.
+/// Core predicate for technical enforcement severity (Source L3).
+/// Zero violations (CI passed + independent review) -> Pass, any violations -> Error.
 ///
 /// Verified by Creusot in `gh-verify-verif` crate.
 pub fn branch_protection_enforcement_severity(non_enforced_count: usize) -> Severity {

@@ -516,6 +516,101 @@ end_of_record
         assert!((analysis.overall_pct - 0.0).abs() < f64::EPSILON);
     }
 
+    // --- Mutant-killing tests ---
+    //
+    // Each test below targets a specific surviving mutant. The test name
+    // encodes the line, operator substitution, and function under test.
+
+    /// Kills L90: `replace < with >` in parse_lcov.
+    /// Original: `if parts.len() < 2` rejects DA lines with fewer than 2 fields.
+    /// Mutant (`>`): would reject DA lines with MORE than 2 fields (e.g. with checksum),
+    /// while accepting single-field DA lines. This test provides DA with a checksum
+    /// (3 fields) which must succeed, AND single-field DA which must fail.
+    #[test]
+    fn parse_lcov_da_with_checksum_accepted() {
+        // DA with 3 fields (checksum) must parse successfully
+        let content = "SF:/src/a.rs\nDA:1,5,abc123\nLF:1\nLH:1\nend_of_record\n";
+        let report = parse_lcov(content).unwrap();
+        assert_eq!(report.files[0].lines[&1], 5);
+    }
+
+    #[test]
+    fn parse_lcov_da_single_field_rejected() {
+        // DA with only 1 field must be rejected
+        let content = "SF:/src/a.rs\nDA:1\nend_of_record\n";
+        assert!(parse_lcov(content).is_err());
+    }
+
+    /// Kills L97: `replace + with *` and `replace + with -` in parse_lcov.
+    /// Original: error line_number is `idx + 1` (1-indexed).
+    /// Mutant `*`: line_number = idx * 1 = idx (0-indexed, off by one).
+    /// Mutant `-`: line_number = idx - 1 (off by two).
+    /// We place the bad DA on the first line (idx=0) so `0+1=1`, `0*1=0`, `0-1` wraps.
+    /// Also test at idx=2 where `2+1=3`, `2*1=2`, `2-1=1` all differ.
+    #[test]
+    fn parse_lcov_error_line_number_for_bad_line_no() {
+        // Bad line number parse at line 3 of content (idx=2)
+        let content = "SF:/src/a.rs\nDA:1,1\nDA:xyz,1\nend_of_record\n";
+        let err = parse_lcov(content).unwrap_err();
+        match err {
+            ParseError::MalformedLine { line_number, .. } => {
+                assert_eq!(line_number, 3, "error must report 1-indexed line number");
+            }
+        }
+    }
+
+    /// Kills L101: `replace + with *` and `replace + with -` in parse_lcov.
+    /// Same as above but for the execution_count parse failure path.
+    /// The line_number field parses fine, but the count field is invalid.
+    #[test]
+    fn parse_lcov_error_line_number_for_bad_count() {
+        // Line number parses OK, but count is invalid. Error on content line 3 (idx=2).
+        let content = "SF:/src/a.rs\nDA:1,1\nDA:2,xyz\nend_of_record\n";
+        let err = parse_lcov(content).unwrap_err();
+        match err {
+            ParseError::MalformedLine { line_number, .. } => {
+                assert_eq!(line_number, 3, "error must report 1-indexed line number");
+            }
+        }
+    }
+
+    /// Kills L142: `replace != with ==` in extract_changed_lines.
+    /// Original: `.find(|c: char| !c.is_ascii_digit() && c != ',')`
+    /// stops at any non-digit-non-comma (e.g., space or `@`).
+    /// Mutant (`==`): `.find(|c: char| !c.is_ascii_digit() && c == ',')`
+    /// only stops at comma; for a hunk header WITHOUT comma like `+5 @@`,
+    /// the mutant scans past the space/@ and returns `unwrap_or(len)`,
+    /// yielding `range_str = "5 @@"` which fails to parse, defaulting to 0.
+    #[test]
+    fn extract_changed_lines_hunk_without_comma() {
+        // Hunk header `+5 @@` has no comma — single-line hunk
+        let patch = "@@ -1,1 +5 @@\n+new_line\n";
+        let lines = extract_changed_lines(patch);
+        assert_eq!(lines, vec![5], "single-line hunk start must parse correctly");
+    }
+
+    /// Kills L216: `replace > with ==` in analyze_coverage.
+    /// Original: `if changed_count > 0 { compute pct } else { 100.0 }`
+    /// Mutant (`==`): `if changed_count == 0 { compute pct } else { 100.0 }`
+    /// When changed_count > 0, mutant returns 100.0 instead of real pct.
+    /// When changed_count == 0, mutant tries to divide by zero (0/0 => NaN or 100.0).
+    /// The existing partial-coverage test (66.67%) already checks pct but let's
+    /// add a targeted test with exactly 1 changed line covered=0 for clarity.
+    #[test]
+    fn analyze_coverage_nonzero_changed_computes_pct() {
+        // 1 changed line, 0 covered => pct must be 0.0, not 100.0
+        let report = parse_lcov(&make_lcov("src/a.rs", &[(1, 0)])).unwrap();
+        let changed = vec![("src/a.rs".to_string(), vec![1])];
+        let analysis = analyze_coverage(&report, &changed);
+        assert_eq!(analysis.files[0].changed_lines, 1);
+        assert_eq!(analysis.files[0].covered_lines, 0);
+        assert!(
+            analysis.files[0].coverage_pct < 1.0,
+            "coverage_pct must be 0.0 when no lines are covered, got {}",
+            analysis.files[0].coverage_pct
+        );
+    }
+
     // --- classify_coverage_severity ---
 
     /// WHY: Biconditional test — verifies forward implication AND contrapositive

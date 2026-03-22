@@ -287,31 +287,6 @@ pub struct CheckRunEvidence {
     pub conclusion: CheckConclusion,
 }
 
-/// Branch protection rule evidence for Source Track L2+.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct BranchProtectionEvidence {
-    /// The protected branch pattern (e.g. "main", "release/*").
-    pub branch_pattern: String,
-    /// Whether force-pushes are blocked.
-    pub force_push_blocked: bool,
-    /// Whether branch deletion is blocked.
-    pub deletion_blocked: bool,
-    /// Minimum number of required approving reviews (0 = not required).
-    pub required_approving_review_count: u32,
-    /// Whether dismissed stale reviews on new pushes.
-    pub dismiss_stale_reviews: bool,
-    /// Whether code owner reviews are required.
-    pub require_code_owner_reviews: bool,
-    /// Whether linear history (no merge commits) is required.
-    pub require_linear_history: bool,
-    /// Whether signed commits are required.
-    pub require_signed_commits: bool,
-    /// Names of required status checks.
-    pub required_status_checks: Vec<String>,
-    /// Whether the branch protection rule is enforced for admins.
-    pub enforce_admins: bool,
-}
-
 /// Build platform evidence for Build Track L2+.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct BuildPlatformEvidence {
@@ -338,8 +313,6 @@ pub struct EvidenceBundle {
     pub change_requests: Vec<GovernedChange>,
     /// Source Track: release promotion batches.
     pub promotion_batches: Vec<PromotionBatch>,
-    /// Source Track L2+: branch protection rules.
-    pub branch_protection: EvidenceState<Vec<BranchProtectionEvidence>>,
     /// Build Track: artifact provenance attestations.
     pub artifact_attestations: EvidenceState<Vec<ArtifactAttestation>>,
     /// CI check runs executed against the PR HEAD commit.

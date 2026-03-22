@@ -1,10 +1,17 @@
 use crate::control::{Control, ControlFinding, ControlId};
-use crate::evidence::{BranchProtectionEvidence, EvidenceBundle, EvidenceState};
-use crate::integrity::branch_protection_enforcement_severity;
+use crate::evidence::{
+    ApprovalDisposition, CheckConclusion, EvidenceBundle, EvidenceState, GovernedChange,
+};
+use crate::integrity::{branch_protection_enforcement_severity, is_approver_independent};
 use crate::verdict::Severity;
 
-/// Source L3: Verifies that continuous technical controls are enforced on
-/// protected branches (required reviews, status checks, admin enforcement).
+/// Source L3: Verifies that continuous technical controls were actually enforced
+/// by checking factual evidence: all CI checks passed AND an independent review
+/// approved the change.
+///
+/// Instead of checking branch protection API settings (which require admin permissions),
+/// this control examines whether the enforcement actually happened.
+/// See ADR-0002 for rationale.
 pub struct BranchProtectionEnforcementControl;
 
 impl Control for BranchProtectionEnforcementControl {
@@ -15,134 +22,296 @@ impl Control for BranchProtectionEnforcementControl {
     fn evaluate(&self, evidence: &EvidenceBundle) -> Vec<ControlFinding> {
         let id = self.id();
 
-        match &evidence.branch_protection {
-            EvidenceState::NotApplicable => {
-                vec![ControlFinding::not_applicable(
-                    id,
-                    "Branch protection evidence does not apply to this context",
-                )]
-            }
-            EvidenceState::Missing { gaps } => {
-                vec![ControlFinding::indeterminate(
-                    id,
-                    "Branch protection evidence could not be collected",
-                    Vec::new(),
-                    gaps.clone(),
-                )]
-            }
-            EvidenceState::Complete { value } | EvidenceState::Partial { value, .. } => {
-                if value.is_empty() {
-                    return vec![ControlFinding::not_applicable(
-                        id,
-                        "No branch protection rules were present",
-                    )];
-                }
+        if evidence.change_requests.is_empty() {
+            return vec![ControlFinding::not_applicable(
+                id,
+                "No governed changes were supplied",
+            )];
+        }
 
-                let subjects: Vec<String> =
-                    value.iter().map(|r| r.branch_pattern.clone()).collect();
+        evidence
+            .change_requests
+            .iter()
+            .map(|cr| evaluate_change(id, cr, &evidence.check_runs))
+            .collect()
+    }
+}
 
-                let violations: Vec<String> =
-                    value.iter().filter_map(describe_enforcement_gap).collect();
+fn evaluate_change(
+    id: ControlId,
+    change: &GovernedChange,
+    check_runs: &EvidenceState<Vec<crate::evidence::CheckRunEvidence>>,
+) -> ControlFinding {
+    let subject = change.id.to_string();
+    let mut violations = Vec::new();
 
-                match branch_protection_enforcement_severity(violations.len()) {
-                    Severity::Pass => vec![ControlFinding::satisfied(
-                        id,
-                        format!(
-                            "All {} branch protection rule(s) enforce reviews, status checks, and admin restrictions",
-                            value.len()
-                        ),
-                        subjects,
-                    )],
-                    _ => vec![ControlFinding::violated(
-                        id,
-                        format!("Enforcement gaps: {}", violations.join("; ")),
-                        subjects,
-                    )],
+    // Check 1: CI checks all passed
+    match check_runs {
+        EvidenceState::NotApplicable => {}
+        EvidenceState::Missing { gaps } => {
+            return ControlFinding::indeterminate(
+                id,
+                "Check runs evidence could not be collected",
+                vec![subject],
+                gaps.clone(),
+            );
+        }
+        EvidenceState::Complete { value } | EvidenceState::Partial { value, .. } => {
+            if value.is_empty() {
+                violations.push("no CI checks were executed".to_string());
+            } else {
+                let failed: Vec<&str> = value
+                    .iter()
+                    .filter(|r| is_failing_conclusion(&r.conclusion))
+                    .map(|r| r.name.as_str())
+                    .collect();
+                if !failed.is_empty() {
+                    violations.push(format!("CI check(s) failed: {}", failed.join(", ")));
                 }
             }
         }
     }
+
+    // Check 2: Independent review approval exists
+    match &change.approval_decisions {
+        EvidenceState::Missing { gaps } => {
+            return ControlFinding::indeterminate(
+                id,
+                "Approval evidence could not be collected",
+                vec![subject],
+                gaps.clone(),
+            );
+        }
+        EvidenceState::NotApplicable => {}
+        EvidenceState::Complete { value } | EvidenceState::Partial { value, .. } => {
+            let authors: Vec<&str> = change
+                .source_revisions
+                .value()
+                .map(|revs| {
+                    revs.iter()
+                        .filter_map(|r| r.authored_by.as_deref())
+                        .collect()
+                })
+                .unwrap_or_default();
+
+            let requester = change.submitted_by.as_deref().unwrap_or("");
+
+            let has_independent = value.iter().any(|a| {
+                if a.disposition != ApprovalDisposition::Approved {
+                    return false;
+                }
+                let is_commit_author = authors.contains(&a.actor.as_str());
+                let is_pr_author = a.actor == requester;
+                is_approver_independent(is_commit_author, is_pr_author)
+            });
+
+            if !has_independent {
+                violations.push("no independent review approval found".to_string());
+            }
+        }
+    }
+
+    match branch_protection_enforcement_severity(violations.len()) {
+        Severity::Pass => ControlFinding::satisfied(
+            id,
+            "Technical controls were enforced: CI checks passed and independent review approved",
+            vec![subject],
+        ),
+        _ => ControlFinding::violated(
+            id,
+            format!("Enforcement gaps: {}", violations.join("; ")),
+            vec![subject],
+        ),
+    }
 }
 
-/// Returns a human-readable description of enforcement gaps for a single rule,
-/// or `None` if the rule is fully enforced.
-fn describe_enforcement_gap(rule: &BranchProtectionEvidence) -> Option<String> {
-    let mut gaps = Vec::new();
-
-    if rule.required_approving_review_count < 1 {
-        gaps.push("no required reviews");
-    }
-    if rule.required_status_checks.is_empty() {
-        gaps.push("no required status checks");
-    }
-    if !rule.enforce_admins {
-        gaps.push("admin enforcement disabled");
-    }
-
-    if gaps.is_empty() {
-        None
-    } else {
-        Some(format!("{}: {}", rule.branch_pattern, gaps.join(", ")))
-    }
+fn is_failing_conclusion(conclusion: &CheckConclusion) -> bool {
+    matches!(
+        conclusion,
+        CheckConclusion::Failure
+            | CheckConclusion::Cancelled
+            | CheckConclusion::TimedOut
+            | CheckConclusion::ActionRequired
+            | CheckConclusion::Pending
+    )
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::control::ControlStatus;
-    use crate::evidence::EvidenceGap;
+    use crate::evidence::{
+        ApprovalDecision, AuthenticityEvidence, ChangeRequestId, CheckRunEvidence, EvidenceGap,
+        SourceRevision,
+    };
 
-    fn make_enforced_rule(pattern: &str) -> BranchProtectionEvidence {
-        BranchProtectionEvidence {
-            branch_pattern: pattern.to_string(),
-            force_push_blocked: true,
-            deletion_blocked: true,
-            required_approving_review_count: 1,
-            dismiss_stale_reviews: true,
-            require_code_owner_reviews: false,
-            require_linear_history: false,
-            require_signed_commits: false,
-            required_status_checks: vec!["ci/build".to_string()],
-            enforce_admins: true,
+    fn make_change(
+        approvals: EvidenceState<Vec<ApprovalDecision>>,
+        revisions: EvidenceState<Vec<SourceRevision>>,
+    ) -> GovernedChange {
+        GovernedChange {
+            id: ChangeRequestId::new("github_pr", "owner/repo#1"),
+            title: "feat: test".to_string(),
+            summary: None,
+            submitted_by: Some("author".to_string()),
+            changed_assets: EvidenceState::complete(vec![]),
+            approval_decisions: approvals,
+            source_revisions: revisions,
+            work_item_refs: EvidenceState::complete(vec![]),
         }
     }
 
-    fn make_unenforced_rule(pattern: &str) -> BranchProtectionEvidence {
-        BranchProtectionEvidence {
-            branch_pattern: pattern.to_string(),
-            force_push_blocked: true,
-            deletion_blocked: true,
-            required_approving_review_count: 0,
-            dismiss_stale_reviews: false,
-            require_code_owner_reviews: false,
-            require_linear_history: false,
-            require_signed_commits: false,
-            required_status_checks: vec![],
-            enforce_admins: false,
-        }
+    fn make_approved_change() -> GovernedChange {
+        make_change(
+            EvidenceState::complete(vec![ApprovalDecision {
+                actor: "reviewer".to_string(),
+                disposition: ApprovalDisposition::Approved,
+                submitted_at: Some("2026-03-15T00:00:00Z".to_string()),
+            }]),
+            EvidenceState::complete(vec![SourceRevision {
+                id: "abc123".to_string(),
+                authored_by: Some("author".to_string()),
+                committed_at: Some("2026-03-14T00:00:00Z".to_string()),
+                merge: false,
+                authenticity: EvidenceState::complete(AuthenticityEvidence::new(
+                    true,
+                    Some("gpg".to_string()),
+                )),
+            }]),
+        )
+    }
+
+    fn passing_checks() -> EvidenceState<Vec<CheckRunEvidence>> {
+        EvidenceState::complete(vec![
+            CheckRunEvidence {
+                name: "ci/build".to_string(),
+                conclusion: CheckConclusion::Success,
+            },
+            CheckRunEvidence {
+                name: "ci/test".to_string(),
+                conclusion: CheckConclusion::Success,
+            },
+        ])
+    }
+
+    fn failing_checks() -> EvidenceState<Vec<CheckRunEvidence>> {
+        EvidenceState::complete(vec![
+            CheckRunEvidence {
+                name: "ci/build".to_string(),
+                conclusion: CheckConclusion::Success,
+            },
+            CheckRunEvidence {
+                name: "ci/test".to_string(),
+                conclusion: CheckConclusion::Failure,
+            },
+        ])
     }
 
     #[test]
-    fn not_applicable_when_evidence_not_applicable() {
+    fn not_applicable_when_no_changes() {
         let evidence = EvidenceBundle {
-            branch_protection: EvidenceState::not_applicable(),
+            check_runs: passing_checks(),
             ..Default::default()
         };
         let findings = BranchProtectionEnforcementControl.evaluate(&evidence);
         assert_eq!(findings.len(), 1);
         assert_eq!(findings[0].status, ControlStatus::NotApplicable);
-        assert_eq!(
-            findings[0].control_id,
-            ControlId::BranchProtectionEnforcement
+    }
+
+    #[test]
+    fn satisfied_when_checks_pass_and_independent_review() {
+        let evidence = EvidenceBundle {
+            change_requests: vec![make_approved_change()],
+            check_runs: passing_checks(),
+            ..Default::default()
+        };
+        let findings = BranchProtectionEnforcementControl.evaluate(&evidence);
+        assert_eq!(findings.len(), 1);
+        assert_eq!(findings[0].status, ControlStatus::Satisfied);
+        assert!(
+            findings[0]
+                .rationale
+                .contains("Technical controls were enforced")
         );
     }
 
     #[test]
-    fn indeterminate_when_evidence_missing() {
+    fn violated_when_checks_fail() {
         let evidence = EvidenceBundle {
-            branch_protection: EvidenceState::missing(vec![EvidenceGap::CollectionFailed {
+            change_requests: vec![make_approved_change()],
+            check_runs: failing_checks(),
+            ..Default::default()
+        };
+        let findings = BranchProtectionEnforcementControl.evaluate(&evidence);
+        assert_eq!(findings.len(), 1);
+        assert_eq!(findings[0].status, ControlStatus::Violated);
+        assert!(findings[0].rationale.contains("CI check(s) failed"));
+    }
+
+    #[test]
+    fn violated_when_no_independent_review() {
+        let change = make_change(
+            EvidenceState::complete(vec![ApprovalDecision {
+                actor: "author".to_string(), // self-approval
+                disposition: ApprovalDisposition::Approved,
+                submitted_at: None,
+            }]),
+            EvidenceState::complete(vec![SourceRevision {
+                id: "abc123".to_string(),
+                authored_by: Some("author".to_string()),
+                committed_at: None,
+                merge: false,
+                authenticity: EvidenceState::not_applicable(),
+            }]),
+        );
+        let evidence = EvidenceBundle {
+            change_requests: vec![change],
+            check_runs: passing_checks(),
+            ..Default::default()
+        };
+        let findings = BranchProtectionEnforcementControl.evaluate(&evidence);
+        assert_eq!(findings.len(), 1);
+        assert_eq!(findings[0].status, ControlStatus::Violated);
+        assert!(findings[0].rationale.contains("no independent review"));
+    }
+
+    #[test]
+    fn violated_when_no_checks_executed() {
+        let evidence = EvidenceBundle {
+            change_requests: vec![make_approved_change()],
+            check_runs: EvidenceState::complete(vec![]),
+            ..Default::default()
+        };
+        let findings = BranchProtectionEnforcementControl.evaluate(&evidence);
+        assert_eq!(findings.len(), 1);
+        assert_eq!(findings[0].status, ControlStatus::Violated);
+        assert!(findings[0].rationale.contains("no CI checks were executed"));
+    }
+
+    #[test]
+    fn violated_reports_both_gaps() {
+        let change = make_change(
+            EvidenceState::complete(vec![]), // no approvals
+            EvidenceState::complete(vec![]),
+        );
+        let evidence = EvidenceBundle {
+            change_requests: vec![change],
+            check_runs: EvidenceState::complete(vec![]), // no checks
+            ..Default::default()
+        };
+        let findings = BranchProtectionEnforcementControl.evaluate(&evidence);
+        assert_eq!(findings[0].status, ControlStatus::Violated);
+        assert!(findings[0].rationale.contains("no CI checks"));
+        assert!(findings[0].rationale.contains("no independent review"));
+    }
+
+    #[test]
+    fn indeterminate_when_check_runs_missing() {
+        let evidence = EvidenceBundle {
+            change_requests: vec![make_approved_change()],
+            check_runs: EvidenceState::missing(vec![EvidenceGap::CollectionFailed {
                 source: "github".to_string(),
-                subject: "branch-protection".to_string(),
+                subject: "check-runs".to_string(),
                 detail: "API returned 403".to_string(),
             }]),
             ..Default::default()
@@ -150,103 +319,26 @@ mod tests {
         let findings = BranchProtectionEnforcementControl.evaluate(&evidence);
         assert_eq!(findings.len(), 1);
         assert_eq!(findings[0].status, ControlStatus::Indeterminate);
-        assert_eq!(findings[0].evidence_gaps.len(), 1);
     }
 
     #[test]
-    fn satisfied_when_all_rules_fully_enforced() {
+    fn indeterminate_when_approvals_missing() {
+        let change = make_change(
+            EvidenceState::missing(vec![EvidenceGap::CollectionFailed {
+                source: "github".to_string(),
+                subject: "reviews".to_string(),
+                detail: "API returned 403".to_string(),
+            }]),
+            EvidenceState::complete(vec![]),
+        );
         let evidence = EvidenceBundle {
-            branch_protection: EvidenceState::complete(vec![
-                make_enforced_rule("main"),
-                make_enforced_rule("release/*"),
-            ]),
+            change_requests: vec![change],
+            check_runs: passing_checks(),
             ..Default::default()
         };
         let findings = BranchProtectionEnforcementControl.evaluate(&evidence);
         assert_eq!(findings.len(), 1);
-        assert_eq!(findings[0].status, ControlStatus::Satisfied);
-        assert_eq!(findings[0].subjects.len(), 2);
-    }
-
-    #[test]
-    fn violated_when_no_required_reviews() {
-        let mut rule = make_enforced_rule("main");
-        rule.required_approving_review_count = 0;
-        let evidence = EvidenceBundle {
-            branch_protection: EvidenceState::complete(vec![rule]),
-            ..Default::default()
-        };
-        let findings = BranchProtectionEnforcementControl.evaluate(&evidence);
-        assert_eq!(findings.len(), 1);
-        assert_eq!(findings[0].status, ControlStatus::Violated);
-        assert!(findings[0].rationale.contains("no required reviews"));
-    }
-
-    #[test]
-    fn violated_when_no_status_checks() {
-        let mut rule = make_enforced_rule("main");
-        rule.required_status_checks = vec![];
-        let evidence = EvidenceBundle {
-            branch_protection: EvidenceState::complete(vec![rule]),
-            ..Default::default()
-        };
-        let findings = BranchProtectionEnforcementControl.evaluate(&evidence);
-        assert_eq!(findings.len(), 1);
-        assert_eq!(findings[0].status, ControlStatus::Violated);
-        assert!(findings[0].rationale.contains("no required status checks"));
-    }
-
-    #[test]
-    fn violated_when_admin_enforcement_disabled() {
-        let mut rule = make_enforced_rule("main");
-        rule.enforce_admins = false;
-        let evidence = EvidenceBundle {
-            branch_protection: EvidenceState::complete(vec![rule]),
-            ..Default::default()
-        };
-        let findings = BranchProtectionEnforcementControl.evaluate(&evidence);
-        assert_eq!(findings.len(), 1);
-        assert_eq!(findings[0].status, ControlStatus::Violated);
-        assert!(findings[0].rationale.contains("admin enforcement disabled"));
-    }
-
-    #[test]
-    fn violated_reports_all_gaps_for_unenforced_rule() {
-        let evidence = EvidenceBundle {
-            branch_protection: EvidenceState::complete(vec![make_unenforced_rule("main")]),
-            ..Default::default()
-        };
-        let findings = BranchProtectionEnforcementControl.evaluate(&evidence);
-        assert_eq!(findings[0].status, ControlStatus::Violated);
-        let rationale = &findings[0].rationale;
-        assert!(rationale.contains("no required reviews"));
-        assert!(rationale.contains("no required status checks"));
-        assert!(rationale.contains("admin enforcement disabled"));
-    }
-
-    #[test]
-    fn not_applicable_when_rule_list_empty() {
-        let evidence = EvidenceBundle {
-            branch_protection: EvidenceState::complete(vec![]),
-            ..Default::default()
-        };
-        let findings = BranchProtectionEnforcementControl.evaluate(&evidence);
-        assert_eq!(findings.len(), 1);
-        assert_eq!(findings[0].status, ControlStatus::NotApplicable);
-    }
-
-    #[test]
-    fn violated_when_any_rule_fails() {
-        let evidence = EvidenceBundle {
-            branch_protection: EvidenceState::complete(vec![
-                make_enforced_rule("main"),
-                make_unenforced_rule("develop"),
-            ]),
-            ..Default::default()
-        };
-        let findings = BranchProtectionEnforcementControl.evaluate(&evidence);
-        assert_eq!(findings[0].status, ControlStatus::Violated);
-        assert!(findings[0].rationale.contains("develop"));
+        assert_eq!(findings[0].status, ControlStatus::Indeterminate);
     }
 
     #[test]

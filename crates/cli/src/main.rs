@@ -109,11 +109,6 @@ fn run() -> Result<()> {
             );
             bundle.check_runs = check_runs_evidence;
 
-            // Fetch branch protection for the base branch
-            let base_branch = &pr_metadata.base.ref_name;
-            bundle.branch_protection =
-                fetch_branch_protection_evidence(&client, &owner, &repo_name, base_branch);
-
             // Build platform evidence from check runs
             if let Some(cr_list) = bundle.check_runs.value() {
                 let build_platforms = adapters::github::map_build_platform_evidence(cr_list);
@@ -265,28 +260,6 @@ fn fetch_check_runs_evidence(
             subject: format!("commits/{git_ref}/check-runs"),
             detail: format!("{e:#}"),
         }]),
-    }
-}
-
-fn fetch_branch_protection_evidence(
-    client: &GitHubClient,
-    owner: &str,
-    repo: &str,
-    branch: &str,
-) -> EvidenceState<Vec<gh_verify_core::evidence::BranchProtectionEvidence>> {
-    match github::repo_api::get_branch_protection(client, owner, repo, branch) {
-        Ok(response) => {
-            let evidence = adapters::github::map_branch_protection_evidence(&response, branch);
-            EvidenceState::complete(vec![evidence])
-        }
-        Err(e) => {
-            eprintln!("Warning: failed to fetch branch protection for {branch}: {e:#}");
-            EvidenceState::missing(vec![EvidenceGap::CollectionFailed {
-                source: "github".to_string(),
-                subject: format!("branches/{branch}/protection"),
-                detail: format!("{e:#}"),
-            }])
-        }
     }
 }
 

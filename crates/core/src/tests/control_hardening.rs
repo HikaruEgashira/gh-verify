@@ -1,6 +1,38 @@
 use super::*;
 use crate::evidence::EvidenceGap;
 
+// --- ControlStatus::as_str / Display ---
+
+#[test]
+fn control_status_as_str_returns_expected_values() {
+    assert_eq!(ControlStatus::Satisfied.as_str(), "satisfied");
+    assert_eq!(ControlStatus::Violated.as_str(), "violated");
+    assert_eq!(ControlStatus::Indeterminate.as_str(), "indeterminate");
+    assert_eq!(ControlStatus::NotApplicable.as_str(), "not_applicable");
+}
+
+#[test]
+fn control_status_display_matches_as_str() {
+    let variants = [
+        ControlStatus::Satisfied,
+        ControlStatus::Violated,
+        ControlStatus::Indeterminate,
+        ControlStatus::NotApplicable,
+    ];
+    for status in &variants {
+        let displayed = format!("{status}");
+        assert_eq!(
+            displayed,
+            status.as_str(),
+            "Display output must equal as_str for {status:?}"
+        );
+        assert!(
+            !displayed.is_empty(),
+            "Display must not be empty for {status:?}"
+        );
+    }
+}
+
 // --- ControlFinding gap preservation ---
 
 #[test]

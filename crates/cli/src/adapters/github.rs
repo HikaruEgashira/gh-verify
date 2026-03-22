@@ -6,9 +6,7 @@ use gh_verify_core::evidence::{
     PromotionBatch, SourceRevision, WorkItemRef,
 };
 
-use gh_verify_core::evidence::{
-    BranchProtectionEvidence, BuildPlatformEvidence, CheckConclusion, CheckRunEvidence,
-};
+use gh_verify_core::evidence::{BuildPlatformEvidence, CheckConclusion, CheckRunEvidence};
 
 use crate::github::types::{
     CheckRunItem, CombinedStatusResponse, CompareCommit, PrCommit, PrFile, PrMetadata,
@@ -265,61 +263,6 @@ fn map_review_state(state: &str) -> ApprovalDisposition {
         "COMMENTED" => ApprovalDisposition::Commented,
         "DISMISSED" => ApprovalDisposition::Dismissed,
         _ => ApprovalDisposition::Unknown,
-    }
-}
-
-/// Converts a GitHub branch protection API response into platform-neutral evidence.
-pub fn map_branch_protection_evidence(
-    response: &crate::github::repo_api::BranchProtectionResponse,
-    branch: &str,
-) -> BranchProtectionEvidence {
-    BranchProtectionEvidence {
-        branch_pattern: branch.to_string(),
-        force_push_blocked: !response
-            .allow_force_pushes
-            .as_ref()
-            .map(|c| c.enabled)
-            .unwrap_or(true),
-        deletion_blocked: !response
-            .allow_deletions
-            .as_ref()
-            .map(|c| c.enabled)
-            .unwrap_or(true),
-        required_approving_review_count: response
-            .required_pull_request_reviews
-            .as_ref()
-            .and_then(|r| r.required_approving_review_count)
-            .unwrap_or(0),
-        dismiss_stale_reviews: response
-            .required_pull_request_reviews
-            .as_ref()
-            .and_then(|r| r.dismiss_stale_reviews)
-            .unwrap_or(false),
-        require_code_owner_reviews: response
-            .required_pull_request_reviews
-            .as_ref()
-            .and_then(|r| r.require_code_owner_reviews)
-            .unwrap_or(false),
-        require_linear_history: response
-            .required_linear_history
-            .as_ref()
-            .map(|c| c.enabled)
-            .unwrap_or(false),
-        require_signed_commits: response
-            .required_signatures
-            .as_ref()
-            .map(|c| c.enabled)
-            .unwrap_or(false),
-        required_status_checks: response
-            .required_status_checks
-            .as_ref()
-            .map(|c| c.contexts.clone())
-            .unwrap_or_default(),
-        enforce_admins: response
-            .enforce_admins
-            .as_ref()
-            .map(|c| c.enabled)
-            .unwrap_or(false),
     }
 }
 

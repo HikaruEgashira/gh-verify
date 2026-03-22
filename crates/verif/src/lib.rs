@@ -94,7 +94,7 @@ pub fn required_status_checks_severity(fail_count: usize) -> Severity {
 
 /// Branch history integrity severity (Source L2).
 ///
-/// Pass iff zero branches lack force-push/deletion protection.
+/// Pass iff zero merge commits found in the change request (linear history).
 #[ensures(unprotected_count == 0usize ==> result == Severity::Pass)]
 #[ensures(unprotected_count >= 1usize ==> result == Severity::Error)]
 pub fn branch_history_severity(unprotected_count: usize) -> Severity {
@@ -105,9 +105,9 @@ pub fn branch_history_severity(unprotected_count: usize) -> Severity {
     }
 }
 
-/// Branch protection enforcement severity (Source L3).
+/// Technical enforcement severity (Source L3).
 ///
-/// Pass iff zero branches lack required reviews, status checks, or admin enforcement.
+/// Pass iff zero change requests lack factual enforcement (CI checks passed + independent review).
 #[ensures(non_enforced_count == 0usize ==> result == Severity::Pass)]
 #[ensures(non_enforced_count >= 1usize ==> result == Severity::Error)]
 pub fn branch_protection_enforcement_severity(non_enforced_count: usize) -> Severity {
