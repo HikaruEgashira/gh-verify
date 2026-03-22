@@ -33,14 +33,14 @@ pub enum ControlId {
     /// Build L3: Build runs in an isolated, ephemeral environment.
     BuildIsolation,
 
-    // --- Development Quality (non-SLSA) ---
-    /// Dev quality: PR size is within acceptable limits.
+    // --- Compliance (non-SLSA) ---
+    /// Compliance CC8.1: PR size is within acceptable limits.
     PrSize,
-    /// Dev quality: source changes include matching test updates.
+    /// Compliance CC8.1: source changes include matching test updates.
     TestCoverage,
-    /// Dev quality: PR changes are well-scoped (single logical unit).
+    /// Compliance CC8.1: PR changes are well-scoped (single logical unit).
     ScopedChange,
-    /// Dev quality: PR references at least one issue or ticket.
+    /// Compliance CC7.1: PR references at least one issue or ticket.
     IssueLinkage,
 }
 

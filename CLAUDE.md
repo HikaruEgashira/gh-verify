@@ -43,7 +43,7 @@ I/O layer. Delegates all judgments to core via the control/evidence assessment p
 | Change | Where | Registration |
 |---|---|---|
 | New SLSA control | `crates/core/src/controls/<name>.rs` + impl `Control` trait | Add variant to `ControlId`, map in `slsa.rs`, add to `controls/mod.rs::instantiate()`, add integrity predicate, add Creusot spec |
-| New dev quality control | `crates/core/src/controls/<name>.rs` + impl `Control` trait | Add variant to `ControlId`, add to `controls/mod.rs::instantiate()` + `development_quality_controls()` |
+| New compliance control | `crates/core/src/controls/<name>.rs` + impl `Control` trait | Add variant to `ControlId`, add to `controls/mod.rs::instantiate()` + `compliance_controls()` |
 | New subcommand | Add variant to `Commands` enum in `main.rs` | clap handles dispatch |
 | New output format | `crates/cli/src/output/<name>.rs` | Add case in `output/mod.rs` |
 | New API endpoint | `crates/cli/src/github/<name>.rs` | Register in `github/mod.rs` |

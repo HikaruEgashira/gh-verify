@@ -45,14 +45,14 @@ pub fn assess_with_slsa_levels(
     assess(evidence, &controls, &profile)
 }
 
-/// Assess with all controls (SLSA + dev quality) at specific SLSA levels.
+/// Assess with all controls (SLSA + compliance) at specific SLSA levels.
 pub fn assess_all_controls_with_levels(
     evidence: &EvidenceBundle,
     source_level: SlsaLevel,
     build_level: SlsaLevel,
 ) -> AssessmentReport {
     let mut controls = controls::slsa_controls(source_level, build_level);
-    controls.extend(controls::development_quality_controls());
+    controls.extend(controls::compliance_controls());
     let profile = SlsaLevelProfile::new(source_level, build_level);
     assess(evidence, &controls, &profile)
 }

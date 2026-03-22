@@ -68,7 +68,7 @@ Level selection via `--slsa-level` determines which controls are enforced.
 | Build | L1 | `build-provenance`, `required-status-checks` |
 | Build | L2 | `hosted-build-platform`, `provenance-authenticity` |
 | Build | L3 | `build-isolation` |
-| Dev Quality | — | `pr-size`, `test-coverage`, `scoped-change`, `issue-linkage` |
+| Compliance | — | `pr-size`, `test-coverage`, `scoped-change`, `issue-linkage` |
 
 ## Architecture
 

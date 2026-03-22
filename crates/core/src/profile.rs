@@ -286,7 +286,7 @@ mod tests {
     }
 
     #[test]
-    fn dev_quality_indeterminate_reviews() {
+    fn compliance_indeterminate_reviews() {
         let profile = SlsaLevelProfile::new(SlsaLevel::L4, SlsaLevel::L3);
         let outcome = profile.map(&ControlFinding::indeterminate(
             ControlId::PrSize,

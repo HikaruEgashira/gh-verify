@@ -35,7 +35,7 @@ devenv tasks run ghverify:verify         # Creusot formal verification
 
 1. Add `ControlId` variant in `crates/core/src/control.rs`
 2. Create `crates/core/src/controls/<name>.rs` — implement `Control` trait
-3. Add to `crates/core/src/controls/mod.rs` (`instantiate()` + `development_quality_controls()`)
+3. Add to `crates/core/src/controls/mod.rs` (`instantiate()` + `compliance_controls()`)
 
 ## Adding a Subcommand
 

@@ -72,8 +72,8 @@ pub fn all_slsa_controls() -> Vec<Box<dyn Control>> {
     slsa_controls(SlsaLevel::L4, SlsaLevel::L3)
 }
 
-/// Returns controls for development quality (non-SLSA).
-pub fn development_quality_controls() -> Vec<Box<dyn Control>> {
+/// Returns compliance controls (non-SLSA, SOC2 CC7/CC8 mapped).
+pub fn compliance_controls() -> Vec<Box<dyn Control>> {
     vec![
         Box::new(PrSizeControl),
         Box::new(TestCoverageControl),
@@ -82,10 +82,10 @@ pub fn development_quality_controls() -> Vec<Box<dyn Control>> {
     ]
 }
 
-/// Returns all controls (all SLSA + development quality).
+/// Returns all controls (all SLSA + compliance).
 pub fn all_controls() -> Vec<Box<dyn Control>> {
     let mut controls = all_slsa_controls();
-    controls.extend(development_quality_controls());
+    controls.extend(compliance_controls());
     controls
 }
 
@@ -117,7 +117,7 @@ mod tests {
     }
 
     #[test]
-    fn all_controls_includes_dev_quality() {
+    fn all_controls_includes_compliance() {
         let controls = all_controls();
         let ids: Vec<_> = controls.iter().map(|c| c.id()).collect();
         assert!(ids.contains(&crate::control::ControlId::PrSize));

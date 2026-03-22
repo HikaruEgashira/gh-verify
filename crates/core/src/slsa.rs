@@ -78,7 +78,7 @@ pub struct SlsaMapping {
 
 /// Returns the SLSA track and minimum level for a control.
 ///
-/// Controls not part of the SLSA framework (dev quality controls) return `None`.
+/// Controls not part of the SLSA framework (compliance controls) return `None`.
 pub fn control_slsa_mapping(id: ControlId) -> Option<SlsaMapping> {
     match id {
         // Source Track
@@ -125,7 +125,7 @@ pub fn control_slsa_mapping(id: ControlId) -> Option<SlsaMapping> {
             level: SlsaLevel::L3,
         }),
 
-        // Dev quality controls are not SLSA-mapped
+        // Compliance controls are not SLSA-mapped
         ControlId::PrSize
         | ControlId::TestCoverage
         | ControlId::ScopedChange
@@ -187,7 +187,7 @@ mod tests {
     }
 
     #[test]
-    fn dev_quality_controls_have_no_slsa_mapping() {
+    fn compliance_controls_have_no_slsa_mapping() {
         assert!(control_slsa_mapping(ControlId::PrSize).is_none());
         assert!(control_slsa_mapping(ControlId::TestCoverage).is_none());
         assert!(control_slsa_mapping(ControlId::ScopedChange).is_none());
