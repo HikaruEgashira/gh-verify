@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::control::{Control, ControlFinding, evaluate_all};
+use crate::control::{Control, ControlFinding, ControlStatus, evaluate_all};
 use crate::controls;
 use crate::evidence::EvidenceBundle;
 use crate::profile::{ControlProfile, ProfileOutcome, SlsaFoundationProfile, apply_profile};
@@ -19,7 +19,10 @@ pub fn assess(
     controls: &[Box<dyn Control>],
     profile: &dyn ControlProfile,
 ) -> AssessmentReport {
-    let findings = evaluate_all(controls, evidence);
+    let findings: Vec<ControlFinding> = evaluate_all(controls, evidence)
+        .into_iter()
+        .filter(|f| f.status != ControlStatus::NotApplicable)
+        .collect();
     let outcomes = apply_profile(profile, &findings);
 
     AssessmentReport {

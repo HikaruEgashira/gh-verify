@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 
 use super::client::GitHubClient;
-use super::types::{CompareCommit, CompareResponse, PullRequestSummary, Tag};
+use super::types::{CompareCommit, CompareResponse, PullRequestSummary, Release, ReleaseAsset, Tag};
 
 /// Fetch repository tags (reverse chronological).
 pub fn get_tags(client: &GitHubClient, owner: &str, repo: &str) -> Result<Vec<Tag>> {
@@ -21,6 +21,29 @@ pub fn compare_refs(
     let response: CompareResponse =
         serde_json::from_str(&body).context("failed to parse compare response")?;
     Ok(response.commits)
+}
+
+/// Fetch release assets for a given tag.
+///
+/// Returns an empty vec if the tag has no associated release (e.g. lightweight tag).
+pub fn get_release_assets(
+    client: &GitHubClient,
+    owner: &str,
+    repo: &str,
+    tag: &str,
+) -> Result<Vec<ReleaseAsset>> {
+    let path = format!("/repos/{owner}/{repo}/releases/tags/{tag}");
+    match client.get(&path) {
+        Ok(body) => {
+            let release: Release =
+                serde_json::from_str(&body).context("failed to parse release response")?;
+            Ok(release.assets)
+        }
+        Err(_) => {
+            // Tag may exist without a release object (lightweight tag)
+            Ok(vec![])
+        }
+    }
 }
 
 /// Fetch PRs associated with a commit.

@@ -43,16 +43,19 @@ fn assessment_all_pass_scenario() {
         .outcomes
         .iter()
         .all(|o| o.decision == GateDecision::Pass));
-    assert!(report.findings.iter().all(|f| f.status == ControlStatus::Satisfied
-        || f.status == ControlStatus::NotApplicable));
+    assert!(report
+        .findings
+        .iter()
+        .all(|f| f.status == ControlStatus::Satisfied));
 }
 
 #[test]
 fn assessment_empty_evidence() {
     // Kills: panicking on empty evidence
+    // With empty evidence all controls return NotApplicable, which are filtered out.
     let evidence = EvidenceBundle::default();
     let report = assess_with_slsa_foundation(&evidence);
-    assert!(!report.findings.is_empty(), "should produce findings even for empty evidence");
+    assert!(report.findings.is_empty(), "empty evidence yields no applicable findings");
     assert_eq!(report.findings.len(), report.outcomes.len());
 }
 

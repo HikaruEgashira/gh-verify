@@ -4,6 +4,7 @@ use anyhow::{Context, Result, bail};
 use clap::{Parser, Subcommand};
 
 use gh_verify::adapters;
+use gh_verify::attestation;
 use gh_verify::config::Config;
 use gh_verify::github;
 use gh_verify::github::client::GitHubClient;
@@ -26,7 +27,7 @@ enum Commands {
     Pr {
         /// PR number
         arg: String,
-        /// Output format (human or json)
+        /// Output format (human, json, or sarif)
         #[arg(long, default_value = "human")]
         format: String,
         /// Repository in OWNER/REPO format
@@ -40,7 +41,7 @@ enum Commands {
     Release {
         /// Tag or BASE..HEAD range
         arg: String,
-        /// Output format (human or json)
+        /// Output format (human, json, or sarif)
         #[arg(long, default_value = "human")]
         format: String,
         /// Repository in OWNER/REPO format
@@ -146,6 +147,22 @@ fn run() -> Result<()> {
 
             let status_checks = fetch_required_status_checks(&client, &owner, &repo_name);
 
+            // Collect build-provenance attestations for release assets
+            let release_assets = github::release_api::get_release_assets(
+                &client, &owner, &repo_name, &head_tag,
+            )
+            .unwrap_or_else(|err| {
+                eprintln!("Warning: failed to fetch release assets: {err}");
+                vec![]
+            });
+
+            let artifact_attestations = attestation::release::collect_release_attestations(
+                &owner,
+                &repo_name,
+                &head_tag,
+                &release_assets,
+            );
+
             let repo_full = format!("{owner}/{repo_name}");
             let mut bundle = adapters::github::build_release_bundle(
                 &repo_full,
@@ -153,6 +170,7 @@ fn run() -> Result<()> {
                 &head_tag,
                 &commits,
                 &commit_prs,
+                artifact_attestations,
             );
             bundle.required_status_checks = status_checks;
             let report = assess_bundle(&bundle, policy.as_deref())?;
@@ -223,8 +241,8 @@ fn assess_bundle(
     policy_path: Option<&str>,
 ) -> Result<gh_verify_core::assessment::AssessmentReport> {
     match policy_path {
-        Some(path) => {
-            let profile = OpaProfile::from_file(path)?;
+        Some(name) => {
+            let profile = OpaProfile::from_preset_or_file(name)?;
             let controls = gh_verify_core::controls::slsa_foundation_controls();
             Ok(gh_verify_core::assessment::assess(bundle, &controls, &profile))
         }

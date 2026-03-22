@@ -91,6 +91,20 @@ pub struct PrUser {
     pub login: String,
 }
 
+/// A release from the GitHub Releases API.
+#[derive(Debug, Clone, Deserialize)]
+pub struct Release {
+    pub tag_name: String,
+    pub assets: Vec<ReleaseAsset>,
+}
+
+/// An asset attached to a GitHub release.
+#[derive(Debug, Clone, Deserialize)]
+pub struct ReleaseAsset {
+    pub name: String,
+    pub browser_download_url: String,
+}
+
 /// A PR review.
 #[derive(Debug, Clone, Deserialize)]
 pub struct Review {

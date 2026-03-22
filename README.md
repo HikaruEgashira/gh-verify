@@ -29,55 +29,47 @@ suggestions.
 
 ## Why?
 
-ghverify automates SDLC health checks — PR scope, test coverage, approval
-integrity, commit hygiene, release provenance — so teams get fast, consistent
-feedback without relying solely on human judgement.
+ghverify automates SDLC health checks based on the
+[SLSA](https://slsa.dev/) framework — review independence, source authenticity,
+and build provenance — so teams get fast, consistent feedback without relying
+solely on human judgement.
 
-## Rules
+## Controls
 
-### PR rules
+All controls are evaluated against an evidence bundle and produce one of four
+statuses: **Satisfied**, **Violated**, **Indeterminate**, or **Not Applicable**.
+The default `slsa-foundation` profile maps Violated and Indeterminate to
+**error / fail**; Satisfied and Not Applicable to **info / pass**.
 
-| Rule | Severity | Description |
+| Control | Applies to | Description |
 |---|---|---|
-| `detect-unscoped-change` | warning / error | Flags PRs that touch multiple unrelated domains (tree-sitter call graph analysis) |
-| `detect-missing-test` | warning / error | Warns when source changes lack test coverage (LCOV) or matching test file updates (heuristic) |
-| `detect-stale-approval` | warning / error | Detects commits pushed after the last approval (four-eyes principle bypass) |
-| `verify-issue-linkage` | error | Requires PR body to reference an issue or ticket (GitHub, Jira, URL) |
-| `verify-pr-size` | warning / error | Flags oversized PRs by line count or file count |
-| `verify-conventional-commit` | warning / error | Checks PR title / commit messages against Conventional Commits spec |
+| `review-independence` | PR, Release | Four-eyes principle: at least one approver must be independent from both the commit author and the PR submitter |
+| `source-authenticity` | PR, Release | All source revisions must carry valid, verified cryptographic signatures |
+| `build-provenance` | Release | All artifact attestations must carry verified SLSA provenance |
 
-### Release rules
-
-| Rule | Severity | Description |
-|---|---|---|
-| `verify-release-integrity` | error | Checks commit signatures, mutual approval, PR coverage (SLSA) |
-| `verify-branch-protection` | warning / error | Verifies PRs target protected branches with review activity |
-
-Run `gh verify pr list-rules` to see all registered rules.
+For releases, `review-independence` and `source-authenticity` are evaluated
+per commit in the tag range, checking that each commit's associated PR had
+independent review and signed commits.
 
 ## Usage
 
 ### CLI
 
 ```bash
-# Verify a PR
+# Verify a pull request
 gh verify pr 123 --repo owner/repo
-
-# Verify with LCOV coverage report
-gh verify pr 123 --repo owner/repo --coverage target/llvm-cov/lcov.info
-
-# Disable missing-test detection
-gh verify pr 123 --repo owner/repo --no-detect-missing-test
 
 # JSON output
 gh verify pr 123 --repo owner/repo --format json
 
-# List available rules
-gh verify pr list-rules
-
-# Verify a release
+# Verify a release (auto-detect previous tag)
 gh verify release v1.0.0 --repo owner/repo
+
+# Verify a release between two tags
 gh verify release v0.9.0..v1.0.0 --repo owner/repo
+
+# Use a custom OPA policy for gate decisions
+gh verify pr 123 --repo owner/repo --policy policy.rego
 ```
 
 ### GitHub Action
@@ -131,12 +123,12 @@ See [action/check-pr](action/check-pr/README.md) and [action/check-release](acti
 Three-crate Rust workspace:
 
 - **gh-verify-core** — Pure verification logic (serde only). No I/O, no unsafe.
-- **gh-verify** — CLI binary with GitHub API integration, tree-sitter analysis, and output formatting.
+- **gh-verify** — CLI binary with GitHub API integration and output formatting.
 - **gh-verify-verif** — Creusot formal verification targets. Core predicates with `#[ensures]` specs.
 
 | Extension | Create | Register |
 |---|---|---|
-| New rule | `crates/cli/src/rules/<name>.rs` | Add to `engine.rs` |
+| New control | `crates/core/src/controls/<name>.rs` + impl `Control` trait | Add to `controls/mod.rs` `slsa_foundation_controls` |
 | New subcommand | Add variant to `Commands` in `main.rs` | clap handles dispatch |
 | New output format | `crates/cli/src/output/<name>.rs` | Add case in `output/mod.rs` |
 | New API endpoint | `crates/cli/src/github/<name>.rs` | None |

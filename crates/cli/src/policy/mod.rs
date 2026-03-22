@@ -6,6 +6,8 @@ use gh_verify_core::profile::{
 };
 
 const DEFAULT_POLICY: &str = include_str!("default.rego");
+const OSS_POLICY: &str = include_str!("oss.rego");
+const AIOPS_POLICY: &str = include_str!("aiops.rego");
 const RULE_PATH: &str = "data.verify.profile.map";
 
 /// OPA-based profile that evaluates Rego policies to map control findings
@@ -25,6 +27,29 @@ impl OpaProfile {
     /// Creates a profile using the built-in default policy (SLSA Foundation equivalent).
     pub fn default_policy() -> Result<Self> {
         Self::from_rego("default.rego", DEFAULT_POLICY)
+    }
+
+    /// Creates a profile using the built-in OSS preset.
+    /// Tolerates unsigned commits and self-reviewed merges.
+    pub fn oss_preset() -> Result<Self> {
+        Self::from_rego("oss.rego", OSS_POLICY)
+    }
+
+    /// Creates a profile using the built-in AI-ops audit preset.
+    /// Maps all indeterminate findings to review instead of fail.
+    pub fn aiops_preset() -> Result<Self> {
+        Self::from_rego("aiops.rego", AIOPS_POLICY)
+    }
+
+    /// Loads a built-in preset by name, or falls back to file path.
+    /// Recognised preset names: "default", "oss", "aiops".
+    pub fn from_preset_or_file(name: &str) -> Result<Self> {
+        match name {
+            "default" => Self::default_policy(),
+            "oss" => Self::oss_preset(),
+            "aiops" => Self::aiops_preset(),
+            path => Self::from_file(path),
+        }
     }
 
     fn from_rego(name: &str, rego: &str) -> Result<Self> {
@@ -239,5 +264,81 @@ map := {"severity": "error", "decision": "fail"} if {
     fn invalid_policy_returns_error() {
         let result = OpaProfile::from_rego("bad.rego", "this is not valid rego!!!");
         assert!(result.is_err());
+    }
+
+    // --- OSS preset tests ---
+
+    #[test]
+    fn oss_preset_source_authenticity_violated_is_review() {
+        let profile = OpaProfile::oss_preset().unwrap();
+        let finding = make_finding(ControlId::SourceAuthenticity, ControlStatus::Violated);
+        let outcome = profile.map(&finding);
+        assert_eq!(outcome.severity, FindingSeverity::Warning);
+        assert_eq!(outcome.decision, GateDecision::Review);
+    }
+
+    #[test]
+    fn oss_preset_review_independence_indeterminate_is_review() {
+        let profile = OpaProfile::oss_preset().unwrap();
+        let finding = make_finding(ControlId::ReviewIndependence, ControlStatus::Indeterminate);
+        let outcome = profile.map(&finding);
+        assert_eq!(outcome.severity, FindingSeverity::Warning);
+        assert_eq!(outcome.decision, GateDecision::Review);
+    }
+
+    #[test]
+    fn oss_preset_other_violated_still_fails() {
+        let profile = OpaProfile::oss_preset().unwrap();
+        let finding = make_finding(ControlId::ReviewIndependence, ControlStatus::Violated);
+        let outcome = profile.map(&finding);
+        assert_eq!(outcome.severity, FindingSeverity::Error);
+        assert_eq!(outcome.decision, GateDecision::Fail);
+    }
+
+    #[test]
+    fn oss_preset_satisfied_passes() {
+        let profile = OpaProfile::oss_preset().unwrap();
+        let finding = make_finding(ControlId::SourceAuthenticity, ControlStatus::Satisfied);
+        let outcome = profile.map(&finding);
+        assert_eq!(outcome.severity, FindingSeverity::Info);
+        assert_eq!(outcome.decision, GateDecision::Pass);
+    }
+
+    // --- AI-ops preset tests ---
+
+    #[test]
+    fn aiops_preset_indeterminate_is_review() {
+        let profile = OpaProfile::aiops_preset().unwrap();
+        let finding = make_finding(ControlId::ReviewIndependence, ControlStatus::Indeterminate);
+        let outcome = profile.map(&finding);
+        assert_eq!(outcome.severity, FindingSeverity::Warning);
+        assert_eq!(outcome.decision, GateDecision::Review);
+    }
+
+    #[test]
+    fn aiops_preset_violated_still_fails() {
+        let profile = OpaProfile::aiops_preset().unwrap();
+        let finding = make_finding(ControlId::SourceAuthenticity, ControlStatus::Violated);
+        let outcome = profile.map(&finding);
+        assert_eq!(outcome.severity, FindingSeverity::Error);
+        assert_eq!(outcome.decision, GateDecision::Fail);
+    }
+
+    #[test]
+    fn aiops_preset_satisfied_passes() {
+        let profile = OpaProfile::aiops_preset().unwrap();
+        let finding = make_finding(ControlId::SourceAuthenticity, ControlStatus::Satisfied);
+        let outcome = profile.map(&finding);
+        assert_eq!(outcome.severity, FindingSeverity::Info);
+        assert_eq!(outcome.decision, GateDecision::Pass);
+    }
+
+    // --- from_preset_or_file tests ---
+
+    #[test]
+    fn from_preset_or_file_resolves_named_presets() {
+        assert!(OpaProfile::from_preset_or_file("default").is_ok());
+        assert!(OpaProfile::from_preset_or_file("oss").is_ok());
+        assert!(OpaProfile::from_preset_or_file("aiops").is_ok());
     }
 }

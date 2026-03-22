@@ -1,9 +1,9 @@
 use std::collections::HashSet;
 
 use gh_verify_core::evidence::{
-    ApprovalDecision, ApprovalDisposition, AuthenticityEvidence, ChangeRequestId, ChangedAsset,
-    EvidenceBundle, EvidenceGap, EvidenceState, GovernedChange, PromotionBatch, SourceRevision,
-    WorkItemRef,
+    ApprovalDecision, ApprovalDisposition, ArtifactAttestation, AuthenticityEvidence,
+    ChangeRequestId, ChangedAsset, EvidenceBundle, EvidenceGap, EvidenceState, GovernedChange,
+    PromotionBatch, SourceRevision, WorkItemRef,
 };
 
 use crate::github::types::{
@@ -47,6 +47,7 @@ pub fn build_release_bundle(
     head_tag: &str,
     commits: &[CompareCommit],
     commit_pulls: &[GitHubCommitPullAssociation],
+    artifact_attestations: EvidenceState<Vec<ArtifactAttestation>>,
 ) -> EvidenceBundle {
     EvidenceBundle {
         change_requests: Vec::new(),
@@ -57,6 +58,7 @@ pub fn build_release_bundle(
             commits,
             commit_pulls,
         )],
+        artifact_attestations,
         ..Default::default()
     }
 }
@@ -435,5 +437,76 @@ mod tests {
         );
 
         assert_eq!(evidence.submitted_by, None);
+    }
+
+    #[test]
+    fn release_bundle_includes_artifact_attestations() {
+        let attestations = EvidenceState::complete(vec![
+            gh_verify_core::evidence::ArtifactAttestation {
+                subject: "binary-linux-amd64".to_string(),
+                predicate_type: "https://slsa.dev/provenance/v1".to_string(),
+                signer_workflow: Some(".github/workflows/release.yml".to_string()),
+                source_repo: Some("owner/repo".to_string()),
+                verified: true,
+                verification_detail: None,
+            },
+        ]);
+
+        let bundle = build_release_bundle(
+            "owner/repo",
+            "v0.1.0",
+            "v0.2.0",
+            &[CompareCommit {
+                sha: "abc123".to_string(),
+                commit: CompareCommitInner {
+                    message: "feat: ship".to_string(),
+                    verification: CommitVerification {
+                        verified: true,
+                        reason: "valid".to_string(),
+                    },
+                },
+                author: None,
+                parents: vec![],
+            }],
+            &[],
+            attestations,
+        );
+
+        match &bundle.artifact_attestations {
+            EvidenceState::Complete { value } => {
+                assert_eq!(value.len(), 1);
+                assert!(value[0].verified);
+                assert_eq!(value[0].subject, "binary-linux-amd64");
+            }
+            other => panic!("expected Complete, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn release_bundle_not_applicable_without_attestations() {
+        let bundle = build_release_bundle(
+            "owner/repo",
+            "v0.1.0",
+            "v0.2.0",
+            &[CompareCommit {
+                sha: "abc123".to_string(),
+                commit: CompareCommitInner {
+                    message: "feat: ship".to_string(),
+                    verification: CommitVerification {
+                        verified: true,
+                        reason: "valid".to_string(),
+                    },
+                },
+                author: None,
+                parents: vec![],
+            }],
+            &[],
+            EvidenceState::not_applicable(),
+        );
+
+        assert!(matches!(
+            bundle.artifact_attestations,
+            EvidenceState::NotApplicable
+        ));
     }
 }
