@@ -3,6 +3,8 @@ use colored::Colorize;
 use gh_verify_core::assessment::AssessmentReport;
 use gh_verify_core::profile::{FindingSeverity, GateDecision};
 
+use crate::verify::BatchReport;
+
 pub fn print(report: &AssessmentReport) -> Result<()> {
     println!(
         "{}",
@@ -43,6 +45,37 @@ pub fn print(report: &AssessmentReport) -> Result<()> {
 
     println!();
     println!("Summary: {pass_count} pass, {review_count} review, {fail_count} fail");
+
+    Ok(())
+}
+
+pub fn print_batch(batch: &BatchReport) -> Result<()> {
+    for pr_report in &batch.pr_reports {
+        println!("{}", format!("--- PR #{} ---", pr_report.pr_number).bold());
+        print(&pr_report.report)?;
+        println!();
+    }
+
+    for skipped in &batch.skipped {
+        println!(
+            "{} PR #{}: {}",
+            "SKIPPED".yellow(),
+            skipped.pr_number,
+            skipped.reason
+        );
+    }
+
+    println!(
+        "{}",
+        format!(
+            "Batch summary: {} pass, {} review, {} fail, {} skipped",
+            batch.total_pass,
+            batch.total_review,
+            batch.total_fail,
+            batch.skipped.len()
+        )
+        .bold()
+    );
 
     Ok(())
 }

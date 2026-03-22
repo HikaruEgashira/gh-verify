@@ -194,3 +194,23 @@ pub struct CommitStatusItem {
     pub context: String,
     pub state: String,
 }
+
+/// Wrapper for GitHub Search API responses.
+#[derive(Debug, Clone, Deserialize)]
+pub struct SearchResponse<T> {
+    pub total_count: u32,
+    pub items: Vec<T>,
+}
+
+/// A PR item from the GitHub Search API (issues endpoint).
+#[derive(Debug, Clone, Deserialize)]
+pub struct SearchPrItem {
+    pub number: u32,
+    pub pull_request: Option<SearchPrMeta>,
+}
+
+/// Pull request metadata within a search result.
+#[derive(Debug, Clone, Deserialize)]
+pub struct SearchPrMeta {
+    pub merged_at: Option<String>,
+}

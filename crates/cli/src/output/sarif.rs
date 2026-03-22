@@ -3,10 +3,31 @@ use gh_verify_core::assessment::AssessmentReport;
 use gh_verify_core::control::ControlId;
 use gh_verify_core::profile::FindingSeverity;
 
+use crate::verify::BatchReport;
+
 const VERSION: &str = env!("GH_VERIFY_VERSION");
 
 pub fn print(report: &AssessmentReport) -> Result<()> {
     let sarif = build_sarif(report);
+    println!("{}", serde_json::to_string_pretty(&sarif)?);
+    Ok(())
+}
+
+pub fn print_batch(batch: &BatchReport) -> Result<()> {
+    let mut runs = Vec::new();
+    for pr_report in &batch.pr_reports {
+        let sarif = build_sarif(&pr_report.report);
+        if let Some(run) = sarif["runs"].as_array().and_then(|a| a.first()) {
+            let mut run = run.clone();
+            run["properties"] = serde_json::json!({ "prNumber": pr_report.pr_number });
+            runs.push(run);
+        }
+    }
+    let sarif = serde_json::json!({
+        "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/main/sarif-2.1/schema/sarif-schema-2.1.0.json",
+        "version": "2.1.0",
+        "runs": runs,
+    });
     println!("{}", serde_json::to_string_pretty(&sarif)?);
     Ok(())
 }

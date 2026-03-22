@@ -82,6 +82,28 @@ impl GitHubClient {
         Ok(all_items)
     }
 
+    /// Paginate a GitHub Search API endpoint whose response wraps items in `{ items: [...] }`.
+    pub fn paginate_search<T: DeserializeOwned>(&self, initial_path: &str) -> Result<Vec<T>> {
+        use super::types::SearchResponse;
+
+        let mut all_items: Vec<T> = Vec::new();
+        let mut current_path = initial_path.to_string();
+
+        for _ in 0..MAX_PAGES {
+            let (body, next_path) = self.get_with_link(&current_path)?;
+            let resp: SearchResponse<T> =
+                serde_json::from_str(&body).context("failed to parse search response")?;
+            all_items.extend(resp.items);
+
+            match next_path {
+                Some(next) => current_path = next,
+                None => break,
+            }
+        }
+
+        Ok(all_items)
+    }
+
     fn get_internal(&self, path: &str) -> Result<(String, Option<String>)> {
         let url = format!("{}{}", self.base_url, path);
         for attempt in 0..MAX_HTTP_ATTEMPTS {
