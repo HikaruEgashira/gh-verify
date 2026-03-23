@@ -1,7 +1,8 @@
 # ghverify - GitHub SDLC Verifier
 
 GitHub SDLC health checker. Runs as a `gh` CLI extension, built in Rust.
-Core verification logic is formally proven with Creusot + SMT solvers.
+Core verification logic lives in [libverify](https://github.com/HikaruEgashira/libverify).
+Formal verification with Creusot + SMT solvers in libverify-verif and crates/verif.
 
 ## Commands
 
@@ -20,40 +21,36 @@ devenv tasks run ghverify:verify-one <name>  # Creusot verify single predicate
 
 ## Architecture
 
-Three-crate workspace:
+gh-verify is a thin GitHub-specific shell over libverify.
 
-- `gh-verify-core` — pure runtime logic (serde only)
-- `gh-verify` — CLI with I/O (reqwest, clap)
-- `gh-verify-verif` — Creusot verification targets (creusot-std only)
+### Dependencies
 
-### gh-verify-core (crates/core/)
-
-Pure verification logic. No I/O, no unsafe. Entry point: `assess_with_slsa_levels`.
-
-### gh-verify-verif (crates/verif/)
-
-Creusot verification targets. Core predicates with `#[ensures]` specs
-in a crate free of Creusot-unsupported constructs (`format!`, `String`, `Vec`).
-Runtime implementations in `gh-verify-core` must match these verified predicates.
+- `libverify-core` — evidence model, Control trait, 20 built-in controls, assessment engine, SLSA v1.2 mapping
+- `libverify-policy` — OPA Rego policy engine with 5 presets (default, oss, aiops, soc1, soc2)
+- `libverify-output` — SARIF/JSON output formatters
 
 ### gh-verify (crates/cli/)
 
-I/O layer. Delegates all judgments to core via the control/evidence assessment path.
+I/O layer. Delegates all judgments to libverify via the control/evidence assessment path.
 
 | Change | Where | Registration |
 |---|---|---|
-| New SLSA control | `crates/core/src/controls/<name>.rs` + impl `Control` trait | Add variant to `ControlId`, map in `slsa.rs`, add to `controls/mod.rs::instantiate()`, add integrity predicate, add Creusot spec |
-| New compliance control | `crates/core/src/controls/<name>.rs` + impl `Control` trait | Add variant to `ControlId`, add to `controls/mod.rs::instantiate()` + `compliance_controls()` |
+| New control | libverify repo: `crates/core/src/controls/<name>.rs` | See libverify CLAUDE.md |
 | New subcommand | Add variant to `Commands` enum in `main.rs` | clap handles dispatch |
 | New output format | `crates/cli/src/output/<name>.rs` | Add case in `output/mod.rs` |
 | New API endpoint | `crates/cli/src/github/<name>.rs` | Register in `github/mod.rs` |
 | New adapter | `crates/cli/src/adapters/<name>.rs` | None |
 
+### gh-verify-verif (crates/verif/)
+
+Creusot verification targets. Core predicates with `#[ensures]` specs.
+Runtime implementations in libverify-core must match these verified predicates.
+
 ## Naming
 
-- Control ID: PascalCase enum variant (`ReviewIndependence`)
+- Control ID: kebab-case string (`"review-independence"`)
+- Built-in constant: `libverify_core::control::builtin::REVIEW_INDEPENDENCE`
 - File name: snake_case (`review_independence.rs`)
-- Crate name: kebab-case (`gh-verify-core`)
 
 ## PR Template
 
