@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
-use gh_verify_core::verdict::Severity;
+use libverify_core::verdict::Severity;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]

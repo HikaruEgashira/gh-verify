@@ -1,9 +1,8 @@
 use anyhow::Result;
-use gh_verify_core::assessment::{AssessmentReport, VerificationResult};
-use gh_verify_core::control::ControlId;
-use gh_verify_core::profile::FindingSeverity;
-
-use crate::verify::BatchReport;
+use libverify_core::assessment::{AssessmentReport, BatchReport, VerificationResult};
+use libverify_core::control::builtin;
+use libverify_core::control::ControlId;
+use libverify_core::profile::FindingSeverity;
 
 const VERSION: &str = env!("GH_VERIFY_VERSION");
 
@@ -23,15 +22,15 @@ pub fn print(result: &VerificationResult, only_failures: bool) -> Result<()> {
 
 pub fn print_batch(batch: &BatchReport, only_failures: bool) -> Result<()> {
     let mut runs = Vec::new();
-    for pr_report in &batch.pr_reports {
-        let mut sarif = build_sarif(&pr_report.result.report);
+    for entry in &batch.reports {
+        let mut sarif = build_sarif(&entry.result.report);
         if only_failures {
             filter_sarif_runs(&mut sarif);
         }
         if let Some(run) = sarif["runs"].as_array().and_then(|a| a.first()) {
             let mut run = run.clone();
-            let mut props = serde_json::json!({ "prNumber": pr_report.pr_number });
-            if let Some(evidence) = &pr_report.result.evidence {
+            let mut props = serde_json::json!({ "subjectId": entry.subject_id });
+            if let Some(evidence) = &entry.result.evidence {
                 props["evidence"] = serde_json::to_value(evidence)?;
             }
             run["properties"] = props;
@@ -48,16 +47,17 @@ pub fn print_batch(batch: &BatchReport, only_failures: bool) -> Result<()> {
 }
 
 fn build_sarif(report: &AssessmentReport) -> serde_json::Value {
-    let mut seen_rules = Vec::new();
+    let mut seen_rules: Vec<String> = Vec::new();
     let rules: Vec<serde_json::Value> = report
         .outcomes
         .iter()
         .filter_map(|o| {
-            if seen_rules.contains(&o.control_id) {
+            let id_str = o.control_id.as_str().to_string();
+            if seen_rules.contains(&id_str) {
                 return None;
             }
-            seen_rules.push(o.control_id);
-            Some(rule_descriptor(o.control_id))
+            seen_rules.push(id_str);
+            Some(rule_descriptor(&o.control_id))
         })
         .collect();
 
@@ -137,42 +137,55 @@ fn filter_sarif_runs(sarif: &mut serde_json::Value) {
     }
 }
 
-fn rule_descriptor(id: ControlId) -> serde_json::Value {
-    let desc = match id {
-        ControlId::SourceAuthenticity => "All commits must carry verified signatures",
-        ControlId::ReviewIndependence => "Four-eyes: approver must differ from author",
-        ControlId::BranchHistoryIntegrity => {
+fn rule_descriptor(id: &ControlId) -> serde_json::Value {
+    let desc = match id.as_str() {
+        builtin::SOURCE_AUTHENTICITY => "All commits must carry verified signatures",
+        builtin::REVIEW_INDEPENDENCE => "Four-eyes: approver must differ from author",
+        builtin::BRANCH_HISTORY_INTEGRITY => {
             "Branch history must be continuous and protected from force-push"
         }
-        ControlId::BranchProtectionEnforcement => {
+        builtin::BRANCH_PROTECTION_ENFORCEMENT => {
             "Branch protection rules must be continuously enforced"
         }
-        ControlId::TwoPartyReview => "At least two independent reviewers must approve changes",
-        ControlId::BuildProvenance => "Artifacts must have verified SLSA provenance",
-        ControlId::RequiredStatusChecks => "At least one required status check must be configured",
-        ControlId::HostedBuildPlatform => {
+        builtin::TWO_PARTY_REVIEW => "At least two independent reviewers must approve changes",
+        builtin::BUILD_PROVENANCE => "Artifacts must have verified SLSA provenance",
+        builtin::REQUIRED_STATUS_CHECKS => {
+            "At least one required status check must be configured"
+        }
+        builtin::HOSTED_BUILD_PLATFORM => {
             "Build must run on a hosted platform, not a developer workstation"
         }
-        ControlId::ProvenanceAuthenticity => {
+        builtin::PROVENANCE_AUTHENTICITY => {
             "Provenance attestation must be cryptographically signed"
         }
-        ControlId::BuildIsolation => "Build must run in an isolated, ephemeral environment",
-        ControlId::PrSize => "PR size must be within acceptable limits",
-        ControlId::TestCoverage => "Source changes must include matching test updates",
-        ControlId::ScopedChange => "PR changes must be well-scoped (single logical unit)",
-        ControlId::IssueLinkage => "PR must reference at least one issue or ticket",
-        ControlId::StaleReview => "Approvals must postdate the latest source revision",
-        ControlId::DescriptionQuality => "Change requests must include a meaningful description",
-        ControlId::MergeCommitPolicy => {
+        builtin::BUILD_ISOLATION => "Build must run in an isolated, ephemeral environment",
+        builtin::CHANGE_REQUEST_SIZE => {
+            "Change request size must be within acceptable limits"
+        }
+        builtin::TEST_COVERAGE => "Source changes must include matching test updates",
+        builtin::SCOPED_CHANGE => {
+            "Change request changes must be well-scoped (single logical unit)"
+        }
+        builtin::ISSUE_LINKAGE => {
+            "Change request must reference at least one issue or ticket"
+        }
+        builtin::STALE_REVIEW => "Approvals must postdate the latest source revision",
+        builtin::DESCRIPTION_QUALITY => {
+            "Change requests must include a meaningful description"
+        }
+        builtin::MERGE_COMMIT_POLICY => {
             "Source revisions must follow linear history (no merge commits)"
         }
-        ControlId::ConventionalTitle => {
+        builtin::CONVENTIONAL_TITLE => {
             "Change request titles must follow Conventional Commits format"
         }
-        ControlId::SecurityFileChange => {
+        builtin::SECURITY_FILE_CHANGE => {
             "Changes to security-sensitive files require heightened scrutiny"
         }
-        ControlId::ReleaseTraceability => "Release batches must trace to governed change requests",
+        builtin::RELEASE_TRACEABILITY => {
+            "Release batches must trace to governed change requests"
+        }
+        _ => "Unknown control",
     };
     serde_json::json!({
         "id": id.as_str(),
@@ -191,33 +204,33 @@ fn severity_to_level(severity: FindingSeverity) -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gh_verify_core::control::{ControlFinding, ControlId};
-    use gh_verify_core::profile::{GateDecision, ProfileOutcome};
+    use libverify_core::control::{ControlFinding, builtin};
+    use libverify_core::profile::{GateDecision, ProfileOutcome};
 
     fn sample_report() -> AssessmentReport {
         AssessmentReport {
             profile_name: "slsa-source-l1-build-l1".to_string(),
             findings: vec![
                 ControlFinding::satisfied(
-                    ControlId::ReviewIndependence,
+                    builtin::id(builtin::REVIEW_INDEPENDENCE),
                     "Independent reviewer approved",
                     vec!["github_pr:owner/repo#1".to_string()],
                 ),
                 ControlFinding::violated(
-                    ControlId::SourceAuthenticity,
+                    builtin::id(builtin::SOURCE_AUTHENTICITY),
                     "1 unsigned commit",
                     vec!["github_pr:owner/repo#1".to_string()],
                 ),
             ],
             outcomes: vec![
                 ProfileOutcome {
-                    control_id: ControlId::ReviewIndependence,
+                    control_id: builtin::id(builtin::REVIEW_INDEPENDENCE),
                     severity: FindingSeverity::Info,
                     decision: GateDecision::Pass,
                     rationale: "Independent reviewer approved".to_string(),
                 },
                 ProfileOutcome {
-                    control_id: ControlId::SourceAuthenticity,
+                    control_id: builtin::id(builtin::SOURCE_AUTHENTICITY),
                     severity: FindingSeverity::Error,
                     decision: GateDecision::Fail,
                     rationale: "1 unsigned commit".to_string(),

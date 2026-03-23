@@ -1,12 +1,12 @@
 use std::collections::HashSet;
 
-use gh_verify_core::evidence::{
+use libverify_core::evidence::{
     ApprovalDecision, ApprovalDisposition, ArtifactAttestation, AuthenticityEvidence,
     ChangeRequestId, ChangedAsset, EvidenceBundle, EvidenceGap, EvidenceState, GovernedChange,
     PromotionBatch, SourceRevision, WorkItemRef,
 };
 
-use gh_verify_core::evidence::{BuildPlatformEvidence, CheckConclusion, CheckRunEvidence};
+use libverify_core::evidence::{BuildPlatformEvidence, CheckConclusion, CheckRunEvidence};
 
 use crate::github::types::{
     CheckRunItem, CombinedStatusResponse, CompareCommit, PrCommit, PrFile, PrMetadata,
@@ -110,7 +110,7 @@ pub fn map_pull_request_evidence(
     );
 
     let work_item_refs = EvidenceState::complete(
-        gh_verify_core::linkage::extract_issue_references(
+        libverify_core::linkage::extract_issue_references(
             pr_metadata.body.as_deref().unwrap_or(""),
             &[],
         )
@@ -296,11 +296,11 @@ pub fn map_build_platform_evidence(check_runs: &[CheckRunEvidence]) -> Vec<Build
         .collect()
 }
 
-fn map_issue_ref_kind(kind: &gh_verify_core::linkage::IssueRefKind) -> &'static str {
+fn map_issue_ref_kind(kind: &libverify_core::linkage::IssueRefKind) -> &'static str {
     match kind {
-        gh_verify_core::linkage::IssueRefKind::GitHubIssue => "github_issue",
-        gh_verify_core::linkage::IssueRefKind::ProjectTicket => "project_ticket",
-        gh_verify_core::linkage::IssueRefKind::Url => "url",
+        libverify_core::linkage::IssueRefKind::GitHubIssue => "github_issue",
+        libverify_core::linkage::IssueRefKind::ProjectTicket => "project_ticket",
+        libverify_core::linkage::IssueRefKind::Url => "url",
     }
 }
 
@@ -551,13 +551,13 @@ mod tests {
     #[test]
     fn release_bundle_includes_artifact_attestations() {
         let attestations =
-            EvidenceState::complete(vec![gh_verify_core::evidence::ArtifactAttestation {
+            EvidenceState::complete(vec![libverify_core::evidence::ArtifactAttestation {
                 subject: "binary-linux-amd64".to_string(),
                 subject_digest: None,
                 predicate_type: "https://slsa.dev/provenance/v1".to_string(),
                 signer_workflow: Some(".github/workflows/release.yml".to_string()),
                 source_repo: Some("owner/repo".to_string()),
-                verification: gh_verify_core::evidence::VerificationOutcome::Verified,
+                verification: libverify_core::evidence::VerificationOutcome::Verified,
             }]);
 
         let bundle = build_release_bundle(

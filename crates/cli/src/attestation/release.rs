@@ -2,7 +2,7 @@ use anyhow::Result;
 use sha2::{Digest, Sha256};
 use std::process::Command;
 
-use gh_verify_core::evidence::{
+use libverify_core::evidence::{
     ArtifactAttestation, EvidenceGap, EvidenceState, VerificationOutcome,
 };
 

@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/core", "crates/cli", "crates/verif", "tools/gen-docs"]
+members = ["crates/cli", "crates/verif", "tools/gen-docs"]
 resolver = "2"
 
 [workspace.package]
@@ -8,14 +8,15 @@ edition = "2024"
 license = "MIT"
 
 [workspace.dependencies]
-gh-verify-core = { path = "crates/core" }
+libverify-core = { git = "https://github.com/HikaruEgashira/libverify" }
+libverify-policy = { git = "https://github.com/HikaruEgashira/libverify" }
+libverify-output = { git = "https://github.com/HikaruEgashira/libverify" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 anyhow = "1"
 clap = { version = "4", features = ["derive"] }
 reqwest = { version = "0.12", default-features = false, features = ["blocking", "json", "rustls-tls"] }
 colored = "3"
-regorus = "0.9"
 tempfile = "3"
 sha2 = "0.10"
 creusot-std = { git = "https://github.com/creusot-rs/creusot", package = "creusot-std" }

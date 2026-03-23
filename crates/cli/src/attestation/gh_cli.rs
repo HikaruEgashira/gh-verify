@@ -90,7 +90,7 @@ pub fn to_artifact_attestations(
     artifact: &str,
     results: &[GhAttestationOutput],
     subject_digest: Option<String>,
-) -> Vec<gh_verify_core::evidence::ArtifactAttestation> {
+) -> Vec<libverify_core::evidence::ArtifactAttestation> {
     results
         .iter()
         .map(|r| {
@@ -113,14 +113,14 @@ pub fn to_artifact_attestations(
             // Cross-check local digest against attestation-claimed digest.
             let verification = match (&subject_digest, &claimed_digest) {
                 (Some(local), Some(claimed)) if local != claimed => {
-                    gh_verify_core::evidence::VerificationOutcome::SignatureInvalid {
+                    libverify_core::evidence::VerificationOutcome::SignatureInvalid {
                         detail: format!("digest mismatch: local={local}, attestation={claimed}"),
                     }
                 }
-                _ => gh_verify_core::evidence::VerificationOutcome::Verified,
+                _ => libverify_core::evidence::VerificationOutcome::Verified,
             };
 
-            gh_verify_core::evidence::ArtifactAttestation {
+            libverify_core::evidence::ArtifactAttestation {
                 subject: artifact.to_string(),
                 subject_digest: subject_digest.clone(),
                 predicate_type: r.verification_result.statement.predicate_type.clone(),

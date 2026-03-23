@@ -3,9 +3,7 @@ pub mod json;
 pub mod sarif;
 
 use anyhow::Result;
-use gh_verify_core::assessment::VerificationResult;
-
-use crate::verify::BatchReport;
+use libverify_core::assessment::{BatchReport, VerificationResult};
 
 #[derive(Debug, Clone, Copy)]
 pub enum Format {
