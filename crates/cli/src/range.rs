@@ -82,8 +82,8 @@ pub fn resolve_pr_numbers(
             }
 
             let shas: Vec<&str> = commits.iter().map(|c| c.sha.as_str()).collect();
-            let commit_pr_map =
-                graphql::resolve_commit_prs(client, owner, repo, &shas).unwrap_or_else(|err| {
+            let commit_pr_map = graphql::resolve_commit_prs(client, owner, repo, &shas)
+                .unwrap_or_else(|err| {
                     eprintln!("Warning: failed to resolve commit PRs via GraphQL: {err}");
                     std::collections::HashMap::new()
                 });

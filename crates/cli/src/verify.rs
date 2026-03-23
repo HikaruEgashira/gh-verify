@@ -3,7 +3,7 @@ use std::process;
 use anyhow::{Context, Result, bail};
 use serde::Serialize;
 
-use gh_verify_core::assessment::AssessmentReport;
+use gh_verify_core::assessment::{AssessmentReport, VerificationResult};
 use gh_verify_core::evidence::EvidenceState;
 use gh_verify_core::profile::GateDecision;
 use gh_verify_core::slsa::SlsaLevel;
@@ -15,7 +15,7 @@ use crate::github::graphql::PrData;
 use crate::github::types::{CombinedStatusResponse, CommitStatusItem};
 use crate::policy::OpaProfile;
 
-/// Verify a single pull request and return an assessment report.
+/// Verify a single pull request and return a verification result.
 pub fn verify_single_pr(
     client: &GitHubClient,
     owner: &str,
@@ -23,10 +23,19 @@ pub fn verify_single_pr(
     pr_number: u32,
     policy: Option<&str>,
     slsa_level: Option<&str>,
-) -> Result<AssessmentReport> {
+    with_evidence: bool,
+) -> Result<VerificationResult> {
     let pr_data = github::graphql::fetch_pr(client, owner, repo, pr_number)
         .context("failed to fetch PR data")?;
-    assess_from_pr_data(&pr_data, owner, repo, pr_number, policy, slsa_level)
+    assess_from_pr_data(
+        &pr_data,
+        owner,
+        repo,
+        pr_number,
+        policy,
+        slsa_level,
+        with_evidence,
+    )
 }
 
 fn assess_from_pr_data(
@@ -36,7 +45,8 @@ fn assess_from_pr_data(
     pr_number: u32,
     policy: Option<&str>,
     slsa_level: Option<&str>,
-) -> Result<AssessmentReport> {
+    with_evidence: bool,
+) -> Result<VerificationResult> {
     let repo_full = format!("{owner}/{repo}");
     let mut bundle = adapters::github::build_pull_request_bundle(
         &repo_full,
@@ -73,7 +83,9 @@ fn assess_from_pr_data(
         }
     }
 
-    assess_bundle(&bundle, policy, slsa_level)
+    let report = assess_bundle(&bundle, policy, slsa_level)?;
+    let evidence_bundle = if with_evidence { Some(bundle) } else { None };
+    Ok(VerificationResult::new(report, evidence_bundle))
 }
 
 /// Batch report aggregating results across multiple PRs.
@@ -89,7 +101,8 @@ pub struct BatchReport {
 #[derive(Debug, Serialize)]
 pub struct PrReport {
     pub pr_number: u32,
-    pub report: AssessmentReport,
+    #[serde(flatten)]
+    pub result: VerificationResult,
 }
 
 #[derive(Debug, Serialize)]
@@ -106,6 +119,7 @@ pub fn verify_pr_batch(
     pr_numbers: &[u32],
     policy: Option<&str>,
     slsa_level: Option<&str>,
+    with_evidence: bool,
 ) -> Result<BatchReport> {
     let mut pr_reports = Vec::new();
     let mut skipped = Vec::new();
@@ -120,17 +134,28 @@ pub fn verify_pr_batch(
         eprintln!("Verifying PR #{pr_number} ({}/{})", i + 1, total);
 
         match result.and_then(|pr_data| {
-            assess_from_pr_data(&pr_data, owner, repo, pr_number, policy, slsa_level)
+            assess_from_pr_data(
+                &pr_data,
+                owner,
+                repo,
+                pr_number,
+                policy,
+                slsa_level,
+                with_evidence,
+            )
         }) {
-            Ok(report) => {
-                for outcome in &report.outcomes {
+            Ok(vr) => {
+                for outcome in &vr.report.outcomes {
                     match outcome.decision {
                         GateDecision::Pass => total_pass += 1,
                         GateDecision::Review => total_review += 1,
                         GateDecision::Fail => total_fail += 1,
                     }
                 }
-                pr_reports.push(PrReport { pr_number, report });
+                pr_reports.push(PrReport {
+                    pr_number,
+                    result: vr,
+                });
             }
             Err(e) => {
                 eprintln!("Warning: skipping PR #{pr_number}: {e:#}");
@@ -150,7 +175,6 @@ pub fn verify_pr_batch(
         skipped,
     })
 }
-
 
 /// Parse a SLSA level string like "source-l3-build-l2" into (source_level, build_level).
 pub fn parse_slsa_level(s: &str) -> Result<(SlsaLevel, SlsaLevel)> {
@@ -211,8 +235,9 @@ pub fn assess_bundle(
     }
 }
 
-pub fn exit_if_assessment_fails(report: &AssessmentReport) {
-    if report
+pub fn exit_if_assessment_fails(result: &VerificationResult) {
+    if result
+        .report
         .outcomes
         .iter()
         .any(|o| o.decision == GateDecision::Fail)

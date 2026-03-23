@@ -14,6 +14,21 @@ pub struct AssessmentReport {
     pub outcomes: Vec<ProfileOutcome>,
 }
 
+/// Assessment report with optional raw evidence bundle for audit trails.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct VerificationResult {
+    #[serde(flatten)]
+    pub report: AssessmentReport,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub evidence: Option<EvidenceBundle>,
+}
+
+impl VerificationResult {
+    pub fn new(report: AssessmentReport, evidence: Option<EvidenceBundle>) -> Self {
+        Self { report, evidence }
+    }
+}
+
 /// Evaluates all controls against evidence and maps findings through a profile.
 pub fn assess(
     evidence: &EvidenceBundle,
