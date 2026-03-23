@@ -12,15 +12,15 @@ use gh_verify::config::Config;
 use gh_verify::github::client::GitHubClient;
 use gh_verify::github::pr_api;
 use gh_verify::ossinsight::{CollectionRepoRank, OssInsightClient, PullRequestCreator};
-use gh_verify::policy::OpaProfile;
-use gh_verify_core::assessment;
-use gh_verify_core::control::Control;
-use gh_verify_core::controls;
-use gh_verify_core::evidence::EvidenceBundle;
-use gh_verify_core::profile::{ControlProfile, GateDecision, SlsaLevelProfile};
-use gh_verify_core::scope::is_non_code_file;
-use gh_verify_core::slsa::SlsaLevel;
-use gh_verify_core::verdict::Severity;
+use libverify_core::assessment;
+use libverify_core::control::Control;
+use libverify_core::controls;
+use libverify_core::evidence::EvidenceBundle;
+use libverify_core::profile::{ControlProfile, GateDecision, SlsaLevelProfile};
+use libverify_core::scope::is_non_code_file;
+use libverify_core::slsa::SlsaLevel;
+use libverify_core::verdict::Severity;
+use libverify_policy::OpaProfile;
 use serde::Serialize;
 
 #[derive(Parser)]
@@ -99,7 +99,7 @@ fn resolve_algorithm(name: &str) -> Result<(Vec<Box<dyn Control>>, Box<dyn Contr
             Box::new(OpaProfile::aiops_preset()?),
         )),
         s if s.starts_with("slsa-source-l") && s.contains("-build-l") => {
-            let profile = gh_verify_core::profile::parse_profile(s)
+            let profile = libverify_core::profile::parse_profile(s)
                 .ok_or_else(|| anyhow::anyhow!("invalid SLSA level profile: {s}"))?;
             // Use all SLSA controls; the profile decides what's required vs advisory.
             Ok((controls::all_slsa_controls(), profile))

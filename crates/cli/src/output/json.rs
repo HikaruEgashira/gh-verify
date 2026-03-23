@@ -1,8 +1,6 @@
 use anyhow::Result;
-use gh_verify_core::assessment::VerificationResult;
-use gh_verify_core::profile::GateDecision;
-
-use crate::verify::BatchReport;
+use libverify_core::assessment::{BatchEntry, BatchReport, VerificationResult};
+use libverify_core::profile::GateDecision;
 
 pub fn print(result: &VerificationResult, only_failures: bool) -> Result<()> {
     if only_failures {
@@ -41,7 +39,7 @@ fn filter_result(result: &VerificationResult) -> VerificationResult {
     }
 
     VerificationResult {
-        report: gh_verify_core::assessment::AssessmentReport {
+        report: libverify_core::assessment::AssessmentReport {
             profile_name: report.profile_name.clone(),
             findings: filtered_findings,
             outcomes: filtered_outcomes,
@@ -53,12 +51,12 @@ fn filter_result(result: &VerificationResult) -> VerificationResult {
 
 fn filter_batch(batch: &BatchReport) -> BatchReport {
     BatchReport {
-        pr_reports: batch
-            .pr_reports
+        reports: batch
+            .reports
             .iter()
-            .map(|pr| crate::verify::PrReport {
-                pr_number: pr.pr_number,
-                result: filter_result(&pr.result),
+            .map(|entry| BatchEntry {
+                subject_id: entry.subject_id.clone(),
+                result: filter_result(&entry.result),
             })
             .collect(),
         total_pass: batch.total_pass,

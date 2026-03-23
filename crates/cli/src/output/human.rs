@@ -1,9 +1,7 @@
 use anyhow::Result;
 use colored::Colorize;
-use gh_verify_core::assessment::VerificationResult;
-use gh_verify_core::profile::GateDecision;
-
-use crate::verify::BatchReport;
+use libverify_core::assessment::{BatchReport, VerificationResult};
+use libverify_core::profile::GateDecision;
 
 pub fn print(result: &VerificationResult, only_failures: bool) -> Result<()> {
     let report = &result.report;
@@ -46,17 +44,17 @@ pub fn print(result: &VerificationResult, only_failures: bool) -> Result<()> {
 }
 
 pub fn print_batch(batch: &BatchReport, only_failures: bool) -> Result<()> {
-    for pr_report in &batch.pr_reports {
-        println!("{}", format!("--- PR #{} ---", pr_report.pr_number).bold());
-        print(&pr_report.result, only_failures)?;
+    for entry in &batch.reports {
+        println!("{}", format!("--- {} ---", entry.subject_id).bold());
+        print(&entry.result, only_failures)?;
         println!();
     }
 
     for skipped in &batch.skipped {
         println!(
-            "{} PR #{}: {}",
+            "{} {}: {}",
             "SKIPPED".yellow(),
-            skipped.pr_number,
+            skipped.subject_id,
             skipped.reason
         );
     }
@@ -73,26 +71,23 @@ pub fn print_batch(batch: &BatchReport, only_failures: bool) -> Result<()> {
         .bold()
     );
 
-    let failed_prs: Vec<u32> = batch
-        .pr_reports
+    let failed_entries: Vec<&str> = batch
+        .reports
         .iter()
-        .filter(|pr| {
-            pr.result
+        .filter(|entry| {
+            entry
+                .result
                 .report
                 .outcomes
                 .iter()
                 .any(|o| o.decision == GateDecision::Fail)
         })
-        .map(|pr| pr.pr_number)
+        .map(|entry| entry.subject_id.as_str())
         .collect();
 
-    if !failed_prs.is_empty() {
-        let pr_list = failed_prs
-            .iter()
-            .map(|n| format!("#{n}"))
-            .collect::<Vec<_>>()
-            .join(", ");
-        println!("{}", format!("Failed PRs: {pr_list}").red().bold());
+    if !failed_entries.is_empty() {
+        let list = failed_entries.join(", ");
+        println!("{}", format!("Failed: {list}").red().bold());
     }
 
     Ok(())

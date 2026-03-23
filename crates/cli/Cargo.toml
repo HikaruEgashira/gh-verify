@@ -18,13 +18,14 @@ name = "gh-verify-bench"
 path = "src/bin/bench.rs"
 
 [dependencies]
-gh-verify-core = { workspace = true }
+libverify-core = { workspace = true }
+libverify-policy = { workspace = true }
+libverify-output = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 anyhow = { workspace = true }
 clap = { workspace = true }
 reqwest = { workspace = true }
 colored = { workspace = true }
-regorus = { workspace = true }
 tempfile = { workspace = true }
 sha2 = { workspace = true }

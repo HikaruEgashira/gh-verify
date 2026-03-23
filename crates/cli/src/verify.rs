@@ -1,19 +1,21 @@
 use std::process;
 
 use anyhow::{Context, Result, bail};
-use serde::Serialize;
 
-use gh_verify_core::assessment::{AssessmentReport, VerificationResult};
-use gh_verify_core::evidence::EvidenceState;
-use gh_verify_core::profile::GateDecision;
-use gh_verify_core::slsa::SlsaLevel;
+use libverify_core::assessment::{
+    AssessmentReport, BatchEntry, BatchReport, SkippedEntry, VerificationResult,
+};
+use libverify_core::evidence::EvidenceState;
+use libverify_core::profile::GateDecision;
+use libverify_core::registry::ControlRegistry;
+use libverify_core::slsa::SlsaLevel;
+use libverify_policy::OpaProfile;
 
 use crate::adapters;
 use crate::github;
 use crate::github::client::GitHubClient;
 use crate::github::graphql::PrData;
 use crate::github::types::{CombinedStatusResponse, CommitStatusItem};
-use crate::policy::OpaProfile;
 
 /// Verify a single pull request and return a verification result.
 pub fn verify_single_pr(
@@ -88,29 +90,6 @@ fn assess_from_pr_data(
     Ok(VerificationResult::new(report, evidence_bundle))
 }
 
-/// Batch report aggregating results across multiple PRs.
-#[derive(Debug, Serialize)]
-pub struct BatchReport {
-    pub pr_reports: Vec<PrReport>,
-    pub total_pass: usize,
-    pub total_review: usize,
-    pub total_fail: usize,
-    pub skipped: Vec<SkippedPr>,
-}
-
-#[derive(Debug, Serialize)]
-pub struct PrReport {
-    pub pr_number: u32,
-    #[serde(flatten)]
-    pub result: VerificationResult,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub struct SkippedPr {
-    pub pr_number: u32,
-    pub reason: String,
-}
-
 /// Verify a batch of PRs and aggregate results.
 pub fn verify_pr_batch(
     client: &GitHubClient,
@@ -121,7 +100,7 @@ pub fn verify_pr_batch(
     slsa_level: Option<&str>,
     with_evidence: bool,
 ) -> Result<BatchReport> {
-    let mut pr_reports = Vec::new();
+    let mut reports = Vec::new();
     let mut skipped = Vec::new();
     let mut total_pass = 0usize;
     let mut total_review = 0usize;
@@ -152,15 +131,15 @@ pub fn verify_pr_batch(
                         GateDecision::Fail => total_fail += 1,
                     }
                 }
-                pr_reports.push(PrReport {
-                    pr_number,
+                reports.push(BatchEntry {
+                    subject_id: format!("#{pr_number}"),
                     result: vr,
                 });
             }
             Err(e) => {
                 eprintln!("Warning: skipping PR #{pr_number}: {e:#}");
-                skipped.push(SkippedPr {
-                    pr_number,
+                skipped.push(SkippedEntry {
+                    subject_id: format!("#{pr_number}"),
                     reason: format!("{e:#}"),
                 });
             }
@@ -168,7 +147,7 @@ pub fn verify_pr_batch(
     }
 
     Ok(BatchReport {
-        pr_reports,
+        reports,
         total_pass,
         total_review,
         total_fail,
@@ -205,29 +184,33 @@ fn parse_level_component(s: &str) -> Result<SlsaLevel> {
 }
 
 pub fn assess_bundle(
-    bundle: &gh_verify_core::evidence::EvidenceBundle,
+    bundle: &libverify_core::evidence::EvidenceBundle,
     policy_path: Option<&str>,
     slsa_level: Option<&str>,
 ) -> Result<AssessmentReport> {
+    let registry = ControlRegistry::builtin();
     match policy_path {
         Some(name) => {
             let profile = OpaProfile::from_preset_or_file(name)?;
-            let controls = gh_verify_core::controls::all_controls();
-            Ok(gh_verify_core::assessment::assess(
-                bundle, &controls, &profile,
+            Ok(libverify_core::assessment::assess(
+                bundle,
+                registry.controls(),
+                &profile,
             ))
         }
         None => match slsa_level {
             Some(level_str) => {
                 let (source_level, build_level) = parse_slsa_level(level_str)?;
-                Ok(gh_verify_core::assessment::assess_with_slsa_levels(
+                Ok(libverify_core::assessment::assess_with_slsa_levels(
                     bundle,
+                    &registry,
                     source_level,
                     build_level,
                 ))
             }
-            None => Ok(gh_verify_core::assessment::assess_all_controls_with_levels(
+            None => Ok(libverify_core::assessment::assess_with_slsa_levels(
                 bundle,
+                &registry,
                 SlsaLevel::L1,
                 SlsaLevel::L1,
             )),

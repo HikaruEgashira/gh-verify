@@ -11,7 +11,7 @@ use gh_verify::github::client::GitHubClient;
 use gh_verify::output;
 use gh_verify::range;
 use gh_verify::verify;
-use gh_verify_core::evidence::EvidenceState;
+use libverify_core::evidence::EvidenceState;
 
 const VERSION: &str = env!("GH_VERIFY_VERSION");
 
@@ -226,7 +226,7 @@ fn run() -> Result<()> {
             let report = verify::assess_bundle(&bundle, policy.as_deref(), slsa_level.as_deref())?;
             let evidence_bundle = if with_evidence { Some(bundle) } else { None };
             let result =
-                gh_verify_core::assessment::VerificationResult::new(report, evidence_bundle);
+                libverify_core::assessment::VerificationResult::new(report, evidence_bundle);
             output::print(&opts, &result)?;
             verify::exit_if_assessment_fails(&result);
         }
