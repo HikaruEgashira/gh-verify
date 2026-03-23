@@ -3,7 +3,9 @@ use serde::{Deserialize, Serialize};
 use crate::control::{Control, ControlFinding, ControlStatus, evaluate_all};
 use crate::controls;
 use crate::evidence::EvidenceBundle;
-use crate::profile::{ControlProfile, ProfileOutcome, SlsaLevelProfile, apply_profile};
+use crate::profile::{
+    ControlProfile, ProfileOutcome, SeverityLabels, SlsaLevelProfile, apply_profile,
+};
 use crate::slsa::SlsaLevel;
 
 /// Complete assessment result combining raw control findings with profile-mapped outcomes.
@@ -12,6 +14,8 @@ pub struct AssessmentReport {
     pub profile_name: String,
     pub findings: Vec<ControlFinding>,
     pub outcomes: Vec<ProfileOutcome>,
+    /// Policy-specific display labels for severity levels.
+    pub severity_labels: SeverityLabels,
 }
 
 /// Assessment report with optional raw evidence bundle for audit trails.
@@ -45,6 +49,7 @@ pub fn assess(
         profile_name: profile.name().to_string(),
         findings,
         outcomes,
+        severity_labels: profile.severity_labels(),
     }
 }
 

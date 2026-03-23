@@ -1,7 +1,9 @@
 use anyhow::{Context, Result, bail};
 
 use gh_verify_core::control::ControlFinding;
-use gh_verify_core::profile::{ControlProfile, FindingSeverity, GateDecision, ProfileOutcome};
+use gh_verify_core::profile::{
+    ControlProfile, FindingSeverity, GateDecision, ProfileOutcome, SeverityLabels,
+};
 
 const DEFAULT_POLICY: &str = include_str!("default.rego");
 const OSS_POLICY: &str = include_str!("oss.rego");
@@ -125,6 +127,17 @@ impl ControlProfile for OpaProfile {
             severity,
             decision,
             rationale: finding.rationale.clone(),
+        }
+    }
+
+    fn severity_labels(&self) -> SeverityLabels {
+        match self.profile_name {
+            "soc1" => SeverityLabels {
+                info: "effective".to_string(),
+                warning: "deficiency".to_string(),
+                error: "material_weakness".to_string(),
+            },
+            _ => SeverityLabels::default(),
         }
     }
 }
@@ -460,5 +473,39 @@ map := {"severity": "error", "decision": "fail"} if {
         let outcome = profile.map(&finding);
         assert_eq!(outcome.severity, FindingSeverity::Info);
         assert_eq!(outcome.decision, GateDecision::Pass);
+    }
+
+    // --- Severity labels tests ---
+
+    #[test]
+    fn default_preset_returns_soc2_severity_labels() {
+        let profile = OpaProfile::default_policy().unwrap();
+        let labels = profile.severity_labels();
+        assert_eq!(labels.info, "compliant");
+        assert_eq!(labels.warning, "observation");
+        assert_eq!(labels.error, "exception");
+    }
+
+    #[test]
+    fn soc2_preset_returns_default_severity_labels() {
+        let profile = OpaProfile::soc2_preset().unwrap();
+        let labels = profile.severity_labels();
+        assert_eq!(labels, SeverityLabels::default());
+    }
+
+    #[test]
+    fn soc1_preset_returns_soc1_severity_labels() {
+        let profile = OpaProfile::soc1_preset().unwrap();
+        let labels = profile.severity_labels();
+        assert_eq!(labels.info, "effective");
+        assert_eq!(labels.warning, "deficiency");
+        assert_eq!(labels.error, "material_weakness");
+    }
+
+    #[test]
+    fn oss_preset_returns_default_severity_labels() {
+        let profile = OpaProfile::oss_preset().unwrap();
+        let labels = profile.severity_labels();
+        assert_eq!(labels, SeverityLabels::default());
     }
 }

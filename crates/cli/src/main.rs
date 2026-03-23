@@ -43,6 +43,9 @@ enum Commands {
         /// Include raw collected evidence in output
         #[arg(long)]
         with_evidence: bool,
+        /// Only show failing controls in output
+        #[arg(long)]
+        only_failures: bool,
     },
     /// Verify release integrity
     Release {
@@ -63,6 +66,9 @@ enum Commands {
         /// Include raw collected evidence in output
         #[arg(long)]
         with_evidence: bool,
+        /// Only show failing controls in output
+        #[arg(long)]
+        only_failures: bool,
     },
 }
 
@@ -84,8 +90,12 @@ fn run() -> Result<()> {
             policy,
             slsa_level,
             with_evidence,
+            only_failures,
         } => {
-            let fmt = output::parse_format(&format)?;
+            let opts = output::OutputOptions {
+                format: output::parse_format(&format)?,
+                only_failures,
+            };
             let cfg = Config::load()?;
             let (owner, repo_name) = resolve_repo(&cfg, repo_override.as_deref())?;
             let client = GitHubClient::new(&cfg)?;
@@ -107,7 +117,7 @@ fn run() -> Result<()> {
                         slsa_level.as_deref(),
                         with_evidence,
                     )?;
-                    output::print_batch(fmt, &batch)?;
+                    output::print_batch(&opts, &batch)?;
                     if batch.total_fail > 0 {
                         process::exit(1);
                     }
@@ -128,7 +138,7 @@ fn run() -> Result<()> {
                         slsa_level.as_deref(),
                         with_evidence,
                     )?;
-                    output::print(fmt, &result)?;
+                    output::print(&opts, &result)?;
                     verify::exit_if_assessment_fails(&result);
                 }
             }
@@ -140,8 +150,12 @@ fn run() -> Result<()> {
             policy,
             slsa_level,
             with_evidence,
+            only_failures,
         } => {
-            let fmt = output::parse_format(&format)?;
+            let opts = output::OutputOptions {
+                format: output::parse_format(&format)?,
+                only_failures,
+            };
             let cfg = Config::load()?;
             let (owner, repo_name) = resolve_repo(&cfg, repo_override.as_deref())?;
             let client = GitHubClient::new(&cfg)?;
@@ -213,7 +227,7 @@ fn run() -> Result<()> {
             let evidence_bundle = if with_evidence { Some(bundle) } else { None };
             let result =
                 gh_verify_core::assessment::VerificationResult::new(report, evidence_bundle);
-            output::print(fmt, &result)?;
+            output::print(&opts, &result)?;
             verify::exit_if_assessment_fails(&result);
         }
     }

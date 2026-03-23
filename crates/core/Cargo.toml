@@ -10,3 +10,8 @@ serde = { workspace = true }
 
 [dev-dependencies]
 creusot-std = { workspace = true }
+criterion = { version = "0.5", features = ["html_reports"] }
+
+[[bench]]
+name = "test_coverage"
+harness = false

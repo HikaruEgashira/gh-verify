@@ -5,6 +5,39 @@ use serde::{Deserialize, Serialize};
 use crate::control::{ControlFinding, ControlId, ControlStatus};
 use crate::slsa::{SlsaLevel, SlsaTrack, control_slsa_mapping};
 
+/// Policy-specific display labels for severity levels.
+///
+/// Different compliance frameworks use different vocabulary for the same
+/// underlying severity concept. For example, SOC2 audits use "exception"
+/// instead of "error" and "observation" instead of "warning".
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SeverityLabels {
+    pub info: String,
+    pub warning: String,
+    pub error: String,
+}
+
+impl Default for SeverityLabels {
+    fn default() -> Self {
+        Self {
+            info: "compliant".to_string(),
+            warning: "observation".to_string(),
+            error: "exception".to_string(),
+        }
+    }
+}
+
+impl SeverityLabels {
+    /// Returns the display label for a given severity.
+    pub fn label_for(&self, severity: FindingSeverity) -> &str {
+        match severity {
+            FindingSeverity::Info => &self.info,
+            FindingSeverity::Warning => &self.warning,
+            FindingSeverity::Error => &self.error,
+        }
+    }
+}
+
 /// Severity level assigned to a control finding by a profile.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -60,6 +93,13 @@ pub trait ControlProfile {
     fn name(&self) -> &'static str;
     /// Converts a control finding into a profile outcome with severity and gate decision.
     fn map(&self, finding: &ControlFinding) -> ProfileOutcome;
+    /// Returns the display labels for severity levels in this profile's vocabulary.
+    ///
+    /// Override this for compliance frameworks that use different terminology
+    /// (e.g. SOC2: error→exception, warning→observation, info→compliant).
+    fn severity_labels(&self) -> SeverityLabels {
+        SeverityLabels::default()
+    }
 }
 
 /// SLSA level-aware profile.
@@ -372,5 +412,28 @@ mod tests {
         assert_eq!(outcomes[2].severity, FindingSeverity::Info);
         assert_eq!(outcomes[3].decision, GateDecision::Fail);
         assert_eq!(outcomes[3].severity, FindingSeverity::Error);
+    }
+
+    #[test]
+    fn severity_labels_default_uses_soc2_vocabulary() {
+        let labels = SeverityLabels::default();
+        assert_eq!(labels.info, "compliant");
+        assert_eq!(labels.warning, "observation");
+        assert_eq!(labels.error, "exception");
+    }
+
+    #[test]
+    fn severity_labels_label_for_maps_correctly() {
+        let labels = SeverityLabels::default();
+        assert_eq!(labels.label_for(FindingSeverity::Info), "compliant");
+        assert_eq!(labels.label_for(FindingSeverity::Warning), "observation");
+        assert_eq!(labels.label_for(FindingSeverity::Error), "exception");
+    }
+
+    #[test]
+    fn slsa_profile_returns_default_severity_labels() {
+        let profile = l1_profile();
+        let labels = profile.severity_labels();
+        assert_eq!(labels, SeverityLabels::default());
     }
 }

@@ -22,15 +22,23 @@ inputs:
     required: false
     default: "json"
   policy:
-    description: "Path to custom OPA policy file (.rego) for gate decisions"
+    description: "Policy preset (default, oss, aiops, soc1, soc2) or path to .rego file"
     required: false
     default: ""
+  slsa-level:
+    description: "SLSA level target: source-l{N}-build-l{M} (e.g. source-l3-build-l2)"
+    required: false
+    default: ""
+  only-failures:
+    description: "Only show controls with fail decision in output"
+    required: false
+    default: "false"
   version:
-    description: "gh-verify version to install (e.g. v0.5.0). Empty = latest."
+    description: "gh-verify version to install. Empty = latest."
     required: false
     default: ""
   upload-sarif:
-    description: "Upload SARIF results to GitHub Security tab (requires format=sarif)"
+    description: "Upload SARIF results to GitHub Code Scanning (auto-enabled when format=sarif)"
     required: false
     default: "false"
 
@@ -48,23 +56,28 @@ outputs:
     description: "Number of controls with fail decision"
     value: ${{ steps.parse.outputs.fail-count }}
   sarif-file:
-    description: "Path to SARIF output file (empty if format is not sarif)"
+    description: "Path to SARIF output file (set when SARIF is generated)"
     value: ${{ steps.sarif.outputs.sarif-file }}
 
 runs:
   using: "composite"
   steps:
-    - name: Validate command input
+    - name: Validate inputs
       shell: bash
       env:
         INPUT_COMMAND: ${{ inputs.command }}
+        INPUT_FORMAT: ${{ inputs.format }}
       run: |
         if [[ "$INPUT_COMMAND" != "pr" && "$INPUT_COMMAND" != "release" ]]; then
           echo "::error::Invalid command '$INPUT_COMMAND'. Must be 'pr' or 'release'."
           exit 1
         fi
+        if [[ "$INPUT_FORMAT" != "human" && "$INPUT_FORMAT" != "json" && "$INPUT_FORMAT" != "sarif" ]]; then
+          echo "::error::Invalid format '$INPUT_FORMAT'. Must be 'human', 'json', or 'sarif'."
+          exit 1
+        fi
 
-    - name: Download and verify gh-verify binary
+    - name: Install gh-verify
       id: install
       shell: bash
       env:
@@ -72,56 +85,38 @@ runs:
         INPUT_VERSION: ${{ inputs.version }}
       run: |
         if [ -n "$INPUT_VERSION" ]; then
-          VERSION="$INPUT_VERSION"
+          gh extension install HikaruEgashira/gh-verify --pin "$INPUT_VERSION"
         else
-          VERSION=$(gh release list --repo HikaruEgashira/gh-verify --limit 1 --json tagName --jq '.[0].tagName')
+          gh extension install HikaruEgashira/gh-verify
         fi
 
-        ASSET="gh-verify-linux-amd64"
-        gh release download "$VERSION" \
-          --repo HikaruEgashira/gh-verify \
-          --pattern "$ASSET" \
-          --pattern "checksums.txt" \
-          --dir "$RUNNER_TEMP" \
-          --clobber
-
-        # Verify checksum if checksums.txt was downloaded
-        if [ -f "$RUNNER_TEMP/checksums.txt" ]; then
-          cd "$RUNNER_TEMP"
-          grep "$ASSET" checksums.txt | sha256sum -c -
-          cd -
-        else
-          echo "::warning::checksums.txt not found in release $VERSION — skipping integrity check"
-        fi
-
-        chmod +x "$RUNNER_TEMP/$ASSET"
-        echo "binary=$RUNNER_TEMP/$ASSET" >> "$GITHUB_OUTPUT"
-
-    - name: Run gh-verify (JSON)
+    - name: Run gh-verify
       id: verify
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
-        BINARY: ${{ steps.install.outputs.binary }}
         INPUT_COMMAND: ${{ inputs.command }}
         INPUT_ARGUMENT: ${{ inputs.argument }}
         INPUT_REPO: ${{ inputs.repo }}
         INPUT_POLICY: ${{ inputs.policy }}
+        INPUT_SLSA_LEVEL: ${{ inputs.slsa-level }}
       run: |
         ARGS=("$INPUT_COMMAND" "$INPUT_ARGUMENT" --repo "$INPUT_REPO" --format json)
         if [ -n "$INPUT_POLICY" ]; then
           ARGS+=(--policy "$INPUT_POLICY")
         fi
+        if [ -n "$INPUT_SLSA_LEVEL" ]; then
+          ARGS+=(--slsa-level "$INPUT_SLSA_LEVEL")
+        fi
 
         set +e
-        JSON_OUTPUT=$("$BINARY" "${ARGS[@]}" 2>"$RUNNER_TEMP/gh-verify-stderr.log")
+        JSON_OUTPUT=$(gh verify "${ARGS[@]}" 2>"$RUNNER_TEMP/gh-verify-stderr.log")
         EXIT_CODE=$?
         set -e
 
         echo "$JSON_OUTPUT" > "$RUNNER_TEMP/gh-verify-output.json"
         echo "exit-code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
 
-        # Surface stderr as warnings
         if [ -s "$RUNNER_TEMP/gh-verify-stderr.log" ]; then
           while IFS= read -r line; do
             echo "::warning::$line"
@@ -131,8 +126,9 @@ runs:
     - name: Parse results
       id: parse
       shell: bash
+      env:
+        INPUT_ONLY_FAILURES: ${{ inputs.only-failures }}
       run: |
-        # Validate JSON before parsing to avoid false-positive "pass"
         if ! jq empty "$RUNNER_TEMP/gh-verify-output.json" 2>/dev/null; then
           echo "::error::gh-verify produced invalid JSON output"
           cat "$RUNNER_TEMP/gh-verify-output.json"
@@ -158,12 +154,41 @@ runs:
         echo "review-count=$REVIEW" >> "$GITHUB_OUTPUT"
         echo "fail-count=$FAIL" >> "$GITHUB_OUTPUT"
 
+        # Filter JSON to only failures if requested
+        if [ "$INPUT_ONLY_FAILURES" = "true" ]; then
+          jq '.outcomes |= [.[] | select(.decision=="fail")]' \
+            "$RUNNER_TEMP/gh-verify-output.json" > "$RUNNER_TEMP/gh-verify-filtered.json"
+          mv "$RUNNER_TEMP/gh-verify-filtered.json" "$RUNNER_TEMP/gh-verify-output.json"
+        fi
+
+    - name: Run gh-verify
+      id: format-output
+      if: inputs.format != 'json'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        INPUT_COMMAND: ${{ inputs.command }}
+        INPUT_ARGUMENT: ${{ inputs.argument }}
+        INPUT_REPO: ${{ inputs.repo }}
+        INPUT_FORMAT: ${{ inputs.format }}
+        INPUT_POLICY: ${{ inputs.policy }}
+        INPUT_SLSA_LEVEL: ${{ inputs.slsa-level }}
+      run: |
+        ARGS=("$INPUT_COMMAND" "$INPUT_ARGUMENT" --repo "$INPUT_REPO" --format "$INPUT_FORMAT")
+        if [ -n "$INPUT_POLICY" ]; then
+          ARGS+=(--policy "$INPUT_POLICY")
+        fi
+        if [ -n "$INPUT_SLSA_LEVEL" ]; then
+          ARGS+=(--slsa-level "$INPUT_SLSA_LEVEL")
+        fi
+
+        gh verify "${ARGS[@]}" > "$RUNNER_TEMP/gh-verify-formatted-output" 2>/dev/null || true
+
     - name: Write step summary
       shell: bash
       env:
         INPUT_COMMAND: ${{ inputs.command }}
         INPUT_ARGUMENT: ${{ inputs.argument }}
-        INPUT_FORMAT: ${{ inputs.format }}
         RESULT: ${{ steps.parse.outputs.result }}
         PASS: ${{ steps.parse.outputs.pass-count }}
         REVIEW: ${{ steps.parse.outputs.review-count }}
@@ -181,39 +206,48 @@ runs:
           echo "<details><summary>Full JSON output</summary>"
           echo ""
           echo '```json'
-          cat "$RUNNER_TEMP/gh-verify-output.json"
+          jq . "$RUNNER_TEMP/gh-verify-output.json"
           echo '```'
           echo "</details>"
         } >> "$GITHUB_STEP_SUMMARY"
 
         cat "$RUNNER_TEMP/gh-verify-output.json"
 
-    - name: Generate SARIF
+    - name: Prepare SARIF
       id: sarif
-      if: inputs.upload-sarif == 'true'
+      if: inputs.format == 'sarif' || inputs.upload-sarif == 'true'
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
-        BINARY: ${{ steps.install.outputs.binary }}
         INPUT_COMMAND: ${{ inputs.command }}
         INPUT_ARGUMENT: ${{ inputs.argument }}
         INPUT_REPO: ${{ inputs.repo }}
+        INPUT_FORMAT: ${{ inputs.format }}
         INPUT_POLICY: ${{ inputs.policy }}
+        INPUT_SLSA_LEVEL: ${{ inputs.slsa-level }}
       run: |
-        ARGS=("$INPUT_COMMAND" "$INPUT_ARGUMENT" --repo "$INPUT_REPO" --format sarif)
-        if [ -n "$INPUT_POLICY" ]; then
-          ARGS+=(--policy "$INPUT_POLICY")
+        # If format is already sarif, reuse the formatted output
+        if [ "$INPUT_FORMAT" = "sarif" ] && [ -f "$RUNNER_TEMP/gh-verify-formatted-output" ]; then
+          cp "$RUNNER_TEMP/gh-verify-formatted-output" "$RUNNER_TEMP/gh-verify.sarif"
+        else
+          ARGS=("$INPUT_COMMAND" "$INPUT_ARGUMENT" --repo "$INPUT_REPO" --format sarif)
+          if [ -n "$INPUT_POLICY" ]; then
+            ARGS+=(--policy "$INPUT_POLICY")
+          fi
+          if [ -n "$INPUT_SLSA_LEVEL" ]; then
+            ARGS+=(--slsa-level "$INPUT_SLSA_LEVEL")
+          fi
+          gh verify "${ARGS[@]}" > "$RUNNER_TEMP/gh-verify.sarif" 2>/dev/null
         fi
 
-        "$BINARY" "${ARGS[@]}" > "$RUNNER_TEMP/gh-verify.sarif" 2>/dev/null
         if ! jq empty "$RUNNER_TEMP/gh-verify.sarif" 2>/dev/null; then
           echo "::error::gh-verify produced invalid SARIF output"
           exit 1
         fi
         echo "sarif-file=$RUNNER_TEMP/gh-verify.sarif" >> "$GITHUB_OUTPUT"
 
-    - name: Upload SARIF
-      if: inputs.upload-sarif == 'true' && steps.sarif.outputs.sarif-file != ''
+    - name: Upload SARIF to Code Scanning
+      if: (inputs.format == 'sarif' || inputs.upload-sarif == 'true') && steps.sarif.outputs.sarif-file != ''
       uses: github/codeql-action/upload-sarif@v3
       with:
         sarif_file: ${{ steps.sarif.outputs.sarif-file }}
