@@ -4,13 +4,13 @@
 //! It is compiled exclusively with `cargo creusot` and verified by SMT solvers.
 //! No I/O, no `format!`, no String operations — only primitive-type logic.
 //!
-//! The corresponding runtime implementations in `gh-verify-core` delegate
+//! The corresponding runtime implementations in `libverify-core` delegate
 //! to these predicates, so proving them correct ensures the core decision
 //! logic is sound.
 
 use creusot_std::macros::{ensures, requires};
 
-/// Severity levels mirroring `gh-verify-core::verdict::Severity`.
+/// Severity levels mirroring `libverify-core::verdict::Severity`.
 /// Duplicated here to avoid pulling in serde and format! via the core crate.
 #[derive(Debug, Clone, Copy, creusot_std::prelude::DeepModel)]
 pub enum Severity {

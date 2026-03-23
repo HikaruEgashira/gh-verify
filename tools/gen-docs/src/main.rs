@@ -452,7 +452,7 @@ fn build_module_rule_maps(
 
     let legacy_rule_id_re = Regex::new(r#"const RULE_ID:\s*&str\s*=\s*"([^"]+)""#).unwrap();
     let control_id_re = Regex::new(r"ControlId::(\w+)").unwrap();
-    let use_re = Regex::new(r"use (?:gh_verify_core|crate)::(\w+)").unwrap();
+    let use_re = Regex::new(r"use (?:libverify_core|gh_verify_core|crate)::(\w+)").unwrap();
     let fn_call_re = Regex::new(r"\b([a-z_]\w+)\s*\(").unwrap();
 
     let dirs = [
@@ -650,7 +650,7 @@ fn collect_rules(root: &Path) -> BTreeMap<String, RuleInfo> {
 
     // 4. Collect verif specs, attach proof attestations, and map to rules
     let verif_path = root.join("crates/verif/src/lib.rs");
-    let mirror_re = Regex::new(r"gh-verify-core::(\w+)").unwrap();
+    let mirror_re = Regex::new(r"(?:libverify-core|gh-verify-core)::(\w+)").unwrap();
     for mut spec in parse_verif_specs(&verif_path) {
         spec.proof = parse_proof_attestation(root, &spec.fn_name);
 
@@ -688,7 +688,7 @@ fn collect_rules(root: &Path) -> BTreeMap<String, RuleInfo> {
         if let Some(rule) = rules.get_mut(&rule_id) {
             rule.specs.push(spec);
         } else {
-            // Strategy 4: check verif doc comment for "Mirrors `gh-verify-core::module::fn`"
+            // Strategy 4: check verif doc comment for "Mirrors `libverify-core::module::fn`"
             let mut matched = false;
             if let Some(cap) = mirror_re.captures(&spec.doc) {
                 let module = &cap[1];
