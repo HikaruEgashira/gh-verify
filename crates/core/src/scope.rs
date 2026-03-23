@@ -23,8 +23,8 @@ pub fn classify_scope(code_files_count: usize, components: usize) -> Severity {
 
 /// Known non-code file extensions that should be excluded from scope analysis.
 pub const NON_CODE_EXTENSIONS: &[&str] = &[
-    ".md", ".rst", ".txt", ".json", ".yaml", ".yml", ".toml", ".lock", ".env", ".cfg", ".ini",
-    ".css", ".scss", ".svg", ".png", ".jpg", ".gif", ".ico", ".woff", ".woff2",
+    ".md", ".rst", ".txt", ".adoc", ".json", ".yaml", ".yml", ".toml", ".lock", ".env", ".cfg",
+    ".ini", ".css", ".scss", ".svg", ".png", ".jpg", ".gif", ".ico", ".woff", ".woff2",
 ];
 
 /// Known non-code path prefixes that should be excluded from scope analysis.
@@ -492,14 +492,25 @@ fn has_fixture_marker(path: &str) -> bool {
         || path.contains("/fixtures/")
         || path.contains("/fixture/")
         || path.contains("/fixtures-")
+        || path.starts_with("__fixtures__/")
+        || path.starts_with("fixtures/")
+        || path.starts_with("fixture/")
         || (path.contains("/cases/") && (path.contains("test") || path.contains("e2e")))
 }
 
 fn has_test_marker(path: &str) -> bool {
+    // Directory-based markers (both nested and top-level)
     path.contains("/__tests__/")
         || path.contains("/tests/")
         || path.contains("/test/")
+        || path.contains("/spec/")
         || path.contains("/e2e/")
+        || path.starts_with("__tests__/")
+        || path.starts_with("tests/")
+        || path.starts_with("test/")
+        || path.starts_with("spec/")
+        || path.starts_with("e2e/")
+        // Filename-based markers
         || path.contains(".test.")
         || path.contains("_test.")
         || path.contains(".spec.")
@@ -761,6 +772,27 @@ mod tests {
         );
         assert_eq!(
             classify_file_role("packages-private/vapor-e2e-test/transition/cases/mode/sample.vue"),
+            FileRole::Fixture
+        );
+        // Top-level test directories (Express.js, Mocha, etc.)
+        assert_eq!(classify_file_role("test/req.query.js"), FileRole::Test);
+        assert_eq!(classify_file_role("test/app.use.js"), FileRole::Test);
+        assert_eq!(classify_file_role("tests/unit/foo.py"), FileRole::Test);
+        assert_eq!(classify_file_role("e2e/login.spec.ts"), FileRole::Test);
+        assert_eq!(
+            classify_file_role("__tests__/component.spec.tsx"),
+            FileRole::Test
+        );
+        // RSpec spec/ directory (top-level and nested)
+        assert_eq!(classify_file_role("spec/parser_spec.rb"), FileRole::Test);
+        assert_eq!(classify_file_role("spec/models/user_spec.rb"), FileRole::Test);
+        assert_eq!(
+            classify_file_role("gems/mylib/spec/mylib_spec.rb"),
+            FileRole::Test
+        );
+        // Top-level fixtures
+        assert_eq!(
+            classify_file_role("fixtures/sample.json"),
             FileRole::Fixture
         );
     }

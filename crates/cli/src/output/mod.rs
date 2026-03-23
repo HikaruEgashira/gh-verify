@@ -14,6 +14,11 @@ pub enum Format {
     Sarif,
 }
 
+pub struct OutputOptions {
+    pub format: Format,
+    pub only_failures: bool,
+}
+
 pub fn parse_format(s: &str) -> Result<Format> {
     match s {
         "human" => Ok(Format::Human),
@@ -23,18 +28,18 @@ pub fn parse_format(s: &str) -> Result<Format> {
     }
 }
 
-pub fn print(format: Format, result: &VerificationResult) -> Result<()> {
-    match format {
-        Format::Human => human::print(result),
-        Format::Json => json::print(result),
-        Format::Sarif => sarif::print(result),
+pub fn print(opts: &OutputOptions, result: &VerificationResult) -> Result<()> {
+    match opts.format {
+        Format::Human => human::print(result, opts.only_failures),
+        Format::Json => json::print(result, opts.only_failures),
+        Format::Sarif => sarif::print(result, opts.only_failures),
     }
 }
 
-pub fn print_batch(format: Format, batch: &BatchReport) -> Result<()> {
-    match format {
-        Format::Human => human::print_batch(batch),
-        Format::Json => json::print_batch(batch),
-        Format::Sarif => sarif::print_batch(batch),
+pub fn print_batch(opts: &OutputOptions, batch: &BatchReport) -> Result<()> {
+    match opts.format {
+        Format::Human => human::print_batch(batch, opts.only_failures),
+        Format::Json => json::print_batch(batch, opts.only_failures),
+        Format::Sarif => sarif::print_batch(batch, opts.only_failures),
     }
 }

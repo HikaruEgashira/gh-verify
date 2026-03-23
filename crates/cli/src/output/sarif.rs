@@ -7,8 +7,11 @@ use crate::verify::BatchReport;
 
 const VERSION: &str = env!("GH_VERIFY_VERSION");
 
-pub fn print(result: &VerificationResult) -> Result<()> {
+pub fn print(result: &VerificationResult, only_failures: bool) -> Result<()> {
     let mut sarif = build_sarif(&result.report);
+    if only_failures {
+        filter_sarif_runs(&mut sarif);
+    }
     if let Some(evidence) = &result.evidence {
         if let Some(run) = sarif["runs"].as_array_mut().and_then(|a| a.first_mut()) {
             run["properties"]["evidence"] = serde_json::to_value(evidence)?;
@@ -18,10 +21,13 @@ pub fn print(result: &VerificationResult) -> Result<()> {
     Ok(())
 }
 
-pub fn print_batch(batch: &BatchReport) -> Result<()> {
+pub fn print_batch(batch: &BatchReport, only_failures: bool) -> Result<()> {
     let mut runs = Vec::new();
     for pr_report in &batch.pr_reports {
-        let sarif = build_sarif(&pr_report.result.report);
+        let mut sarif = build_sarif(&pr_report.result.report);
+        if only_failures {
+            filter_sarif_runs(&mut sarif);
+        }
         if let Some(run) = sarif["runs"].as_array().and_then(|a| a.first()) {
             let mut run = run.clone();
             let mut props = serde_json::json!({ "prNumber": pr_report.pr_number });
@@ -116,6 +122,21 @@ fn build_sarif(report: &AssessmentReport) -> serde_json::Value {
     })
 }
 
+fn filter_sarif_runs(sarif: &mut serde_json::Value) {
+    if let Some(runs) = sarif["runs"].as_array_mut() {
+        for run in runs.iter_mut() {
+            if let Some(results) = run["results"].as_array() {
+                let filtered: Vec<serde_json::Value> = results
+                    .iter()
+                    .filter(|r| r["level"].as_str() == Some("error"))
+                    .cloned()
+                    .collect();
+                run["results"] = serde_json::Value::Array(filtered);
+            }
+        }
+    }
+}
+
 fn rule_descriptor(id: ControlId) -> serde_json::Value {
     let desc = match id {
         ControlId::SourceAuthenticity => "All commits must carry verified signatures",
@@ -202,6 +223,7 @@ mod tests {
                     rationale: "1 unsigned commit".to_string(),
                 },
             ],
+            severity_labels: Default::default(),
         }
     }
 

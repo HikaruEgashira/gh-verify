@@ -105,7 +105,7 @@ pub struct PrReport {
     pub result: VerificationResult,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct SkippedPr {
     pub pr_number: u32,
     pub reason: String,

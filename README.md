@@ -58,7 +58,7 @@ Exit codes: `0` = pass, `1` = fail.
 ### GitHub Action
 
 ```yaml
-- uses: HikaruEgashira/gh-verify@v0.5
+- uses: HikaruEgashira/gh-verify@v0.7
   with:
     command: pr
     argument: ${{ github.event.pull_request.number }}
@@ -105,6 +105,8 @@ Compliance controls always run alongside SLSA controls.
 gh verify pr 6933 --repo expressjs/express --policy oss
 gh verify release 0.15.7 --repo astral-sh/ruff --policy soc2
 ```
+
+For custom OPA Rego policies, see [docs/custom-policies.md](docs/custom-policies.md).
 
 ## Development
 
