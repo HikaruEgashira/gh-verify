@@ -301,10 +301,8 @@ fn convert_pr(pr: GqlPullRequest) -> PrData {
         .map(convert_commit_node)
         .collect();
 
-    let (check_runs, commit_statuses) = extract_status_checks(
-        pr.status_checks
-            .and_then(|sc| sc.nodes.into_iter().next()),
-    );
+    let (check_runs, commit_statuses) =
+        extract_status_checks(pr.status_checks.and_then(|sc| sc.nodes.into_iter().next()));
 
     PrData {
         metadata,
@@ -367,10 +365,7 @@ fn extract_status_checks(
     };
 
     for ctx in rollup.contexts.nodes {
-        let typename = ctx
-            .get("__typename")
-            .and_then(|v| v.as_str())
-            .unwrap_or("");
+        let typename = ctx.get("__typename").and_then(|v| v.as_str()).unwrap_or("");
         match typename {
             "CheckRun" => {
                 check_runs.push(CheckRunItem {

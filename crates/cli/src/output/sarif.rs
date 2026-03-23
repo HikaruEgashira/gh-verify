@@ -1,5 +1,5 @@
 use anyhow::Result;
-use gh_verify_core::assessment::AssessmentReport;
+use gh_verify_core::assessment::{AssessmentReport, VerificationResult};
 use gh_verify_core::control::ControlId;
 use gh_verify_core::profile::FindingSeverity;
 
@@ -7,8 +7,13 @@ use crate::verify::BatchReport;
 
 const VERSION: &str = env!("GH_VERIFY_VERSION");
 
-pub fn print(report: &AssessmentReport) -> Result<()> {
-    let sarif = build_sarif(report);
+pub fn print(result: &VerificationResult) -> Result<()> {
+    let mut sarif = build_sarif(&result.report);
+    if let Some(evidence) = &result.evidence {
+        if let Some(run) = sarif["runs"].as_array_mut().and_then(|a| a.first_mut()) {
+            run["properties"]["evidence"] = serde_json::to_value(evidence)?;
+        }
+    }
     println!("{}", serde_json::to_string_pretty(&sarif)?);
     Ok(())
 }
@@ -16,10 +21,14 @@ pub fn print(report: &AssessmentReport) -> Result<()> {
 pub fn print_batch(batch: &BatchReport) -> Result<()> {
     let mut runs = Vec::new();
     for pr_report in &batch.pr_reports {
-        let sarif = build_sarif(&pr_report.report);
+        let sarif = build_sarif(&pr_report.result.report);
         if let Some(run) = sarif["runs"].as_array().and_then(|a| a.first()) {
             let mut run = run.clone();
-            run["properties"] = serde_json::json!({ "prNumber": pr_report.pr_number });
+            let mut props = serde_json::json!({ "prNumber": pr_report.pr_number });
+            if let Some(evidence) = &pr_report.result.evidence {
+                props["evidence"] = serde_json::to_value(evidence)?;
+            }
+            run["properties"] = props;
             runs.push(run);
         }
     }

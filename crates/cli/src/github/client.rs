@@ -105,7 +105,11 @@ impl GitHubClient {
     }
 
     /// POST a GraphQL query and return the response body.
-    pub fn post_graphql(&self, query: &str, variables: Option<&serde_json::Value>) -> Result<String> {
+    pub fn post_graphql(
+        &self,
+        query: &str,
+        variables: Option<&serde_json::Value>,
+    ) -> Result<String> {
         let url = format!("{}/graphql", self.base_url);
         let body = match variables {
             Some(vars) => serde_json::json!({ "query": query, "variables": vars }),

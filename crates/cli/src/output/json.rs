@@ -1,10 +1,10 @@
 use anyhow::Result;
-use gh_verify_core::assessment::AssessmentReport;
+use gh_verify_core::assessment::VerificationResult;
 
 use crate::verify::BatchReport;
 
-pub fn print(report: &AssessmentReport) -> Result<()> {
-    let json = serde_json::to_string_pretty(report)?;
+pub fn print(result: &VerificationResult) -> Result<()> {
+    let json = serde_json::to_string_pretty(result)?;
     println!("{json}");
     Ok(())
 }

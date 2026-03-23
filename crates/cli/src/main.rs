@@ -40,6 +40,9 @@ enum Commands {
         /// SLSA level target: source-l{N}-build-l{M} (e.g. "source-l3-build-l2")
         #[arg(long)]
         slsa_level: Option<String>,
+        /// Include raw collected evidence in output
+        #[arg(long)]
+        with_evidence: bool,
     },
     /// Verify release integrity
     Release {
@@ -57,6 +60,9 @@ enum Commands {
         /// SLSA level target: source-l{N}-build-l{M} (e.g. "source-l3-build-l2")
         #[arg(long)]
         slsa_level: Option<String>,
+        /// Include raw collected evidence in output
+        #[arg(long)]
+        with_evidence: bool,
     },
 }
 
@@ -77,6 +83,7 @@ fn run() -> Result<()> {
             repo: repo_override,
             policy,
             slsa_level,
+            with_evidence,
         } => {
             let fmt = output::parse_format(&format)?;
             let cfg = Config::load()?;
@@ -98,6 +105,7 @@ fn run() -> Result<()> {
                         &pr_numbers,
                         policy.as_deref(),
                         slsa_level.as_deref(),
+                        with_evidence,
                     )?;
                     output::print_batch(fmt, &batch)?;
                     if batch.total_fail > 0 {
@@ -111,16 +119,17 @@ fn run() -> Result<()> {
                             "could not detect PR for current branch. Pass a PR number explicitly",
                         )?,
                     };
-                    let report = verify::verify_single_pr(
+                    let result = verify::verify_single_pr(
                         &client,
                         &owner,
                         &repo_name,
                         pr_number,
                         policy.as_deref(),
                         slsa_level.as_deref(),
+                        with_evidence,
                     )?;
-                    output::print(fmt, &report)?;
-                    verify::exit_if_assessment_fails(&report);
+                    output::print(fmt, &result)?;
+                    verify::exit_if_assessment_fails(&result);
                 }
             }
         }
@@ -130,6 +139,7 @@ fn run() -> Result<()> {
             repo: repo_override,
             policy,
             slsa_level,
+            with_evidence,
         } => {
             let fmt = output::parse_format(&format)?;
             let cfg = Config::load()?;
@@ -158,22 +168,18 @@ fn run() -> Result<()> {
             println!("Found {} commits", commits.len());
 
             let shas: Vec<&str> = commits.iter().map(|c| c.sha.as_str()).collect();
-            let commit_pr_map = github::graphql::resolve_commit_prs(
-                &client, &owner, &repo_name, &shas,
-            )
-            .unwrap_or_else(|err| {
-                eprintln!("Warning: failed to resolve commit PRs via GraphQL: {err}");
-                std::collections::HashMap::new()
-            });
+            let commit_pr_map =
+                github::graphql::resolve_commit_prs(&client, &owner, &repo_name, &shas)
+                    .unwrap_or_else(|err| {
+                        eprintln!("Warning: failed to resolve commit PRs via GraphQL: {err}");
+                        std::collections::HashMap::new()
+                    });
 
             let commit_prs: Vec<_> = commits
                 .iter()
                 .map(|c| adapters::github::GitHubCommitPullAssociation {
                     commit_sha: c.sha.clone(),
-                    pull_requests: commit_pr_map
-                        .get(&c.sha)
-                        .cloned()
-                        .unwrap_or_default(),
+                    pull_requests: commit_pr_map.get(&c.sha).cloned().unwrap_or_default(),
                 })
                 .collect();
 
@@ -204,8 +210,11 @@ fn run() -> Result<()> {
             // Check runs are PR-scoped; not applicable for release verification.
             bundle.check_runs = EvidenceState::not_applicable();
             let report = verify::assess_bundle(&bundle, policy.as_deref(), slsa_level.as_deref())?;
-            output::print(fmt, &report)?;
-            verify::exit_if_assessment_fails(&report);
+            let evidence_bundle = if with_evidence { Some(bundle) } else { None };
+            let result =
+                gh_verify_core::assessment::VerificationResult::new(report, evidence_bundle);
+            output::print(fmt, &result)?;
+            verify::exit_if_assessment_fails(&result);
         }
     }
 

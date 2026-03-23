@@ -1,16 +1,12 @@
 use anyhow::Result;
 use colored::Colorize;
-use gh_verify_core::assessment::AssessmentReport;
+use gh_verify_core::assessment::VerificationResult;
 use gh_verify_core::profile::{FindingSeverity, GateDecision};
 
 use crate::verify::BatchReport;
 
-pub fn print(report: &AssessmentReport) -> Result<()> {
-    println!(
-        "{}",
-        format!("Assessment profile: {}", report.profile_name).bold()
-    );
-    println!();
+pub fn print(result: &VerificationResult) -> Result<()> {
+    let report = &result.report;
 
     for outcome in &report.outcomes {
         let decision_str = match outcome.decision {
@@ -52,7 +48,7 @@ pub fn print(report: &AssessmentReport) -> Result<()> {
 pub fn print_batch(batch: &BatchReport) -> Result<()> {
     for pr_report in &batch.pr_reports {
         println!("{}", format!("--- PR #{} ---", pr_report.pr_number).bold());
-        print(&pr_report.report)?;
+        print(&pr_report.result)?;
         println!();
     }
 

@@ -3,7 +3,7 @@ pub mod json;
 pub mod sarif;
 
 use anyhow::Result;
-use gh_verify_core::assessment::AssessmentReport;
+use gh_verify_core::assessment::VerificationResult;
 
 use crate::verify::BatchReport;
 
@@ -23,11 +23,11 @@ pub fn parse_format(s: &str) -> Result<Format> {
     }
 }
 
-pub fn print(format: Format, report: &AssessmentReport) -> Result<()> {
+pub fn print(format: Format, result: &VerificationResult) -> Result<()> {
     match format {
-        Format::Human => human::print(report),
-        Format::Json => json::print(report),
-        Format::Sarif => sarif::print(report),
+        Format::Human => human::print(result),
+        Format::Json => json::print(result),
+        Format::Sarif => sarif::print(result),
     }
 }
 
