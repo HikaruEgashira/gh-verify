@@ -30,12 +30,9 @@ enum Commands {
         /// Repository in OWNER/REPO format
         #[arg(long)]
         repo: Option<String>,
-        /// OPA policy: preset name (default, oss, aiops, soc1, soc2) or .rego file path
+        /// Policy: preset name (default, oss, aiops, soc1, soc2, slsa-l1..l4) or .rego file path
         #[arg(long)]
         policy: Option<String>,
-        /// SLSA level target: source-l{N}-build-l{M} (e.g. "source-l3-build-l2")
-        #[arg(long)]
-        slsa_level: Option<String>,
         /// Include raw collected evidence in output
         #[arg(long)]
         with_evidence: bool,
@@ -53,12 +50,9 @@ enum Commands {
         /// Repository in OWNER/REPO format
         #[arg(long)]
         repo: Option<String>,
-        /// OPA policy: preset name (default, oss, aiops, soc1, soc2) or .rego file path
+        /// Policy: preset name (default, oss, aiops, soc1, soc2, slsa-l1..l4) or .rego file path
         #[arg(long)]
         policy: Option<String>,
-        /// SLSA level target: source-l{N}-build-l{M} (e.g. "source-l3-build-l2")
-        #[arg(long)]
-        slsa_level: Option<String>,
         /// Include raw collected evidence in output
         #[arg(long)]
         with_evidence: bool,
@@ -84,7 +78,6 @@ fn run() -> Result<()> {
             format,
             repo: repo_override,
             policy,
-            slsa_level,
             with_evidence,
             only_failures,
         } => {
@@ -110,7 +103,6 @@ fn run() -> Result<()> {
                         &repo_name,
                         &pr_numbers,
                         policy.as_deref(),
-                        slsa_level.as_deref(),
                         with_evidence,
                     )?;
                     output::print_batch(&opts, &batch)?;
@@ -131,7 +123,6 @@ fn run() -> Result<()> {
                         &repo_name,
                         pr_number,
                         policy.as_deref(),
-                        slsa_level.as_deref(),
                         with_evidence,
                     )?;
                     output::print(&opts, &result)?;
@@ -144,7 +135,6 @@ fn run() -> Result<()> {
             format,
             repo: repo_override,
             policy,
-            slsa_level,
             with_evidence,
             only_failures,
         } => {
@@ -173,7 +163,6 @@ fn run() -> Result<()> {
                 &base_tag,
                 &head_tag,
                 policy.as_deref(),
-                slsa_level.as_deref(),
                 with_evidence,
             )?;
             output::print(&opts, &result)?;

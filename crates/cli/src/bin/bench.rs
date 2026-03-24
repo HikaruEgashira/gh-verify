@@ -4,15 +4,14 @@ use std::path::{Path, PathBuf};
 use std::process;
 use std::time::Instant;
 
-use anyhow::{Context, Result, bail};
+use anyhow::{Context, Result};
 use clap::{Args, Parser, Subcommand};
 use libverify_core::assessment;
 use libverify_core::control::Control;
 use libverify_core::controls;
 use libverify_core::evidence::EvidenceBundle;
-use libverify_core::profile::{ControlProfile, GateDecision, SlsaLevelProfile};
+use libverify_core::profile::{ControlProfile, GateDecision};
 use libverify_core::scope::is_non_code_file;
-use libverify_core::slsa::SlsaLevel;
 use libverify_core::verdict::Severity;
 use libverify_github::ossinsight::{CollectionRepoRank, OssInsightClient, PullRequestCreator};
 use libverify_github::pr_api;
@@ -32,8 +31,8 @@ struct Cli {
     /// Output format (human or json)
     #[arg(long, default_value = "human")]
     format: String,
-    /// Assessment algorithms to benchmark (comma-separated or repeated).
-    /// Available: slsa-source-lN-build-lM, all-controls, oss, aiops.
+    /// Policy presets to benchmark (comma-separated or repeated).
+    /// Available: default, oss, aiops, soc1, soc2, slsa-l1, slsa-l2, slsa-l3, slsa-l4, or .rego path.
     #[arg(long = "algorithm", value_delimiter = ',', required = true)]
     algorithms: Vec<String>,
     #[command(subcommand)]
@@ -71,41 +70,13 @@ struct CollectRealWorldArgs {
     output: String,
 }
 
-const KNOWN_ALGORITHMS: &[&str] = &[
-    "slsa-source-l1-build-l1",
-    "slsa-source-l4-build-l3",
-    "all-controls",
-    "oss",
-    "aiops",
-];
-
 /// Resolve algorithm name into (controls, profile).
+/// Algorithm name is a policy preset name (default, oss, aiops, soc1, soc2, slsa-l1..l4)
+/// or a path to a .rego file.
 #[allow(clippy::type_complexity)]
 fn resolve_algorithm(name: &str) -> Result<(Vec<Box<dyn Control>>, Box<dyn ControlProfile>)> {
-    match name {
-        "all-controls" => {
-            let profile = SlsaLevelProfile::new(SlsaLevel::L1, SlsaLevel::L1);
-            Ok((controls::all_controls(), Box::new(profile)))
-        }
-        "oss" => Ok((
-            controls::all_controls(),
-            Box::new(OpaProfile::oss_preset()?),
-        )),
-        "aiops" => Ok((
-            controls::all_controls(),
-            Box::new(OpaProfile::aiops_preset()?),
-        )),
-        s if s.starts_with("slsa-source-l") && s.contains("-build-l") => {
-            let profile = libverify_core::profile::parse_profile(s)
-                .ok_or_else(|| anyhow::anyhow!("invalid SLSA level profile: {s}"))?;
-            // Use all SLSA controls; the profile decides what's required vs advisory.
-            Ok((controls::all_slsa_controls(), profile))
-        }
-        _ => bail!(
-            "unknown algorithm '{name}'. Available: {} (or slsa-source-lN-build-lM)",
-            KNOWN_ALGORITHMS.join(", ")
-        ),
-    }
+    let profile = OpaProfile::from_preset_or_file(name)?;
+    Ok((controls::all_controls(), Box::new(profile)))
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -600,8 +571,8 @@ fn discover_repo(
         let code_files = code_paths.len();
         let observed = match fetch_evidence(github, owner, repo, pr.number) {
             Ok(bundle) => {
-                let ctrls = controls::slsa_controls(SlsaLevel::L1, SlsaLevel::L1);
-                let profile = SlsaLevelProfile::new(SlsaLevel::L1, SlsaLevel::L1);
+                let ctrls = controls::all_controls();
+                let profile = OpaProfile::slsa_l1_preset()?;
                 assess_bundle(&bundle, &ctrls, &profile)
             }
             Err(e) => ActualResult::FetchError(format!("{e}")),
