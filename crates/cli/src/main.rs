@@ -65,6 +65,18 @@ enum Commands {
         #[arg(long)]
         only_failures: bool,
     },
+    /// Convert JSON output to another format (reads from stdin)
+    Fmt {
+        /// Output format (human, json, or sarif)
+        #[arg(long, default_value = "human")]
+        format: String,
+        /// Only show failing controls in output
+        #[arg(long)]
+        only_failures: bool,
+        /// Interpret input as batch output
+        #[arg(long)]
+        batch: bool,
+    },
     /// Verify release integrity
     Release {
         /// Tag or BASE..HEAD range (omit to use latest release)
@@ -138,9 +150,7 @@ fn run() -> Result<()> {
                 None => {
                     let pr_number: u32 = match arg {
                         Some(a) => a.parse().context("invalid PR number")?,
-                        None => detect_pr_number().context(
-                            "could not detect PR for current branch. Pass a PR number explicitly",
-                        )?,
+                        None => detect_pr_number()?,
                     };
                     let result = verify_pr(
                         &client,
@@ -153,6 +163,28 @@ fn run() -> Result<()> {
                     output::print(&opts, &result)?;
                     exit_if_assessment_fails(&result);
                 }
+            }
+        }
+        Commands::Fmt {
+            format,
+            only_failures,
+            batch,
+        } => {
+            let opts = output::OutputOptions {
+                format: output::parse_format(&format)?,
+                only_failures,
+            };
+            let input = std::io::read_to_string(std::io::stdin())
+                .context("failed to read JSON from stdin")?;
+            if batch {
+                let batch_report: libverify_core::assessment::BatchReport =
+                    serde_json::from_str(&input).context("invalid batch JSON on stdin")?;
+                output::print_batch(&opts, &batch_report)?;
+            } else {
+                let result: libverify_core::assessment::VerificationResult =
+                    serde_json::from_str(&input).context("invalid JSON on stdin")?;
+                output::print(&opts, &result)?;
+                exit_if_assessment_fails(&result);
             }
         }
         Commands::Repo {
@@ -231,8 +263,7 @@ fn resolve_repo(cfg: &GitHubConfig, override_repo: Option<&str>) -> Result<(Stri
     let repo_str: String = match override_repo {
         Some(s) if !s.is_empty() => s.to_string(),
         _ if !cfg.repo.is_empty() => cfg.repo.clone(),
-        _ => detect_repo_from_git_remote()
-            .context("could not resolve repo. Use --repo OWNER/REPO, set GH_REPO, or run from a git repo with a GitHub remote")?,
+        _ => detect_repo_from_git_remote()?,
     };
     let slash_idx = repo_str
         .find('/')
@@ -242,16 +273,21 @@ fn resolve_repo(cfg: &GitHubConfig, override_repo: Option<&str>) -> Result<(Stri
     Ok((owner, repo_name))
 }
 
-fn detect_repo_from_git_remote() -> Option<String> {
+fn detect_repo_from_git_remote() -> Result<String> {
     let output = std::process::Command::new("git")
         .args(["remote", "get-url", "origin"])
         .output()
-        .ok()?;
+        .context("failed to run 'git remote get-url origin' — is git installed?")?;
     if !output.status.success() {
-        return None;
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        anyhow::bail!("git remote get-url origin failed: {}", stderr.trim());
     }
-    let url = String::from_utf8(output.stdout).ok()?.trim().to_string();
+    let url = String::from_utf8(output.stdout)
+        .context("git remote URL contains invalid UTF-8")?
+        .trim()
+        .to_string();
     parse_github_remote_url(&url)
+        .with_context(|| format!("could not parse GitHub repo from remote URL: {url}"))
 }
 
 fn parse_github_remote_url(url: &str) -> Option<String> {
@@ -310,13 +346,22 @@ fn parse_github_remote_url(url: &str) -> Option<String> {
     None
 }
 
-fn detect_pr_number() -> Option<u32> {
+fn detect_pr_number() -> Result<u32> {
     let output = std::process::Command::new("gh")
         .args(["pr", "view", "--json", "number", "--jq", ".number"])
         .output()
-        .ok()?;
+        .context("failed to run 'gh pr view' — is the GitHub CLI installed?")?;
     if !output.status.success() {
-        return None;
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        anyhow::bail!(
+            "gh pr view failed (no open PR for current branch?): {}",
+            stderr.trim()
+        );
     }
-    String::from_utf8(output.stdout).ok()?.trim().parse().ok()
+    let stdout = String::from_utf8(output.stdout)
+        .context("gh pr view returned invalid UTF-8")?;
+    stdout
+        .trim()
+        .parse::<u32>()
+        .with_context(|| format!("gh pr view returned unexpected output: {:?}", stdout.trim()))
 }

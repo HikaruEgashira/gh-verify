@@ -153,24 +153,16 @@ runs:
           mv "$RUNNER_TEMP/gh-verify-filtered.json" "$RUNNER_TEMP/gh-verify-output.json"
         fi
 
-    - name: Run gh-verify
+    - name: Format output
       id: format-output
       if: inputs.format != 'json'
       shell: bash
       env:
-        GH_TOKEN: ${{ github.token }}
-        INPUT_COMMAND: ${{ inputs.command }}
-        INPUT_ARGUMENT: ${{ inputs.argument }}
-        INPUT_REPO: ${{ inputs.repo }}
         INPUT_FORMAT: ${{ inputs.format }}
-        INPUT_POLICY: ${{ inputs.policy }}
       run: |
-        ARGS=("$INPUT_COMMAND" "$INPUT_ARGUMENT" --repo "$INPUT_REPO" --format "$INPUT_FORMAT")
-        if [ -n "$INPUT_POLICY" ]; then
-          ARGS+=(--policy "$INPUT_POLICY")
-        fi
-
-        gh verify "${ARGS[@]}" > "$RUNNER_TEMP/gh-verify-formatted-output" 2>/dev/null || true
+        gh verify fmt --format "$INPUT_FORMAT" \
+          < "$RUNNER_TEMP/gh-verify-output.json" \
+          > "$RUNNER_TEMP/gh-verify-formatted-output"
 
     - name: Write step summary
       shell: bash
@@ -206,22 +198,15 @@ runs:
       if: inputs.format == 'sarif' || inputs.upload-sarif == 'true'
       shell: bash
       env:
-        GH_TOKEN: ${{ github.token }}
-        INPUT_COMMAND: ${{ inputs.command }}
-        INPUT_ARGUMENT: ${{ inputs.argument }}
-        INPUT_REPO: ${{ inputs.repo }}
         INPUT_FORMAT: ${{ inputs.format }}
-        INPUT_POLICY: ${{ inputs.policy }}
       run: |
         # If format is already sarif, reuse the formatted output
         if [ "$INPUT_FORMAT" = "sarif" ] && [ -f "$RUNNER_TEMP/gh-verify-formatted-output" ]; then
           cp "$RUNNER_TEMP/gh-verify-formatted-output" "$RUNNER_TEMP/gh-verify.sarif"
         else
-          ARGS=("$INPUT_COMMAND" "$INPUT_ARGUMENT" --repo "$INPUT_REPO" --format sarif)
-          if [ -n "$INPUT_POLICY" ]; then
-            ARGS+=(--policy "$INPUT_POLICY")
-          fi
-          gh verify "${ARGS[@]}" > "$RUNNER_TEMP/gh-verify.sarif" 2>/dev/null
+          gh verify fmt --format sarif \
+            < "$RUNNER_TEMP/gh-verify-output.json" \
+            > "$RUNNER_TEMP/gh-verify.sarif"
         fi
 
         if ! jq empty "$RUNNER_TEMP/gh-verify.sarif" 2>/dev/null; then
