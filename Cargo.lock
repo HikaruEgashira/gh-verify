@@ -915,7 +915,7 @@ checksum = "b5b646652bf6661599e1da8901b3b9522896f01e736bad5f723fe7a3a27f899d"
 [[package]]
 name = "libverify-core"
 version = "0.1.0"
-source = "git+https://github.com/HikaruEgashira/libverify#dcaf7a9abea44576f7e966e2309852f028481c52"
+source = "git+https://github.com/HikaruEgashira/libverify#a84325f2cb679afeb6082c7b130ed3b925211084"
 dependencies = [
  "serde",
 ]
@@ -923,7 +923,7 @@ dependencies = [
 [[package]]
 name = "libverify-github"
 version = "0.1.0"
-source = "git+https://github.com/HikaruEgashira/libverify#dcaf7a9abea44576f7e966e2309852f028481c52"
+source = "git+https://github.com/HikaruEgashira/libverify#a84325f2cb679afeb6082c7b130ed3b925211084"
 dependencies = [
  "anyhow",
  "libverify-core",
@@ -938,7 +938,7 @@ dependencies = [
 [[package]]
 name = "libverify-output"
 version = "0.1.0"
-source = "git+https://github.com/HikaruEgashira/libverify#dcaf7a9abea44576f7e966e2309852f028481c52"
+source = "git+https://github.com/HikaruEgashira/libverify#a84325f2cb679afeb6082c7b130ed3b925211084"
 dependencies = [
  "anyhow",
  "libverify-core",
@@ -949,7 +949,7 @@ dependencies = [
 [[package]]
 name = "libverify-policy"
 version = "0.1.0"
-source = "git+https://github.com/HikaruEgashira/libverify#dcaf7a9abea44576f7e966e2309852f028481c52"
+source = "git+https://github.com/HikaruEgashira/libverify#a84325f2cb679afeb6082c7b130ed3b925211084"
 dependencies = [
  "anyhow",
  "libverify-core",
