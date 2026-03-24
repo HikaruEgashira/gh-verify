@@ -34,15 +34,6 @@ gh-verify is a thin CLI shell (~300 LOC). All domain logic is in libverify.
 | New policy preset | libverify: `crates/policy/src/<name>.rego` + register in `lib.rs` |
 | Formal verification | libverify: `crates/verif/` |
 
-## Policy
-
-All verification behavior is controlled by `--policy`. No separate `--slsa_level` flag.
-
-Available presets: `default`, `oss`, `aiops`, `soc1`, `soc2`, `slsa-l1`, `slsa-l2`, `slsa-l3`, `slsa-l4`.
-Custom `.rego` file paths are also accepted.
-
-Default policy is `default` (all controls strict). Use `--policy slsa-l1` for SLSA L1 behavior.
-
 ## PR Template
 
 ```markdown
