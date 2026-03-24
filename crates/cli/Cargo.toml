@@ -5,10 +5,6 @@ edition.workspace = true
 license.workspace = true
 description = "GitHub SDLC health checker"
 
-[lib]
-name = "gh_verify"
-path = "src/lib.rs"
-
 [[bin]]
 name = "gh-verify"
 path = "src/main.rs"
@@ -19,13 +15,11 @@ path = "src/bin/bench.rs"
 
 [dependencies]
 libverify-core = { workspace = true }
-libverify-policy = { workspace = true }
+libverify-github = { workspace = true }
 libverify-output = { workspace = true }
+libverify-policy = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 anyhow = { workspace = true }
 clap = { workspace = true }
-reqwest = { workspace = true }
 colored = { workspace = true }
-tempfile = { workspace = true }
-sha2 = { workspace = true }

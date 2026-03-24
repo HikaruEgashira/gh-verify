@@ -1,56 +1,45 @@
-# ghverify - GitHub SDLC Verifier
+# gh-verify — GitHub SDLC Verifier
 
-GitHub SDLC health checker. Runs as a `gh` CLI extension, built in Rust.
-Core verification logic lives in [libverify](https://github.com/HikaruEgashira/libverify).
-Formal verification with Creusot + SMT solvers in libverify-verif and crates/verif.
+Thin `gh` CLI extension for SDLC health checking. All verification logic lives in [libverify](https://github.com/HikaruEgashira/libverify).
 
 ## Commands
 
-All development commands are devenv tasks. Run with `devenv tasks run <task>`.
-
 ```bash
-devenv tasks run ghverify:build          # Release build
-devenv tasks run ghverify:test           # Unit + integration tests (no network)
-devenv tasks run ghverify:bench          # Benchmarks (uses GitHub API)
-devenv tasks run ghverify:dist           # Build release binary for distribution
-devenv tasks run ghverify:fmt            # Format + clippy lint
-devenv tasks run ghverify:docs            # Generate rule docs from tests/specs → site/
-devenv tasks run ghverify:verify          # Creusot formal verification (all)
-devenv tasks run ghverify:verify-one <name>  # Creusot verify single predicate
+devenv tasks run ghverify:build    # Release build
+devenv tasks run ghverify:test     # Unit tests
+devenv tasks run ghverify:bench    # Benchmarks (uses GitHub API)
+devenv tasks run ghverify:dist     # Build release binary for distribution
+devenv tasks run ghverify:fmt      # Format + clippy lint
 ```
 
 ## Architecture
 
-gh-verify is a thin GitHub-specific shell over libverify.
+gh-verify is a thin CLI shell (~300 LOC). All domain logic is in libverify.
 
 ### Dependencies
 
-- `libverify-core` — evidence model, Control trait, 20 built-in controls, assessment engine, SLSA v1.2 mapping
-- `libverify-policy` — OPA Rego policy engine with 5 presets (default, oss, aiops, soc1, soc2)
+- `libverify-github` — GitHub API client, evidence adapter, verification orchestration
+- `libverify-core` — evidence model, controls, assessment engine
 - `libverify-output` — SARIF/JSON output formatters
 
-### gh-verify (crates/cli/)
+### Source files
 
-I/O layer. Delegates all judgments to libverify via the control/evidence assessment path.
+| File | Role |
+|---|---|
+| `crates/cli/src/main.rs` | clap CLI definition + dispatch |
+| `crates/cli/src/output/mod.rs` | Format dispatch (human local, json/sarif via libverify-output) |
+| `crates/cli/src/output/human.rs` | Colored terminal output |
+| `crates/cli/src/bin/bench.rs` | Benchmark binary |
 
-| Change | Where | Registration |
-|---|---|---|
-| New control | libverify repo: `crates/core/src/controls/<name>.rs` | See libverify CLAUDE.md |
-| New subcommand | Add variant to `Commands` enum in `main.rs` | clap handles dispatch |
-| New output format | `crates/cli/src/output/<name>.rs` | Add case in `output/mod.rs` |
-| New API endpoint | `crates/cli/src/github/<name>.rs` | Register in `github/mod.rs` |
-| New adapter | `crates/cli/src/adapters/<name>.rs` | None |
+### Where to make changes
 
-### gh-verify-verif (crates/verif/)
-
-Creusot verification targets. Core predicates with `#[ensures]` specs.
-Runtime implementations in libverify-core must match these verified predicates.
-
-## Naming
-
-- Control ID: kebab-case string (`"review-independence"`)
-- Built-in constant: `libverify_core::control::builtin::REVIEW_INDEPENDENCE`
-- File name: snake_case (`review_independence.rs`)
+| Change | Where |
+|---|---|
+| New control | libverify: `crates/core/src/controls/<name>.rs` |
+| New GitHub API | libverify: `crates/github/src/` |
+| New subcommand | `main.rs` — add variant to `Commands` enum |
+| New output format | `output/mod.rs` — add case |
+| Formal verification | libverify: `crates/verif/` |
 
 ## PR Template
 
@@ -59,9 +48,7 @@ Runtime implementations in libverify-core must match these verified predicates.
 ## Why
 ## How
 ## Verification
-- [ ] `devenv tasks run ghverify:test` passes
-- [ ] Existing controls still work
-- [ ] For new controls: verified pass/fail/indeterminate cases
+- [ ] `cargo test` passes
+- [ ] `cargo clippy -- -D warnings` passes
 - [ ] `--format json` output is valid JSON
-- [ ] `devenv tasks run ghverify:verify` passes for affected predicates
 ```

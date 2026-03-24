@@ -1,17 +1,13 @@
 use std::process;
 
-use anyhow::{Context, Result, bail};
+use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
 
-use gh_verify::adapters;
-use gh_verify::attestation;
-use gh_verify::config::Config;
-use gh_verify::github;
-use gh_verify::github::client::GitHubClient;
-use gh_verify::output;
-use gh_verify::range;
-use gh_verify::verify;
-use libverify_core::evidence::EvidenceState;
+use libverify_github::range::{detect_latest_release_tag, parse_range, parse_release_arg, resolve_pr_numbers};
+use libverify_github::verify::exit_if_assessment_fails;
+use libverify_github::{GitHubClient, GitHubConfig, verify_pr, verify_pr_batch, verify_release};
+
+mod output;
 
 const VERSION: &str = env!("GH_VERIFY_VERSION");
 
@@ -96,19 +92,19 @@ fn run() -> Result<()> {
                 format: output::parse_format(&format)?,
                 only_failures,
             };
-            let cfg = Config::load()?;
+            let cfg = GitHubConfig::load()?;
             let (owner, repo_name) = resolve_repo(&cfg, repo_override.as_deref())?;
             let client = GitHubClient::new(&cfg)?;
 
-            match arg.as_deref().and_then(range::parse_range) {
+            match arg.as_deref().and_then(parse_range) {
                 Some(spec) => {
-                    let pr_numbers = range::resolve_pr_numbers(&spec, &client, &owner, &repo_name)?;
+                    let pr_numbers = resolve_pr_numbers(&spec, &client, &owner, &repo_name)?;
                     if pr_numbers.is_empty() {
                         println!("No merged PRs found for the given range");
                         return Ok(());
                     }
                     eprintln!("Found {} PRs to verify", pr_numbers.len());
-                    let batch = verify::verify_pr_batch(
+                    let batch = verify_pr_batch(
                         &client,
                         &owner,
                         &repo_name,
@@ -129,7 +125,7 @@ fn run() -> Result<()> {
                             "could not detect PR for current branch. Pass a PR number explicitly",
                         )?,
                     };
-                    let result = verify::verify_single_pr(
+                    let result = verify_pr(
                         &client,
                         &owner,
                         &repo_name,
@@ -139,7 +135,7 @@ fn run() -> Result<()> {
                         with_evidence,
                     )?;
                     output::print(&opts, &result)?;
-                    verify::exit_if_assessment_fails(&result);
+                    exit_if_assessment_fails(&result);
                 }
             }
         }
@@ -156,7 +152,7 @@ fn run() -> Result<()> {
                 format: output::parse_format(&format)?,
                 only_failures,
             };
-            let cfg = Config::load()?;
+            let cfg = GitHubConfig::load()?;
             let (owner, repo_name) = resolve_repo(&cfg, repo_override.as_deref())?;
             let client = GitHubClient::new(&cfg)?;
 
@@ -170,72 +166,25 @@ fn run() -> Result<()> {
 
             println!("Checking release: {base_tag}..{head_tag}");
 
-            let commits = github::release_api::compare_refs(
-                &client, &owner, &repo_name, &base_tag, &head_tag,
-            )
-            .context("failed to compare refs")?;
-
-            if commits.is_empty() {
-                println!("No commits found between {base_tag} and {head_tag}");
-                return Ok(());
-            }
-            println!("Found {} commits", commits.len());
-
-            let shas: Vec<&str> = commits.iter().map(|c| c.sha.as_str()).collect();
-            let commit_pr_map =
-                github::graphql::resolve_commit_prs(&client, &owner, &repo_name, &shas)
-                    .unwrap_or_else(|err| {
-                        eprintln!("Warning: failed to resolve commit PRs via GraphQL: {err}");
-                        std::collections::HashMap::new()
-                    });
-
-            let commit_prs: Vec<_> = commits
-                .iter()
-                .map(|c| adapters::github::GitHubCommitPullAssociation {
-                    commit_sha: c.sha.clone(),
-                    pull_requests: commit_pr_map.get(&c.sha).cloned().unwrap_or_default(),
-                })
-                .collect();
-
-            // Collect build-provenance attestations for release assets
-            let release_assets =
-                github::release_api::get_release_assets(&client, &owner, &repo_name, &head_tag)
-                    .unwrap_or_else(|err| {
-                        eprintln!("Warning: failed to fetch release assets: {err}");
-                        vec![]
-                    });
-
-            let artifact_attestations = attestation::release::collect_release_attestations(
+            let result = verify_release(
+                &client,
                 &owner,
                 &repo_name,
-                &head_tag,
-                &release_assets,
-            );
-
-            let repo_full = format!("{owner}/{repo_name}");
-            let mut bundle = adapters::github::build_release_bundle(
-                &repo_full,
                 &base_tag,
                 &head_tag,
-                &commits,
-                &commit_prs,
-                artifact_attestations,
-            );
-            // Check runs are PR-scoped; not applicable for release verification.
-            bundle.check_runs = EvidenceState::not_applicable();
-            let report = verify::assess_bundle(&bundle, policy.as_deref(), slsa_level.as_deref())?;
-            let evidence_bundle = if with_evidence { Some(bundle) } else { None };
-            let result =
-                libverify_core::assessment::VerificationResult::new(report, evidence_bundle);
+                policy.as_deref(),
+                slsa_level.as_deref(),
+                with_evidence,
+            )?;
             output::print(&opts, &result)?;
-            verify::exit_if_assessment_fails(&result);
+            exit_if_assessment_fails(&result);
         }
     }
 
     Ok(())
 }
 
-fn resolve_repo(cfg: &Config, override_repo: Option<&str>) -> Result<(String, String)> {
+fn resolve_repo(cfg: &GitHubConfig, override_repo: Option<&str>) -> Result<(String, String)> {
     let repo_str: String = match override_repo {
         Some(s) if !s.is_empty() => s.to_string(),
         _ if !cfg.repo.is_empty() => cfg.repo.clone(),
@@ -289,39 +238,4 @@ fn detect_pr_number() -> Option<u32> {
         return None;
     }
     String::from_utf8(output.stdout).ok()?.trim().parse().ok()
-}
-
-fn detect_latest_release_tag(client: &GitHubClient, owner: &str, repo: &str) -> Result<String> {
-    let tags = github::release_api::get_tags(client, owner, repo)?;
-    tags.into_iter()
-        .next()
-        .map(|t| t.name)
-        .context("no tags found in repository")
-}
-
-fn parse_release_arg(
-    arg: &str,
-    client: &GitHubClient,
-    owner: &str,
-    repo: &str,
-) -> Result<(String, String)> {
-    if let Some(sep_idx) = arg.find("..") {
-        let base = arg[..sep_idx].to_string();
-        let head = arg[sep_idx + 2..].to_string();
-        return Ok((base, head));
-    }
-
-    let head_tag = arg.to_string();
-    let tags = github::release_api::get_tags(client, owner, repo)?;
-
-    for (idx, t) in tags.iter().enumerate() {
-        if t.name == head_tag {
-            if idx + 1 < tags.len() {
-                return Ok((tags[idx + 1].name.clone(), head_tag));
-            } else {
-                bail!("no previous tag found before {head_tag}");
-            }
-        }
-    }
-    bail!("tag not found: {head_tag}");
 }

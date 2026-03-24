@@ -90,51 +90,7 @@
       '';
     };
 
-    "ghverify:docs" = {
-      description = "Generate rule specification docs from tests and Creusot specs";
-      exec = ''
-        set -euo pipefail
-        cargo build --release -p gen-docs
-        "$DEVENV_ROOT/target/release/gen-docs"
-      '';
-    };
-
-    "ghverify:verify" = {
-      description = "Creusot formal verification: translate + prove all predicates";
-      exec = ''
-        set -euo pipefail
-        export OPAMSWITCH=creusot
-        eval $(opam env --set-switch 2>/dev/null) || {
-          echo "Error: Creusot opam switch not found."
-          echo "  Setup: opam switch create creusot && ./INSTALL (in creusot checkout)"
-          exit 1
-        }
-        echo "=== Creusot translate ==="
-        cargo creusot -p gh-verify-verif
-        echo ""
-        echo "=== Creusot prove (*) ==="
-        cargo creusot prove '*' -- -p gh-verify-verif
-      '';
-    };
-
-    "ghverify:verify-one" = {
-      description = "Prove a single Creusot predicate (pass name as argument)";
-      exec = ''
-        set -euo pipefail
-        PRED="''${1:?Usage: devenv tasks run ghverify:verify-one <predicate_name>}"
-        export OPAMSWITCH=creusot
-        eval $(opam env --set-switch 2>/dev/null) || {
-          echo "Error: Creusot opam switch not found."
-          echo "  Setup: opam switch create creusot && ./INSTALL (in creusot checkout)"
-          exit 1
-        }
-        echo "=== Creusot translate ==="
-        cargo creusot -p gh-verify-verif
-        echo ""
-        echo "=== Creusot prove ($PRED) ==="
-        cargo creusot prove "$PRED" -- -p gh-verify-verif
-      '';
-    };
+    # docs, verify, verify-one tasks moved to libverify repo
   };
 
   enterShell = ''

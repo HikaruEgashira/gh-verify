@@ -1,17 +1,11 @@
 use std::collections::HashMap;
 use std::io::{self, Write};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process;
 use std::time::Instant;
 
-use anyhow::{Result, bail};
+use anyhow::{Context, Result, bail};
 use clap::{Args, Parser, Subcommand};
-use gh_verify::adapters;
-use gh_verify::bench::{self, BenchCase, BenchCaseSource};
-use gh_verify::config::Config;
-use gh_verify::github::client::GitHubClient;
-use gh_verify::github::pr_api;
-use gh_verify::ossinsight::{CollectionRepoRank, OssInsightClient, PullRequestCreator};
 use libverify_core::assessment;
 use libverify_core::control::Control;
 use libverify_core::controls;
@@ -20,6 +14,9 @@ use libverify_core::profile::{ControlProfile, GateDecision, SlsaLevelProfile};
 use libverify_core::scope::is_non_code_file;
 use libverify_core::slsa::SlsaLevel;
 use libverify_core::verdict::Severity;
+use libverify_github::ossinsight::{CollectionRepoRank, OssInsightClient, PullRequestCreator};
+use libverify_github::pr_api;
+use libverify_github::{GitHubClient, GitHubConfig};
 use libverify_policy::OpaProfile;
 use serde::Serialize;
 
@@ -109,6 +106,39 @@ fn resolve_algorithm(name: &str) -> Result<(Vec<Box<dyn Control>>, Box<dyn Contr
             KNOWN_ALGORITHMS.join(", ")
         ),
     }
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+struct BenchCase {
+    id: String,
+    description: String,
+    repo: String,
+    pr_number: u32,
+    expected: Severity,
+    rationale: String,
+    category: String,
+    #[serde(default)]
+    target_rule: Option<String>,
+    #[serde(default)]
+    domains_expected: Vec<String>,
+    ecosystem: String,
+    #[serde(default)]
+    notes: Option<String>,
+    #[serde(default)]
+    source: Option<BenchCaseSource>,
+}
+
+#[derive(Debug, Clone, serde::Deserialize, serde::Serialize)]
+struct BenchCaseSource {
+    provider: String,
+    #[serde(default)]
+    collection_id: Option<u64>,
+    #[serde(default)]
+    collection_name: Option<String>,
+    #[serde(default)]
+    selection: Option<String>,
+    #[serde(default)]
+    discovered_at: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -252,7 +282,7 @@ fn fetch_evidence(
     let pr_commits = pr_api::get_pr_commits(client, owner, repo, pr_number)?;
 
     let repo_full = format!("{owner}/{repo}");
-    Ok(adapters::github::build_pull_request_bundle(
+    Ok(libverify_github::adapter::build_pull_request_bundle(
         &repo_full,
         pr_number,
         &pr_metadata,
@@ -289,7 +319,7 @@ fn assess_bundle(
 
 fn run_benchmarks(cli: &Cli) -> Result<()> {
     let dir = PathBuf::from(&cli.cases_dir);
-    let cases = bench::load_cases(&dir)?;
+    let cases = load_cases(&dir)?;
     if cases.is_empty() {
         anyhow::bail!("no benchmark cases found in {}", dir.display());
     }
@@ -299,7 +329,7 @@ fn run_benchmarks(cli: &Cli) -> Result<()> {
         resolve_algorithm(name)?;
     }
 
-    let cfg = Config::load()?;
+    let cfg = GitHubConfig::load()?;
     let client = GitHubClient::new(&cfg)?;
 
     eprintln!("ghverify benchmark");
@@ -503,7 +533,7 @@ fn print_report(algo_name: &str, report: &Report) {
 }
 
 fn collect_real_world(args: CollectRealWorldArgs) -> Result<()> {
-    let cfg = Config::load()?;
+    let cfg = GitHubConfig::load()?;
     let github = GitHubClient::new(&cfg)?;
     let ossinsight = OssInsightClient::new()?;
 
@@ -532,7 +562,7 @@ fn collect_real_world(args: CollectRealWorldArgs) -> Result<()> {
         repos,
     };
 
-    bench::write_pretty_json(&args.output, &manifest)?;
+    write_pretty_json(&args.output, &manifest)?;
     eprintln!(
         "saved {} repositories to {}",
         manifest.repos.len(),
@@ -713,6 +743,38 @@ fn compute_metrics(results: &[CaseResult]) -> HashMap<Severity, ClassMetrics> {
         }
     }
     metrics
+}
+
+fn load_cases(dir: &Path) -> Result<Vec<BenchCase>> {
+    let mut entries: Vec<_> = std::fs::read_dir(dir)
+        .with_context(|| format!("cannot read benchmark cases dir: {}", dir.display()))?
+        .filter_map(|e| e.ok())
+        .filter(|e| e.path().extension().is_some_and(|ext| ext == "json"))
+        .collect();
+    entries.sort_by_key(|e| e.file_name());
+
+    let mut cases = Vec::new();
+    for entry in entries {
+        let path = entry.path();
+        let content = std::fs::read_to_string(&path)?;
+        let case: BenchCase = serde_json::from_str(&content)
+            .with_context(|| format!("invalid case: {}", path.display()))?;
+        cases.push(case);
+    }
+    Ok(cases)
+}
+
+fn write_pretty_json<T: serde::Serialize>(path: impl Into<PathBuf>, value: &T) -> Result<()> {
+    let path = path.into();
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent)
+            .with_context(|| format!("cannot create dir: {}", parent.display()))?;
+    }
+
+    let json = serde_json::to_string_pretty(value)?;
+    std::fs::write(&path, format!("{json}\n"))
+        .with_context(|| format!("cannot write json file: {}", path.display()))?;
+    Ok(())
 }
 
 fn sev_str(s: &Severity) -> &'static str {
