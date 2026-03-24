@@ -1,6 +1,6 @@
 # ghverify Benchmarks
 
-Benchmark suite for validating ghverify's `detect-unscoped-change` rule against real-world GitHub PRs.
+Benchmark suite for evaluating ghverify controls against real-world GitHub PRs.
 
 ## Running
 
@@ -9,6 +9,20 @@ devenv tasks run ghverify:bench
 ```
 
 Results are saved to `results/run_<timestamp>.json`.
+
+## Architecture
+
+The benchmark runner executes **all controls** against each case via `assessment::assess`, then extracts the result for the specific control under test.
+
+Each case specifies a `target_rule` field (e.g. `detect-unscoped-change`). The runner filters the assessment outcomes to that control's `control_id` and compares its decision against the case's `expected` severity. Cases without `target_rule` fall back to the max severity across all controls.
+
+Multiple policy presets can be compared in a single run via `--algorithm`:
+
+```bash
+cargo run --bin gh-verify-bench -- --algorithm default,slsa-l1,oss
+```
+
+This produces a per-algorithm comparison table with accuracy and macro F1.
 
 ## Expanding With OSS Insight
 
@@ -34,7 +48,7 @@ New case `id` values should be stable descriptive slugs. Legacy severity-prefixe
 
 ## Detection Method: Call-Graph Connectivity
 
-The rule extracts function definitions, function calls, and imports from each changed file's patch using tree-sitter AST analysis (with lexical fallback for unsupported languages). It builds a graph and checks connectivity using Union-Find:
+The `detect-unscoped-change` control (currently the only benchmarked control) extracts function definitions, function calls, and imports from each changed file's patch using tree-sitter AST analysis (with lexical fallback for unsupported languages). It builds a graph and checks connectivity using Union-Find:
 
 - **Nodes**: changed files + extracted function definitions
 - **Edges**: function call matches between files, import path resolution
@@ -59,9 +73,22 @@ The benchmark reports:
 | **Recall** | Per-severity: correct predictions / total expected for that severity |
 | **F1** | Harmonic mean of precision and recall |
 
+When cases target multiple rules, per-rule breakdowns are shown automatically.
+
 ## Case Structure
 
 All benchmark cases are stored as flat JSON files in `cases/`.
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `id` | yes | Stable case ID |
+| `target_rule` | no | Control ID to evaluate (e.g. `detect-unscoped-change`). Omit for whole-assessment comparison. |
+| `expected` | yes | Expected severity: `pass`, `warning`, or `error` |
+| `category` | yes | Case category (see below) |
+| `repo` | yes | GitHub `owner/repo` |
+| `pr_number` | yes | PR number |
+
+### Categories
 
 | Category | Description |
 |----------|-------------|

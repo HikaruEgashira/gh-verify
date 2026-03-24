@@ -263,29 +263,52 @@ fn fetch_evidence(
     ))
 }
 
-fn assess_bundle(
-    bundle: &EvidenceBundle,
-    controls: &[Box<dyn Control>],
-    profile: &dyn ControlProfile,
-) -> ActualResult {
-    let report = assessment::assess(bundle, controls, profile);
-
-    let max_decision = report
-        .outcomes
-        .iter()
-        .map(|o| o.decision)
-        .max_by_key(|d| match d {
-            GateDecision::Pass => 0,
-            GateDecision::Review => 1,
-            GateDecision::Fail => 2,
-        })
-        .unwrap_or(GateDecision::Pass);
-
-    match max_decision {
+fn decision_to_result(d: GateDecision) -> ActualResult {
+    match d {
         GateDecision::Pass => ActualResult::Pass,
         GateDecision::Review => ActualResult::Warning,
         GateDecision::Fail => ActualResult::Error,
     }
+}
+
+fn decision_rank(d: &GateDecision) -> u8 {
+    match d {
+        GateDecision::Pass => 0,
+        GateDecision::Review => 1,
+        GateDecision::Fail => 2,
+    }
+}
+
+fn assess_bundle(
+    bundle: &EvidenceBundle,
+    controls: &[Box<dyn Control>],
+    profile: &dyn ControlProfile,
+    target_rule: Option<&str>,
+) -> ActualResult {
+    let report = assessment::assess(bundle, controls, profile);
+
+    // When target_rule is specified, use only that control's outcome.
+    if let Some(rule) = target_rule {
+        if let Some(outcome) = report
+            .outcomes
+            .iter()
+            .find(|o| o.control_id.as_str() == rule)
+        {
+            return decision_to_result(outcome.decision);
+        }
+        // Control not found in outcomes — treat as pass (control was not applicable).
+        return ActualResult::Pass;
+    }
+
+    // Fallback: max severity across all controls.
+    let max_decision = report
+        .outcomes
+        .iter()
+        .map(|o| o.decision)
+        .max_by_key(|d| decision_rank(d))
+        .unwrap_or(GateDecision::Pass);
+
+    decision_to_result(max_decision)
 }
 
 fn run_benchmarks(cli: &Cli) -> Result<()> {
@@ -573,7 +596,7 @@ fn discover_repo(
             Ok(bundle) => {
                 let ctrls = controls::all_controls();
                 let profile = OpaProfile::slsa_l1_preset()?;
-                assess_bundle(&bundle, &ctrls, &profile)
+                assess_bundle(&bundle, &ctrls, &profile, None)
             }
             Err(e) => ActualResult::FetchError(format!("{e}")),
         };
@@ -620,8 +643,10 @@ fn run_case_with(
         None => return ActualResult::FetchError("invalid repo format".into()),
     };
 
+    let target_rule = case.target_rule.as_deref();
+
     match fetch_evidence(client, owner, repo, case.pr_number) {
-        Ok(bundle) => assess_bundle(&bundle, controls, profile),
+        Ok(bundle) => assess_bundle(&bundle, controls, profile, target_rule),
         Err(e) => ActualResult::FetchError(format!("{e}")),
     }
 }
