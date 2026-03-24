@@ -23,15 +23,6 @@ gh-verify is a thin CLI shell (~300 LOC). All domain logic is in libverify.
 - `libverify-output` — SARIF/JSON output formatters
 - `libverify-policy` — OPA/Rego policy engine, built-in presets
 
-### Source files
-
-| File | Role |
-|---|---|
-| `crates/cli/src/main.rs` | clap CLI definition + dispatch |
-| `crates/cli/src/output/mod.rs` | Format dispatch (human local, json/sarif via libverify-output) |
-| `crates/cli/src/output/human.rs` | Colored terminal output |
-| `crates/cli/src/bin/bench.rs` | Benchmark binary |
-
 ### Where to make changes
 
 | Change | Where |
