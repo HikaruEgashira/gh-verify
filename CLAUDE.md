@@ -33,15 +33,3 @@ gh-verify is a thin CLI shell (~300 LOC). All domain logic is in libverify.
 | New output format | `output/mod.rs` — add case |
 | New policy preset | libverify: `crates/policy/src/<name>.rego` + register in `lib.rs` |
 | Formal verification | libverify: `crates/verif/` |
-
-## PR Template
-
-```markdown
-## What
-## Why
-## How
-## Verification
-- [ ] `cargo test` passes
-- [ ] `cargo clippy -- -D warnings` passes
-- [ ] `--format json` output is valid JSON
-```
