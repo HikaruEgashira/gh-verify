@@ -62,9 +62,9 @@ Even in the Sigstore project itself, only 7.2% of npm dependencies have provenan
 
 If your npm dependency lacks provenance, that's a real signal worth investigating.
 
-### PyPI — L2: Cryptographic Provenance (L3 Growing)
+### PyPI — L3: Full Trust Chain (Same Stack as npm)
 
-PyPI has made remarkable progress since launching **Trusted Publishers** and **Sigstore-based attestations**.
+PyPI uses the **same Sigstore stack** (Fulcio + Rekor) as npm. Packages with attestations provide the full L3 trust chain.
 
 **What works today:**
 - [Trusted Publishers](https://docs.pypi.org/trusted-publishers/) — OIDC-based authentication for CI/CD publishing
@@ -81,19 +81,31 @@ curl -s -H "Accept: application/vnd.pypi.integrity.v1+json" \
 
 Returns:
 - `publisher.repository` → source repo (e.g. `pyca/cryptography`)
-- `publisher.workflow` → CI workflow file
+- `publisher.workflow` → CI workflow file (signer identity)
 - `verification_material.transparency_entries[].logIndex` → Rekor entry
 - `verification_material.certificate` → Fulcio cert (signer identity in X.509 SAN)
 
-**What's still maturing:**
-- Signer identity coverage is partial — not all attestation-enabled packages expose full identity
-- Adoption, while growing fast (17%), means 83% of uploads still lack attestations
-- Only packages published via Trusted Publishing have attestations (legacy uploads don't)
+**npm vs PyPI — the key difference is adoption model, not capability:**
+- npm: registry-initiated signing (npm registry generates attestation at publish time)
+- PyPI: publisher-initiated signing (CI/CD must use Trusted Publishing + `pypa/gh-action-pypi-publish`)
+- Both produce identical L3 artifacts: Sigstore signature + signer identity + Rekor transparency log
+
+**Real-world result with `gh-verify`:**
+```
+$ gh verify repo --repo python-poetry/poetry
+Fetching PyPI provenance for 98 packages (16 concurrent)...
+  32/98 PyPI packages have provenance attestations
+
+[dependency-provenance]      fail: 66 lacking provenance
+[dependency-signer-verified] fail: 66 lacking signer verification
+```
+
+32.7% of poetry's dependencies have provenance — significantly higher than npm's 7.2% in sigstore-js, reflecting PyPI's faster adoption trajectory.
 
 **What this means for `gh-verify`:**
-- `dependency-provenance` (L2): **enforced** — PyPI packages with Trusted Publishers should have attestations
-- `dependency-signer-verified` (L3): **not yet enforced** — signer identity coverage is inconsistent
-- `dependency-completeness` (L4): **not yet enforced** — depends on L3
+- `dependency-provenance` (L2): **enforced**
+- `dependency-signer-verified` (L3): **enforced**
+- `dependency-completeness` (L4): **enforced**
 
 ### crates.io — L1: Integrity Only
 
@@ -116,37 +128,37 @@ The Rust ecosystem provides strong integrity guarantees but lacks cryptographic 
 - `dependency-signer-verified` (L3): **not applicable**
 - `dependency-completeness` (L4): **not applicable**
 
-### Maven Central — L1 + PGP (Sigstore Optional)
+### Maven Central — L3 Capability (Sigstore Opt-in, PGP Mandatory)
 
-Maven Central mandated PGP signatures in 2024. All artifacts must have a detached `.asc` signature file.
+Maven Central added [Sigstore signature validation](https://socket.dev/blog/maven-central-adds-sigstore-signature-validation) in January 2025. PGP signatures remain mandatory. Sigstore is opt-in and provides full L3 when present.
 
 **What works today:**
 - PGP signatures (`.asc`) are mandatory for all published artifacts
-- Sigstore bundles (`.sigstore.json`) are supported but opt-in
+- Sigstore bundles (`.sigstore.json`) are validated by the Maven Central Publisher Portal (since Jan 2025)
+- `sigstore-java` enables publishers to sign with Sigstore
 
-**PGP verification:**
+**PGP verification (L1 — all artifacts):**
 ```bash
-# Download artifact + signature
 curl -O 'https://repo1.maven.org/maven2/com/google/guava/guava/33.0.0-jre/guava-33.0.0-jre.jar'
 curl -O 'https://repo1.maven.org/maven2/com/google/guava/guava/33.0.0-jre/guava-33.0.0-jre.jar.asc'
 gpg --verify guava-33.0.0-jre.jar.asc guava-33.0.0-jre.jar
 ```
 
-**Sigstore bundles (rare):**
+**Sigstore verification (L3 — opt-in, rare):**
 ```bash
 curl -s 'https://repo1.maven.org/maven2/dev/sigstore/sigstore-java/1.0.0/sigstore-java-1.0.0.pom.sigstore.json'
-# Returns standard Sigstore bundle with Rekor transparency log entry
+# Returns standard Sigstore bundle with Fulcio cert + Rekor transparency log
 ```
 
-**Limitations:**
-- PGP gives you a key ID but not a clean identity chain (no OIDC, no CI provenance)
-- Sigstore bundles are available but extremely rare
-- No dedicated query API — must try URL conventions and handle 404s
-- No batch/bulk verification endpoint
+**Current limitations:**
+- PGP gives a key ID but not a clean identity chain (no OIDC, no CI provenance)
+- Sigstore bundles are available but extremely rare (only early adopters like sigstore-java itself)
+- No dedicated query API — must try URL conventions (`{artifact}.sigstore.json`) and handle 404s
+- Sonatype has ["no intention of replacing PGP"](https://central.sonatype.org/news/20220310_sigstore/) but may consider it if Sigstore adoption grows
 
-### Go Modules — Checksum Transparency (No Provenance)
+### Go Modules — L1: Checksum Transparency (No Provenance)
 
-Go has the **strongest integrity guarantee** through its checksum database, but **zero provenance information**.
+Go has the **strongest integrity guarantee** through its checksum database, but **zero provenance information** at the registry level.
 
 **What works today:**
 - [sum.golang.org](https://sum.golang.org) — a tamper-evident log of module checksums
@@ -159,24 +171,42 @@ curl -s 'https://sum.golang.org/lookup/golang.org/x/text@v0.14.0'
 # Returns checksum lines + signed tree head
 ```
 
-**What's missing:**
+**What's missing at the registry:**
 - No signer identity — you cannot determine who published a module
 - No source provenance — no link to the repository that built it
-- No build attestation — no CI/CD workflow information
-- No Sigstore integration
+- No Sigstore integration at proxy.golang.org
 
-Go proves that everyone gets the same source code, but says nothing about who authored it or how it was built.
+**Workaround via GitHub Artifact Attestations:**
+Go binaries built with GitHub Actions can achieve [SLSA L3 via `slsa-framework/slsa-github-generator`](https://github.blog/security/supply-chain-security/slsa-3-compliance-with-github-actions/). This is a build-level attestation for the compiled binary, not the Go module itself. Tools like mise verify these attestations when installing Go CLI tools.
+
+### GitHub Releases — L3: Platform-Level Provenance
+
+GitHub is not a package registry, but its **Artifact Attestations** provide L3 provenance for release binaries across any language ecosystem.
+
+**What works today:**
+- [`actions/attest-build-provenance`](https://github.com/actions/attest-build-provenance) — generates SLSA provenance in GitHub Actions
+- Sigstore signing (public-good instance for public repos, GitHub private instance for private repos)
+- `gh attestation verify <artifact>` — CLI verification
+- SLSA v1.0 Build Level 2 out of the box; Level 3 with reusable workflows
+
+**Why this matters:**
+- Language-agnostic: works for Go binaries, Rust binaries, Java JARs, anything
+- Fills the gap for ecosystems where the registry lacks provenance (crates.io, Go)
+- Tools like [mise](https://mise.jdx.dev/) already consume GitHub Artifact Attestations to verify downloaded tool binaries
+
+**gh-verify integration:**
+The `gh verify release` command already verifies GitHub Artifact Attestations for release assets.
 
 ## Comparison Matrix
 
-| Capability | npm | PyPI | crates.io | Maven Central | Go |
-|---|---|---|---|---|---|
-| **L1** Checksum integrity | SRI hash | SHA-256 | SHA-256 | Artifact hash | go.sum |
-| **L2** Source provenance | Sigstore | Sigstore | None | PGP key ID | None |
-| **L3** Signer identity | OIDC + Rekor | Fulcio cert | None | PGP (weak) | None |
-| Transparency log | Rekor | Rekor | None | Rekor (rare) | sum.golang.org |
-| Dedicated API | Yes | Yes (PEP 740) | No | No | Yes |
-| Coverage | ~7% of deps | ~17% of uploads | 100% (L1) | 100% PGP | 100% (L1) |
+| Capability | npm | PyPI | GitHub Releases | Maven Central | crates.io | Go |
+|---|---|---|---|---|---|---|
+| **L1** Checksum integrity | SRI hash | SHA-256 | SHA-256 | Artifact hash | SHA-256 | go.sum |
+| **L2** Source provenance | Sigstore | Sigstore | Sigstore | PGP key ID | None | None |
+| **L3** Signer identity | OIDC + Rekor | Fulcio + Rekor | Fulcio + Rekor | Rekor (rare) | None | None |
+| Transparency log | Rekor | Rekor | Rekor | Rekor (rare) | None | sum.golang.org |
+| Dedicated API | Yes | Yes (PEP 740) | Yes (`gh attestation`) | No | No | Yes |
+| L3 coverage | ~7% | ~17% | Opt-in (growing) | <1% | 0% | 0% |
 
 ## How gh-verify Handles This
 
@@ -207,15 +237,21 @@ Summary: 0 pass, 0 review, 3 fail
 
 ## The Trajectory
 
-Supply chain security is moving fast:
+The supply chain security landscape is converging on **Sigstore as the common standard**:
 
-- **npm** led the way and is approaching ecosystem-wide coverage
-- **PyPI** crossed the tipping point in 2025 with 17% attestation adoption and growing
-- **crates.io** has the auth foundation (Trusted Publishing) but signing remains on the roadmap
-- **Maven Central** has universal PGP signatures but weak identity chains; Sigstore adoption is nascent
-- **Go** has the strongest integrity guarantees but no provenance at all
+- **npm** (L3) — led the way, approaching ecosystem-wide coverage
+- **PyPI** (L3) — crossed the tipping point with 17% attestation adoption and accelerating
+- **GitHub Releases** (L3) — language-agnostic provenance for any binary built on Actions
+- **Maven Central** (L3 capable) — Sigstore validation added Jan 2025, adoption nascent
+- **crates.io** (L1) — Trusted Publishing for auth, Sigstore RFC #3403 proposed
+- **Go** (L1) — strongest integrity (sum.golang.org), but provenance relies on GitHub Actions
+- **NuGet** (L1) — X.509 signing exists, provenance via GitHub Artifact Attestations
 
-Within 2-3 years, we expect L2 provenance to be table stakes across all major registries. `gh-verify`'s registry capability model will promote registries from `ChecksumOnly` → `CryptographicProvenance` → `FullTrustChain` as infrastructure matures, automatically enforcing stricter controls without changing policy.
+The pattern is clear: **Sigstore (Fulcio + Rekor)** is becoming the universal provenance layer. Ecosystems that adopt it get L3 immediately. The remaining gap is adoption rate, not infrastructure.
+
+Tools like [mise](https://mise.jdx.dev/) already verify SLSA provenance and GitHub Artifact Attestations for downloaded tool binaries, making provenance verification transparent to developers.
+
+`gh-verify`'s registry capability model promotes registries from `ChecksumOnly` → `FullTrustChain` as they adopt Sigstore, automatically enforcing stricter controls without changing policy.
 
 ## Try It
 
@@ -232,7 +268,11 @@ Sources:
 - [PyPI attestations GA](https://blog.sigstore.dev/pypi-attestations-ga/)
 - [PyPI 2025 Year in Review](https://blog.pypi.org/posts/2025-12-31-pypi-2025-in-review/)
 - [PyPI Integrity API (PEP 740)](https://docs.pypi.org/attestations/)
+- [GitHub Artifact Attestations](https://docs.github.com/en/actions/security-for-github-actions/using-artifact-attestations/using-artifact-attestations-to-establish-provenance-for-builds)
+- [SLSA L3 with GitHub Actions](https://github.blog/security/supply-chain-security/slsa-3-compliance-with-github-actions/)
+- [Maven Central Sigstore validation](https://socket.dev/blog/maven-central-adds-sigstore-signature-validation)
 - [crates.io Trusted Publishing RFC #3691](https://rust-lang.github.io/rfcs/3691-trusted-publishing-cratesio.html)
-- [Maven Central Sigstore support](https://central.sonatype.org/news/20220310_sigstore/)
+- [crates.io Sigstore RFC #3403](https://github.com/rust-lang/rfcs/pull/3403)
 - [Go Checksum Database](https://go.dev/ref/mod#checksum-database)
-- [SLSA Specification](https://slsa.dev/spec/v1.0/levels)
+- [mise SLSA/attestation verification](https://mise.jdx.dev/configuration/settings.html)
+- [SLSA Specification v1.2](https://slsa.dev/spec/v1.0/levels)
