@@ -5,7 +5,7 @@ use clap::{Parser, Subcommand};
 
 use libverify_github::range::{detect_latest_release_tag, parse_range, parse_release_arg, resolve_pr_numbers};
 use libverify_github::verify::exit_if_assessment_fails;
-use libverify_github::{GitHubClient, GitHubConfig, verify_pr, verify_pr_batch, verify_release};
+use libverify_github::{GitHubClient, GitHubConfig, verify_pr, verify_pr_batch, verify_release, verify_repo};
 
 mod output;
 
@@ -24,6 +24,27 @@ enum Commands {
     Pr {
         /// PR number or range (#N..#M, SHA..SHA, TAG..TAG, DATE..DATE)
         arg: Option<String>,
+        /// Output format (human, json, or sarif)
+        #[arg(long, default_value = "human")]
+        format: String,
+        /// Repository in OWNER/REPO format
+        #[arg(long)]
+        repo: Option<String>,
+        /// Policy: preset name (default, oss, aiops, soc1, soc2, slsa-l1..l4) or .rego file path
+        #[arg(long)]
+        policy: Option<String>,
+        /// Include raw collected evidence in output
+        #[arg(long)]
+        with_evidence: bool,
+        /// Only show failing controls in output
+        #[arg(long)]
+        only_failures: bool,
+    },
+    /// Verify repository dependency signatures
+    Repo {
+        /// Git reference (branch, tag, or SHA). Defaults to HEAD.
+        #[arg(long, default_value = "HEAD")]
+        r#ref: String,
         /// Output format (human, json, or sarif)
         #[arg(long, default_value = "human")]
         format: String,
@@ -129,6 +150,35 @@ fn run() -> Result<()> {
                     exit_if_assessment_fails(&result);
                 }
             }
+        }
+        Commands::Repo {
+            r#ref: reference,
+            format,
+            repo: repo_override,
+            policy,
+            with_evidence,
+            only_failures,
+        } => {
+            let opts = output::OutputOptions {
+                format: output::parse_format(&format)?,
+                only_failures,
+            };
+            let cfg = GitHubConfig::load()?;
+            let (owner, repo_name) = resolve_repo(&cfg, repo_override.as_deref())?;
+            let client = GitHubClient::new(&cfg)?;
+
+            eprintln!("Checking dependency signatures at ref: {reference}");
+
+            let result = verify_repo(
+                &client,
+                &owner,
+                &repo_name,
+                &reference,
+                policy.as_deref(),
+                with_evidence,
+            )?;
+            output::print(&opts, &result)?;
+            exit_if_assessment_fails(&result);
         }
         Commands::Release {
             arg,
