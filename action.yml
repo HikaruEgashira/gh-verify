@@ -22,11 +22,7 @@ inputs:
     required: false
     default: "json"
   policy:
-    description: "Policy preset (default, oss, aiops, soc1, soc2) or path to .rego file"
-    required: false
-    default: ""
-  slsa-level:
-    description: "SLSA level target: source-l{N}-build-l{M} (e.g. source-l3-build-l2)"
+    description: "Policy preset (default, oss, aiops, soc1, soc2, slsa-l1..l4) or path to .rego file"
     required: false
     default: ""
   only-failures:
@@ -99,14 +95,10 @@ runs:
         INPUT_ARGUMENT: ${{ inputs.argument }}
         INPUT_REPO: ${{ inputs.repo }}
         INPUT_POLICY: ${{ inputs.policy }}
-        INPUT_SLSA_LEVEL: ${{ inputs.slsa-level }}
       run: |
         ARGS=("$INPUT_COMMAND" "$INPUT_ARGUMENT" --repo "$INPUT_REPO" --format json)
         if [ -n "$INPUT_POLICY" ]; then
           ARGS+=(--policy "$INPUT_POLICY")
-        fi
-        if [ -n "$INPUT_SLSA_LEVEL" ]; then
-          ARGS+=(--slsa-level "$INPUT_SLSA_LEVEL")
         fi
 
         set +e
@@ -172,14 +164,10 @@ runs:
         INPUT_REPO: ${{ inputs.repo }}
         INPUT_FORMAT: ${{ inputs.format }}
         INPUT_POLICY: ${{ inputs.policy }}
-        INPUT_SLSA_LEVEL: ${{ inputs.slsa-level }}
       run: |
         ARGS=("$INPUT_COMMAND" "$INPUT_ARGUMENT" --repo "$INPUT_REPO" --format "$INPUT_FORMAT")
         if [ -n "$INPUT_POLICY" ]; then
           ARGS+=(--policy "$INPUT_POLICY")
-        fi
-        if [ -n "$INPUT_SLSA_LEVEL" ]; then
-          ARGS+=(--slsa-level "$INPUT_SLSA_LEVEL")
         fi
 
         gh verify "${ARGS[@]}" > "$RUNNER_TEMP/gh-verify-formatted-output" 2>/dev/null || true
@@ -224,7 +212,6 @@ runs:
         INPUT_REPO: ${{ inputs.repo }}
         INPUT_FORMAT: ${{ inputs.format }}
         INPUT_POLICY: ${{ inputs.policy }}
-        INPUT_SLSA_LEVEL: ${{ inputs.slsa-level }}
       run: |
         # If format is already sarif, reuse the formatted output
         if [ "$INPUT_FORMAT" = "sarif" ] && [ -f "$RUNNER_TEMP/gh-verify-formatted-output" ]; then
@@ -233,9 +220,6 @@ runs:
           ARGS=("$INPUT_COMMAND" "$INPUT_ARGUMENT" --repo "$INPUT_REPO" --format sarif)
           if [ -n "$INPUT_POLICY" ]; then
             ARGS+=(--policy "$INPUT_POLICY")
-          fi
-          if [ -n "$INPUT_SLSA_LEVEL" ]; then
-            ARGS+=(--slsa-level "$INPUT_SLSA_LEVEL")
           fi
           gh verify "${ARGS[@]}" > "$RUNNER_TEMP/gh-verify.sarif" 2>/dev/null
         fi

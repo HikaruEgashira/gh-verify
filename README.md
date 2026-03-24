@@ -40,10 +40,8 @@ gh verify release 0.15.7 --repo astral-sh/ruff
 # Verify a release range
 gh verify release v5.2.0..v5.2.1 --repo expressjs/express
 
-# SLSA level selection (default: source-l1-build-l1)
-gh verify pr 6933 --repo expressjs/express --slsa-level source-l3-build-l2
-
-# Policy preset
+# Policy preset (includes SLSA levels)
+gh verify pr 6933 --repo expressjs/express --policy slsa-l3
 gh verify release 0.15.7 --repo astral-sh/ruff --policy soc2
 
 # Custom OPA policy file
@@ -68,7 +66,8 @@ See [action.yml](action.yml) for full input/output details.
 
 ## Controls
 
-Level selection via `--slsa-level` determines which SLSA controls are enforced.
+Policy selection via `--policy` determines which controls are enforced and how strictly.
+SLSA presets (`slsa-l1`..`slsa-l4`) enforce the corresponding level controls.
 Compliance controls always run alongside SLSA controls.
 
 ### SLSA v1.2
@@ -100,6 +99,7 @@ Compliance controls always run alongside SLSA controls.
 | `aiops` | Escalates all indeterminate to human review instead of fail |
 | `soc1` | Strict on ICFR-relevant controls; advisory on dev-quality controls |
 | `soc2` | Strict on all CC6/CC7/CC8 controls; review on build-track indeterminate |
+| `slsa-l1`..`slsa-l4` | Enforce SLSA source/build controls at the specified level |
 
 ```bash
 gh verify pr 6933 --repo expressjs/express --policy oss
