@@ -192,10 +192,26 @@ GitHub is not a package registry, but its **Artifact Attestations** provide L3 p
 **Why this matters:**
 - Language-agnostic: works for Go binaries, Rust binaries, Java JARs, anything
 - Fills the gap for ecosystems where the registry lacks provenance (crates.io, Go)
-- Tools like [mise](https://mise.jdx.dev/) already consume GitHub Artifact Attestations to verify downloaded tool binaries
+- This is how crates.io and Go tools achieve L3 today — not at the registry, but at the build platform
+
+**Consumer-side verification: mise**
+
+[mise](https://mise.jdx.dev/) (polyglot tool version manager) demonstrates how GitHub Releases provenance is consumed in practice. mise verifies downloaded tool binaries using multiple mechanisms depending on the backend:
+
+| mise backend | SLSA | GitHub Attestations | Cosign | Minisign | GPG |
+|---|---|---|---|---|---|
+| **aqua** | ✓ default | ✓ default | ✓ default | ✓ default | — |
+| **github** | ✓ default | ✓ default | — | — | — |
+| **ruby** | — | ✓ optional | — | — | — |
+| **node** | — | — | — | — | ✓ optional |
+| **swift** | — | — | — | — | ✓ optional |
+
+The **aqua** backend is the most comprehensive — it delegates to [aquaproj/aqua](https://github.com/aquaproj/aqua)'s tool registry, which defines per-tool verification methods (cosign keyless, minisign, SLSA). When you `mise install ripgrep`, aqua verifies the GitHub Release binary against its Sigstore attestation or cosign signature before installation.
+
+This means developers using mise with aqua/github backends already get L3 verification for CLI tools from GitHub Releases — transparently, with no manual configuration.
 
 **gh-verify integration:**
-The `gh verify release` command already verifies GitHub Artifact Attestations for release assets.
+The `gh verify release` command verifies GitHub Artifact Attestations for release assets.
 
 ## Comparison Matrix
 
