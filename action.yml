@@ -81,18 +81,14 @@ runs:
         gh release download "$VERSION" \
           --repo HikaruEgashira/gh-verify \
           --pattern "$ASSET" \
-          --pattern "checksums.txt" \
           --dir "$RUNNER_TEMP" \
           --clobber
 
-        # Verify checksum if checksums.txt was downloaded
-        if [ -f "$RUNNER_TEMP/checksums.txt" ]; then
-          cd "$RUNNER_TEMP"
-          grep "$ASSET" checksums.txt | sha256sum -c -
-          cd -
-        else
-          echo "::warning::checksums.txt not found in release $VERSION — skipping integrity check"
-        fi
+        gh release verify "$VERSION" \
+          --repo HikaruEgashira/gh-verify
+
+        gh release verify-asset "$VERSION" "$RUNNER_TEMP/$ASSET" \
+          --repo HikaruEgashira/gh-verify
 
         chmod +x "$RUNNER_TEMP/$ASSET"
         echo "binary=$RUNNER_TEMP/$ASSET" >> "$GITHUB_OUTPUT"
