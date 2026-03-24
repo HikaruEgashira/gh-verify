@@ -24,7 +24,10 @@ pub fn parse_format(s: &str) -> Result<Format> {
     }
 }
 
-fn lib_output_opts(format: libverify_output::Format, only_failures: bool) -> libverify_output::OutputOptions {
+fn lib_output_opts(
+    format: libverify_output::Format,
+    only_failures: bool,
+) -> libverify_output::OutputOptions {
     libverify_output::OutputOptions {
         format,
         only_failures,

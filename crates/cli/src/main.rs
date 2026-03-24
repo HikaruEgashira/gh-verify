@@ -3,9 +3,13 @@ use std::process;
 use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
 
-use libverify_github::range::{detect_latest_release_tag, parse_range, parse_release_arg, resolve_pr_numbers};
+use libverify_github::range::{
+    detect_latest_release_tag, parse_range, parse_release_arg, resolve_pr_numbers,
+};
 use libverify_github::verify::exit_if_assessment_fails;
-use libverify_github::{GitHubClient, GitHubConfig, verify_pr, verify_pr_batch, verify_release, verify_repo};
+use libverify_github::{
+    GitHubClient, GitHubConfig, verify_pr, verify_pr_batch, verify_release, verify_repo,
+};
 
 mod output;
 
@@ -251,21 +255,59 @@ fn detect_repo_from_git_remote() -> Option<String> {
 }
 
 fn parse_github_remote_url(url: &str) -> Option<String> {
-    // SSH: git@github.com:OWNER/REPO.git
-    if let Some(path) = url.strip_prefix("git@github.com:") {
-        return Some(path.trim_end_matches(".git").to_string());
+    // Collect candidate hosts: GH_HOST > GITHUB_SERVER_URL > github.com fallback
+    let mut hosts: Vec<String> = Vec::new();
+    if let Ok(h) = std::env::var("GH_HOST") {
+        let h = h.trim().to_string();
+        if !h.is_empty() {
+            hosts.push(h);
+        }
     }
-    // HTTPS: https://github.com/OWNER/REPO.git
+    if let Ok(server_url) = std::env::var("GITHUB_SERVER_URL") {
+        // Strip protocol to get bare hostname (e.g. https://github.example.com -> github.example.com)
+        let bare = server_url
+            .trim()
+            .trim_start_matches("https://")
+            .trim_start_matches("http://")
+            .trim_end_matches('/')
+            .to_string();
+        if !bare.is_empty() && !hosts.contains(&bare) {
+            hosts.push(bare);
+        }
+    }
+    // Always include github.com as the final fallback
+    let github_com = "github.com".to_string();
+    if !hosts.contains(&github_com) {
+        hosts.push(github_com);
+    }
+
+    // SSH: git@<host>:OWNER/REPO.git
+    for host in &hosts {
+        let prefix = format!("git@{}:", host);
+        if let Some(path) = url.strip_prefix(prefix.as_str()) {
+            let path = path.trim_end_matches(".git");
+            if path.matches('/').count() == 1 && !path.starts_with('/') {
+                return Some(path.to_string());
+            }
+        }
+    }
+
+    // HTTPS/HTTP: https://<host>/OWNER/REPO.git
     let url = url.trim_end_matches(".git");
-    let path = url
-        .strip_prefix("https://github.com/")
-        .or_else(|| url.strip_prefix("http://github.com/"))?;
-    // Ensure it has exactly owner/repo
-    if path.matches('/').count() == 1 && !path.starts_with('/') {
-        Some(path.to_string())
-    } else {
-        None
+    for host in &hosts {
+        let https_prefix = format!("https://{}/", host);
+        let http_prefix = format!("http://{}/", host);
+        let path = url
+            .strip_prefix(https_prefix.as_str())
+            .or_else(|| url.strip_prefix(http_prefix.as_str()));
+        if let Some(path) = path {
+            if path.matches('/').count() == 1 && !path.starts_with('/') {
+                return Some(path.to_string());
+            }
+        }
     }
+
+    None
 }
 
 fn detect_pr_number() -> Option<u32> {

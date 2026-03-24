@@ -62,7 +62,7 @@ map := {"severity": "warning", "decision": "review"} if {
 **Per-control overrides with a set** (SOC1-style advisory group):
 
 ```rego
-advisory_controls := {"pr-size", "scoped-change", "conventional-title", "test-coverage"}
+advisory_controls := {"change-request-size", "scoped-change", "conventional-title", "test-coverage"}
 
 map := {"severity": "warning", "decision": "review"} if {
     input.control_id in advisory_controls
@@ -73,10 +73,11 @@ map := {"severity": "warning", "decision": "review"} if {
 
 ## Available control IDs
 
-All 20 control IDs that can appear in `input.control_id`:
+All 24 control IDs that can appear in `input.control_id`:
 
 | Category | Control IDs |
 |----------|-------------|
 | Source track | `source-authenticity`, `review-independence`, `branch-history-integrity`, `branch-protection-enforcement`, `two-party-review` |
 | Build track | `build-provenance`, `required-status-checks`, `hosted-build-platform`, `provenance-authenticity`, `build-isolation` |
-| Compliance | `pr-size`, `test-coverage`, `scoped-change`, `issue-linkage`, `stale-review`, `description-quality`, `merge-commit-policy`, `conventional-title`, `security-file-change`, `release-traceability` |
+| Dependencies track | `dependency-signature`, `dependency-provenance`, `dependency-signer-verified`, `dependency-completeness` |
+| Compliance | `change-request-size`, `test-coverage`, `scoped-change`, `issue-linkage`, `stale-review`, `description-quality`, `merge-commit-policy`, `conventional-title`, `security-file-change`, `release-traceability` |

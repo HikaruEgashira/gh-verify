@@ -81,6 +81,10 @@ Compliance controls always run alongside SLSA controls.
 | Build | L1 | `build-provenance`, `required-status-checks` |
 | Build | L2 | `hosted-build-platform`, `provenance-authenticity` |
 | Build | L3 | `build-isolation` |
+| Dependencies | L1 | `dependency-signature` |
+| Dependencies | L2 | `dependency-provenance` |
+| Dependencies | L3 | `dependency-signer-verified` |
+| Dependencies | L4 | `dependency-completeness` |
 
 ### SOC2 CC7/CC8
 
@@ -88,7 +92,7 @@ Compliance controls always run alongside SLSA controls.
 |----------|---------|
 | CC7.1 (Traceability) | `issue-linkage`, `release-traceability` |
 | CC7.2 (Anomaly detection) | `stale-review`, `security-file-change` |
-| CC8.1 (Change management) | `pr-size`, `test-coverage`, `scoped-change`, `description-quality`, `merge-commit-policy`, `conventional-title` |
+| CC8.1 (Change management) | `change-request-size`, `test-coverage`, `scoped-change`, `description-quality`, `merge-commit-policy`, `conventional-title` |
 
 ### Policy presets
 
@@ -99,7 +103,7 @@ Compliance controls always run alongside SLSA controls.
 | `aiops` | Escalates all indeterminate to human review instead of fail |
 | `soc1` | Strict on ICFR-relevant controls; advisory on dev-quality controls |
 | `soc2` | Strict on all CC6/CC7/CC8 controls; review on build-track indeterminate |
-| `slsa-l1`..`slsa-l4` | Enforce SLSA source/build controls at the specified level |
+| `slsa-l1`..`slsa-l4` | Enforce SLSA source/build/dependencies controls at the specified level |
 
 ```bash
 gh verify pr 6933 --repo expressjs/express --policy oss
