@@ -95,7 +95,7 @@ Full details are in [libverify](https://github.com/HikaruEgashira/libverify).
 | `default` | All controls strict (indeterminate/violated → fail) |
 | `oss` | Tolerates unsigned commits and self-reviewed merges |
 | `aiops` | Escalates all indeterminate to human review instead of fail |
-| `soc1` | Strict on ICFR-relevant controls; advisory on dev-quality controls |
+| `soc1` | Strict on ICFR-relevant controls; advisory on compliance controls |
 | `soc2` | Strict on all CC6/CC7/CC8 controls; review on build-track indeterminate |
 | `slsa-l1`..`slsa-l4` | Enforce SLSA source/build/dependencies controls at the specified level |
 

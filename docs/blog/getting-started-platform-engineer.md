@@ -83,7 +83,7 @@ jobs:
 |--------|----------|
 | `default` | Everything strict. Start here. |
 | `oss` | Tolerates self-merge, unsigned commits. |
-| `soc2` | Strict on CC7/CC8, advisory on dev-quality. |
+| `soc2` | Strict on CC7/CC8, advisory on compliance. |
 | `slsa-l2` | Enforces SLSA Level 2 source + build controls. |
 
 When a preset is close but not right, override specific controls with a `.rego` file committed to the repo:
