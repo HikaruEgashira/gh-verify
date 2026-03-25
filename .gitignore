@@ -8,10 +8,6 @@ result-*
 .direnv/
 .envrc.local
 
-# Creusot verification output (generated .coma files at workspace root)
-/verif/
-/.why3find/
-
 # Benchmark results
 benchmarks/results/*.json
 
