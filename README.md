@@ -5,19 +5,14 @@
 </p>
 
 <p align="center">
-  <a href="HACKING.md">Hacking</a> · <a href="benchmarks/README.md">Benchmarks</a>
+  <a href="https://github.com/HikaruEgashira/libverify">libverify</a> · <a href="HACKING.md">Hacking</a>
 </p>
 
 ---
 
 gh-verify verifies that pull requests and releases follow
 supply chain security and compliance practices (SLSA, SOC2, and custom OPA policies).
-It runs as a `gh` CLI extension, built in Rust with core verification
-logic formally proven via [Creusot](https://github.com/creusot-rs/creusot).
-
-Each control evaluates evidence and produces a verdict:
-Satisfied, Violated, Indeterminate, or Not Applicable.
-The profile maps these to gate decisions — pass, review, or fail.
+It runs as a `gh` CLI extension, powered by [libverify](https://github.com/HikaruEgashira/libverify).
 
 > [!WARNING]
 >
@@ -64,11 +59,10 @@ Exit codes: `0` = pass, `1` = fail.
 
 See [action.yml](action.yml) for full input/output details.
 
-## Controls
+## Controls & Policies
 
 Policy selection via `--policy` determines which controls are enforced and how strictly.
-SLSA presets (`slsa-l1`..`slsa-l4`) enforce the corresponding level controls.
-Compliance controls always run alongside SLSA controls.
+Full details are in [libverify](https://github.com/HikaruEgashira/libverify).
 
 ### SLSA v1.2
 
@@ -105,16 +99,9 @@ Compliance controls always run alongside SLSA controls.
 | `soc2` | Strict on all CC6/CC7/CC8 controls; review on build-track indeterminate |
 | `slsa-l1`..`slsa-l4` | Enforce SLSA source/build/dependencies controls at the specified level |
 
-```bash
-gh verify pr 6933 --repo expressjs/express --policy oss
-gh verify release 0.15.7 --repo astral-sh/ruff --policy soc2
-```
-
-For custom OPA Rego policies, see [docs/custom-policies.md](docs/custom-policies.md).
-
 ## Development
 
-See [HACKING.md](HACKING.md) for architecture, build commands, and contribution guide.
+See [HACKING.md](HACKING.md) for build commands and contribution guide.
 
 ## License
 
