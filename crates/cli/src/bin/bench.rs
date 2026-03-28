@@ -13,6 +13,7 @@ use libverify_core::evidence::EvidenceBundle;
 use libverify_core::profile::{ControlProfile, GateDecision};
 use libverify_core::scope::is_non_code_file;
 use libverify_core::verdict::Severity;
+use libverify_github::graphql;
 use libverify_github::ossinsight::{CollectionRepoRank, OssInsightClient, PullRequestCreator};
 use libverify_github::pr_api;
 use libverify_github::{GitHubClient, GitHubConfig};
@@ -247,19 +248,17 @@ fn fetch_evidence(
     repo: &str,
     pr_number: u32,
 ) -> Result<EvidenceBundle> {
-    let pr_files = pr_api::get_pr_files(client, owner, repo, pr_number)?;
-    let pr_metadata = pr_api::get_pr_metadata(client, owner, repo, pr_number)?;
-    let pr_reviews = pr_api::get_pr_reviews(client, owner, repo, pr_number)?;
-    let pr_commits = pr_api::get_pr_commits(client, owner, repo, pr_number)?;
+    let pr_data = graphql::fetch_pr(client, owner, repo, pr_number)
+        .context("failed to fetch PR data via GraphQL")?;
 
     let repo_full = format!("{owner}/{repo}");
     Ok(libverify_github::adapter::build_pull_request_bundle(
         &repo_full,
         pr_number,
-        &pr_metadata,
-        &pr_files,
-        &pr_reviews,
-        &pr_commits,
+        &pr_data.metadata,
+        &pr_data.files,
+        &pr_data.reviews,
+        &pr_data.commits,
     ))
 }
 
@@ -580,32 +579,52 @@ fn discover_repo(
         .ok_or_else(|| anyhow::anyhow!("invalid repo name from OSS Insight: {}", rank.repo_name))?;
 
     let top_pr_creators = ossinsight.pull_request_creators(owner, repo, creators_per_repo)?;
-    let merged_prs = pr_api::list_recent_merged_prs(github, owner, repo, prs_per_repo)?;
+    // Use search API to find recent merged PRs, then fetch full data via GraphQL
+    let now = timestamp_now();
+    let since = "2020-01-01"; // broad range; we limit by prs_per_repo
+    let pr_numbers =
+        pr_api::search_merged_prs(github, owner, repo, since, &now.split('T').next().unwrap_or(&now))?;
+    let pr_numbers: Vec<u32> = pr_numbers.into_iter().take(prs_per_repo).collect();
+    let fetched = graphql::fetch_prs(github, owner, repo, &pr_numbers);
     let mut prs = Vec::new();
 
-    for pr in merged_prs {
-        let files = pr_api::get_pr_files(github, owner, repo, pr.number)?;
-        let changed_paths: Vec<String> = files.iter().map(|file| file.filename.clone()).collect();
-        let code_paths: Vec<String> = files
+    for (pr_number, result) in fetched {
+        let pr_data = match result {
+            Ok(d) => d,
+            Err(e) => {
+                eprintln!("Warning: skipping PR #{pr_number}: {e:#}");
+                continue;
+            }
+        };
+        let changed_paths: Vec<String> =
+            pr_data.files.iter().map(|file| file.filename.clone()).collect();
+        let code_paths: Vec<String> = pr_data
+            .files
             .iter()
             .filter(|file| file.patch.is_some() && !is_non_code_file(&file.filename))
             .map(|file| file.filename.clone())
             .collect();
         let code_files = code_paths.len();
-        let observed = match fetch_evidence(github, owner, repo, pr.number) {
-            Ok(bundle) => {
-                let ctrls = controls::all_controls();
-                let profile = OpaProfile::slsa_l1_preset()?;
-                assess_bundle(&bundle, &ctrls, &profile, None)
-            }
-            Err(e) => ActualResult::FetchError(format!("{e}")),
+        let repo_full = format!("{owner}/{repo}");
+        let bundle = libverify_github::adapter::build_pull_request_bundle(
+            &repo_full,
+            pr_number,
+            &pr_data.metadata,
+            &pr_data.files,
+            &pr_data.reviews,
+            &pr_data.commits,
+        );
+        let observed = {
+            let ctrls = controls::all_controls();
+            let profile = OpaProfile::slsa_l1_preset()?;
+            assess_bundle(&bundle, &ctrls, &profile, None)
         };
 
         prs.push(DiscoveryPr {
-            number: pr.number,
-            title: pr.title,
-            merged_at: pr.merged_at.unwrap_or_default(),
-            changed_files: files.len(),
+            number: pr_number,
+            title: pr_data.metadata.title.clone(),
+            merged_at: String::new(), // merged_at not available in GraphQL PrMetadata
+            changed_files: pr_data.files.len(),
             code_files,
             changed_paths,
             code_paths,
