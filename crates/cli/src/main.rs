@@ -98,6 +98,10 @@ enum Commands {
         #[command(flatten)]
         opts: CommonOpts,
     },
+    /// List available controls and their descriptions
+    Controls,
+    /// List available policy presets and their descriptions
+    Policies,
 }
 
 fn main() {
@@ -254,9 +258,215 @@ fn run() -> Result<()> {
             output::print(&out_opts, &result)?;
             exit_if_assessment_fails(&result);
         }
+        Commands::Controls => {
+            print_controls();
+        }
+        Commands::Policies => {
+            print_policies();
+        }
     }
 
     Ok(())
+}
+
+fn print_controls() {
+    use colored::Colorize;
+
+    let sections: &[(&str, &[(&str, &str)])] = &[
+        (
+            "SLSA Source Track",
+            &[
+                (
+                    "source-authenticity",
+                    "All commits are signed or verified (L1)",
+                ),
+                (
+                    "review-independence",
+                    "PRs reviewed by someone other than the author (L1)",
+                ),
+                (
+                    "branch-history-integrity",
+                    "Linear commit history without force pushes (L2)",
+                ),
+                (
+                    "branch-protection-enforcement",
+                    "Branch protection rules are enabled (L3)",
+                ),
+                (
+                    "two-party-review",
+                    "At least 2 independent reviewers approved (L4)",
+                ),
+            ],
+        ),
+        (
+            "SLSA Build Track",
+            &[
+                (
+                    "build-provenance",
+                    "Build produces SLSA provenance attestation (L1)",
+                ),
+                (
+                    "required-status-checks",
+                    "Required CI checks pass on HEAD commit (L1)",
+                ),
+                (
+                    "hosted-build-platform",
+                    "Builds run on hosted (non-self-hosted) runners (L2)",
+                ),
+                (
+                    "provenance-authenticity",
+                    "Build provenance signatures are valid (L2)",
+                ),
+                (
+                    "build-isolation",
+                    "Builds run in ephemeral, isolated environments (L3)",
+                ),
+            ],
+        ),
+        (
+            "SLSA Dependencies Track",
+            &[
+                (
+                    "dependency-signature",
+                    "Dependencies have valid signatures (L1)",
+                ),
+                (
+                    "dependency-provenance",
+                    "Dependencies publish provenance attestations (L2)",
+                ),
+                (
+                    "dependency-signer-verified",
+                    "Dependency signers match a trusted list (L3)",
+                ),
+                (
+                    "dependency-completeness",
+                    "All transitive dependencies have provenance (L4)",
+                ),
+            ],
+        ),
+        (
+            "SOC2 CC7 (Traceability & Anomaly Detection)",
+            &[
+                (
+                    "issue-linkage",
+                    "PR references an issue (Fixes #N, Closes #N)",
+                ),
+                (
+                    "release-traceability",
+                    "Release linked to merged PRs and issues",
+                ),
+                ("stale-review", "No code pushed after last approval"),
+                (
+                    "security-file-change",
+                    "Security-sensitive changes get extra review",
+                ),
+            ],
+        ),
+        (
+            "SOC2 CC8 (Change Management)",
+            &[
+                (
+                    "change-request-size",
+                    "PR is reasonably sized (not too large)",
+                ),
+                (
+                    "test-coverage",
+                    "Changed source files have matching test updates",
+                ),
+                ("scoped-change", "PR contains a single logical change"),
+                ("description-quality", "PR has a meaningful description"),
+                (
+                    "merge-commit-policy",
+                    "Uses squash or rebase (no merge commits)",
+                ),
+                (
+                    "conventional-title",
+                    "Title follows Conventional Commits format",
+                ),
+            ],
+        ),
+        (
+            "Repository Security",
+            &[
+                (
+                    "codeowners-coverage",
+                    "CODEOWNERS file defines code ownership",
+                ),
+                ("secret-scanning", "Secret scanning is enabled"),
+                (
+                    "vulnerability-scanning",
+                    "Dependabot vulnerability alerts are enabled",
+                ),
+                (
+                    "security-policy",
+                    "SECURITY.md with disclosure process exists",
+                ),
+            ],
+        ),
+    ];
+
+    for (title, controls) in sections {
+        println!("{}", title.bold());
+        for (id, desc) in *controls {
+            println!("  {:<35} {desc}", id);
+        }
+        println!();
+    }
+}
+
+fn print_policies() {
+    use colored::Colorize;
+    println!("{}", "Available policy presets:".bold());
+    println!();
+
+    let presets: &[(&str, &str)] = &[
+        (
+            "default",
+            "All controls strict \u{2014} indeterminate/violated maps to fail",
+        ),
+        (
+            "oss",
+            "Tolerates unsigned commits and self-reviewed merges (review instead of fail)",
+        ),
+        (
+            "aiops",
+            "Escalates all indeterminate to human review instead of fail",
+        ),
+        (
+            "soc1",
+            "Strict on ICFR-relevant controls; advisory on compliance controls",
+        ),
+        (
+            "soc2",
+            "Strict on CC6/CC7/CC8 controls; review on build-track indeterminate",
+        ),
+        (
+            "slsa-l1",
+            "Enforce SLSA source/build/dependencies at Level 1",
+        ),
+        (
+            "slsa-l2",
+            "Enforce SLSA source/build/dependencies at Level 2",
+        ),
+        (
+            "slsa-l3",
+            "Enforce SLSA source/build/dependencies at Level 3",
+        ),
+        (
+            "slsa-l4",
+            "Enforce SLSA source/build/dependencies at Level 4",
+        ),
+    ];
+
+    for (name, desc) in presets {
+        println!("  {:<12} {desc}", name.bold());
+    }
+
+    println!();
+    println!("Usage: gh verify pr 42 --policy <PRESET>");
+    println!("       gh verify pr 42 --policy ./custom.rego");
+    println!();
+    println!("See docs/custom-policies.md for custom policy authoring.");
 }
 
 fn apply_exclusions(
