@@ -56,7 +56,7 @@ enum Commands {
         #[command(flatten)]
         opts: CommonOpts,
     },
-    /// Verify repository dependency signatures
+    /// Verify repository security posture
     #[command(after_help = "Examples:\n  gh verify repo\n  gh verify repo --ref main --policy soc2\n  gh verify repo --format sarif")]
     Repo {
         /// Git reference (branch, tag, or SHA). Defaults to HEAD.
@@ -159,13 +159,17 @@ fn run() -> Result<()> {
             };
             let input = std::io::read_to_string(std::io::stdin())
                 .context("failed to read JSON from stdin")?;
+            let input = input.trim();
+            if input.is_empty() {
+                anyhow::bail!("no input on stdin. Pipe JSON from another command, e.g.:\n  gh verify pr 42 --format json | gh verify fmt --format sarif");
+            }
             if batch {
                 let batch_report: libverify_core::assessment::BatchReport =
-                    serde_json::from_str(&input).context("invalid batch JSON on stdin")?;
+                    serde_json::from_str(input).context("invalid batch JSON on stdin")?;
                 output::print_batch(&out_opts, &batch_report)?;
             } else {
                 let result: libverify_core::assessment::VerificationResult =
-                    serde_json::from_str(&input).context("invalid JSON on stdin")?;
+                    serde_json::from_str(input).context("invalid JSON on stdin")?;
                 output::print(&out_opts, &result)?;
                 exit_if_assessment_fails(&result);
             }
