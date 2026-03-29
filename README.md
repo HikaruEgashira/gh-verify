@@ -32,6 +32,9 @@ gh verify pr 6933 --repo expressjs/express
 # Verify a release tag
 gh verify release 0.15.7 --repo astral-sh/ruff
 
+# Verify repository security posture
+gh verify repo --repo cli/cli --policy soc2
+
 # Verify a release range
 gh verify release v5.2.0..v5.2.1 --repo expressjs/express
 
@@ -42,6 +45,9 @@ gh verify release 0.15.7 --repo astral-sh/ruff --policy soc2
 # Custom OPA policy file
 gh verify pr 6933 --repo expressjs/express --policy policy.rego
 
+# Exclude specific controls
+gh verify pr 42 --exclude secret-scanning,conventional-title
+
 # Output formats: human (default), json, sarif
 gh verify release 1.94.0 --repo rust-lang/rust --format json
 ```
@@ -51,10 +57,17 @@ Exit codes: `0` = pass, `1` = fail.
 ### GitHub Action
 
 ```yaml
-- uses: HikaruEgashira/gh-verify@v0.7
+- uses: HikaruEgashira/gh-verify@v0.11
   with:
     command: pr
     argument: ${{ github.event.pull_request.number }}
+
+# With policy and exclusions
+- uses: HikaruEgashira/gh-verify@v0.11
+  with:
+    command: repo
+    policy: soc2
+    exclude: secret-scanning,vulnerability-scanning
 ```
 
 See [action.yml](action.yml) for full input/output details.

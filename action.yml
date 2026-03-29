@@ -8,11 +8,12 @@ branding:
 
 inputs:
   command:
-    description: "Subcommand: pr or release"
+    description: "Subcommand: pr, repo, or release"
     required: true
   argument:
-    description: "PR number (for pr) or tag/range (for release)"
-    required: true
+    description: "PR number (for pr), git ref (for repo), or tag/range (for release). Optional for repo."
+    required: false
+    default: ""
   repo:
     description: "Repository in OWNER/REPO format (defaults to current repo)"
     required: false
@@ -27,6 +28,14 @@ inputs:
     default: ""
   only-failures:
     description: "Only show controls with fail decision in output"
+    required: false
+    default: "false"
+  exclude:
+    description: "Comma-separated control IDs to exclude from results"
+    required: false
+    default: ""
+  with-evidence:
+    description: "Include raw collected evidence in JSON/SARIF output"
     required: false
     default: "false"
   version:
@@ -64,8 +73,8 @@ runs:
         INPUT_COMMAND: ${{ inputs.command }}
         INPUT_FORMAT: ${{ inputs.format }}
       run: |
-        if [[ "$INPUT_COMMAND" != "pr" && "$INPUT_COMMAND" != "release" ]]; then
-          echo "::error::Invalid command '$INPUT_COMMAND'. Must be 'pr' or 'release'."
+        if [[ "$INPUT_COMMAND" != "pr" && "$INPUT_COMMAND" != "repo" && "$INPUT_COMMAND" != "release" ]]; then
+          echo "::error::Invalid command '$INPUT_COMMAND'. Must be 'pr', 'repo', or 'release'."
           exit 1
         fi
         if [[ "$INPUT_FORMAT" != "human" && "$INPUT_FORMAT" != "json" && "$INPUT_FORMAT" != "sarif" ]]; then
@@ -95,10 +104,22 @@ runs:
         INPUT_ARGUMENT: ${{ inputs.argument }}
         INPUT_REPO: ${{ inputs.repo }}
         INPUT_POLICY: ${{ inputs.policy }}
+        INPUT_EXCLUDE: ${{ inputs.exclude }}
+        INPUT_WITH_EVIDENCE: ${{ inputs.with-evidence }}
       run: |
-        ARGS=("$INPUT_COMMAND" "$INPUT_ARGUMENT" --repo "$INPUT_REPO" --format json)
+        ARGS=("$INPUT_COMMAND")
+        if [ -n "$INPUT_ARGUMENT" ]; then
+          ARGS+=("$INPUT_ARGUMENT")
+        fi
+        ARGS+=(--repo "$INPUT_REPO" --format json)
         if [ -n "$INPUT_POLICY" ]; then
           ARGS+=(--policy "$INPUT_POLICY")
+        fi
+        if [ -n "$INPUT_EXCLUDE" ]; then
+          ARGS+=(--exclude "$INPUT_EXCLUDE")
+        fi
+        if [ "$INPUT_WITH_EVIDENCE" = "true" ]; then
+          ARGS+=(--with-evidence)
         fi
 
         set +e
