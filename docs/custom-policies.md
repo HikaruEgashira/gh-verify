@@ -71,9 +71,29 @@ map := {"severity": "warning", "decision": "review"} if {
 }
 ```
 
+## Testing your policy locally
+
+Validate syntax with the OPA CLI before deploying to CI:
+
+```bash
+# Install OPA: https://www.openpolicyagent.org/docs/latest/#running-opa
+brew install opa  # macOS
+
+# Check syntax
+opa check .ghverify.rego
+
+# Test with a sample input
+echo '{"control_id":"test-coverage","status":"violated","rationale":"no tests","subjects":[]}' \
+  | opa eval -d .ghverify.rego -I 'data.verify.profile.map'
+```
+
+If no rule matches for a given input, the `default map` clause applies.
+Always include a `default map` to handle unlisted statuses — omitting it
+may cause unexpected empty results.
+
 ## Available control IDs
 
-All 24 control IDs that can appear in `input.control_id`:
+All control IDs that can appear in `input.control_id` (also available via `gh verify controls`):
 
 | Category | Control IDs |
 |----------|-------------|
@@ -81,3 +101,4 @@ All 24 control IDs that can appear in `input.control_id`:
 | Build track | `build-provenance`, `required-status-checks`, `hosted-build-platform`, `provenance-authenticity`, `build-isolation` |
 | Dependencies track | `dependency-signature`, `dependency-provenance`, `dependency-signer-verified`, `dependency-completeness` |
 | Compliance | `change-request-size`, `test-coverage`, `scoped-change`, `issue-linkage`, `stale-review`, `description-quality`, `merge-commit-policy`, `conventional-title`, `security-file-change`, `release-traceability` |
+| Repository security | `codeowners-coverage`, `secret-scanning`, `vulnerability-scanning`, `security-policy` |
