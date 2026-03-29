@@ -111,11 +111,14 @@ See [action.yml](action.yml) for full input/output details.
 
 | Scenario | Recommended |
 |----------|-------------|
+| Solo / personal project | `--policy oss --exclude review-independence,two-party-review,stale-review,security-file-change,codeowners-coverage` |
 | Open source project | `--policy oss` |
 | Getting started / evaluation | `--audit` (no policy needed) |
 | SOC2 audit preparation | `--policy soc2` |
 | SLSA compliance | `--policy slsa-l1` through `slsa-l4` |
 | No specific requirements | omit `--policy` (uses `default`) |
+
+> **Solo developers:** Some controls (review-independence, two-party-review, stale-review, security-file-change, codeowners-coverage) require a team and will always fail for solo projects. Exclude them to focus on actionable checks like PR size, test coverage, and dependency security.
 
 ## Controls & Policies
 

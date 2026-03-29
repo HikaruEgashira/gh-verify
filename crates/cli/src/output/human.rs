@@ -3,6 +3,59 @@ use colored::Colorize;
 use libverify_core::assessment::{BatchReport, VerificationResult};
 use libverify_core::profile::GateDecision;
 
+fn format_utc_now() -> String {
+    let secs = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
+    // Simple UTC timestamp without chrono dependency
+    let days = secs / 86400;
+    let time_secs = secs % 86400;
+    let h = time_secs / 3600;
+    let m = (time_secs % 3600) / 60;
+    let s = time_secs % 60;
+    // Days since 1970-01-01
+    let mut y = 1970i64;
+    let mut remaining = days as i64;
+    loop {
+        let year_days = if y % 4 == 0 && (y % 100 != 0 || y % 400 == 0) {
+            366
+        } else {
+            365
+        };
+        if remaining < year_days {
+            break;
+        }
+        remaining -= year_days;
+        y += 1;
+    }
+    let leap = y % 4 == 0 && (y % 100 != 0 || y % 400 == 0);
+    let month_days = [
+        31,
+        if leap { 29 } else { 28 },
+        31,
+        30,
+        31,
+        30,
+        31,
+        31,
+        30,
+        31,
+        30,
+        31,
+    ];
+    let mut month = 0;
+    for (i, &d) in month_days.iter().enumerate() {
+        if remaining < d as i64 {
+            month = i + 1;
+            break;
+        }
+        remaining -= d as i64;
+    }
+    let day = remaining + 1;
+    format!("{y:04}-{month:02}-{day:02}T{h:02}:{m:02}:{s:02}Z")
+}
+
 pub fn remediation_hint(control_id: &str) -> Option<&'static str> {
     match control_id {
         "source-authenticity" => Some("Sign commits: git config commit.gpgsign true"),
@@ -132,7 +185,8 @@ pub fn print(
 
     let policy_name = policy.unwrap_or("default");
     let version = env!("GH_VERIFY_VERSION");
-    print!("Policy: {policy_name} | gh-verify {version}");
+    let timestamp = format_utc_now();
+    print!("Policy: {policy_name} | gh-verify {version} | {timestamp}");
     if !excluded.is_empty() {
         print!(" | Excluded: {}", excluded.join(", "));
     }
