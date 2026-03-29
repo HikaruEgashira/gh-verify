@@ -107,6 +107,7 @@ fn run() -> Result<()> {
             };
             let cfg = GitHubConfig::load()?;
             let (owner, repo_name) = resolve_repo(&cfg, opts.repo.as_deref())?;
+            check_repo_exists(&owner, &repo_name)?;
             let client = GitHubClient::new(&cfg)?;
 
             match arg.as_deref().and_then(parse_range) {
@@ -132,7 +133,11 @@ fn run() -> Result<()> {
                 }
                 None => {
                     let pr_number: u32 = match arg {
-                        Some(a) => a.parse().context("invalid PR number")?,
+                        Some(ref a) => a.parse().with_context(|| {
+                            format!(
+                                "'{a}' is not a valid PR number. Expected a number like 42 or a range like '#1..#5'"
+                            )
+                        })?,
                         None => detect_pr_number()?,
                     };
                     let result = verify_pr(
@@ -184,9 +189,10 @@ fn run() -> Result<()> {
             };
             let cfg = GitHubConfig::load()?;
             let (owner, repo_name) = resolve_repo(&cfg, opts.repo.as_deref())?;
+            check_repo_exists(&owner, &repo_name)?;
             let client = GitHubClient::new(&cfg)?;
 
-            eprintln!("Checking dependency signatures at ref: {reference}");
+            eprintln!("Checking security posture at ref: {reference}");
 
             let result = verify_repo(
                 &client,
@@ -206,6 +212,7 @@ fn run() -> Result<()> {
             };
             let cfg = GitHubConfig::load()?;
             let (owner, repo_name) = resolve_repo(&cfg, opts.repo.as_deref())?;
+            check_repo_exists(&owner, &repo_name)?;
             let client = GitHubClient::new(&cfg)?;
 
             let release_arg = match arg {
@@ -232,6 +239,21 @@ fn run() -> Result<()> {
         }
     }
 
+    Ok(())
+}
+
+fn check_repo_exists(owner: &str, repo: &str) -> Result<()> {
+    let output = std::process::Command::new("gh")
+        .args(["api", &format!("repos/{owner}/{repo}"), "--silent"])
+        .stderr(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::null())
+        .output()
+        .context("failed to run 'gh api' — is the GitHub CLI installed?")?;
+    if !output.status.success() {
+        anyhow::bail!(
+            "repository '{owner}/{repo}' not found or not accessible. Check the name and your permissions"
+        );
+    }
     Ok(())
 }
 
