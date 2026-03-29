@@ -67,16 +67,16 @@ pub fn print(
         }
 
         let decision_str = match outcome.decision {
-            GateDecision::Pass => "pass".green(),
-            GateDecision::Review => "review".yellow(),
-            GateDecision::Fail => "fail".red(),
+            GateDecision::Pass => "PASS".green(),
+            GateDecision::Review => "REVIEW".yellow(),
+            GateDecision::Fail => "FAIL".red(),
         };
 
         let severity_str = report.severity_labels.label_for(outcome.severity);
 
         println!(
-            "{} {} [{}]: {}",
-            format!("[{}]", outcome.control_id).bold(),
+            "[{}] {} ({}): {}",
+            outcome.control_id.to_string().bold(),
             decision_str,
             severity_str,
             outcome.rationale
@@ -85,7 +85,7 @@ pub fn print(
         if outcome.decision == GateDecision::Fail
             && let Some(hint) = remediation_hint(&outcome.control_id.to_string())
         {
-            println!("  {} {}", "hint:".cyan(), hint);
+            println!("  -> {} {}", "Hint:".cyan(), hint);
         }
     }
 

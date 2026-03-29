@@ -46,8 +46,8 @@ struct CommonOpts {
 #[derive(Parser)]
 #[command(name = "gh-verify", version = VERSION,
     about = "GitHub SDLC health checker",
-    long_about = "Verify pull requests, releases, and repositories against SDLC compliance controls.\nChecks include SLSA source/build integrity, SOC2 CC7/CC8, dependency signatures, and more.",
-    after_help = "Examples:\n  gh verify pr 42                    Verify PR #42 in current repo\n  gh verify pr '#100..#200'           Batch verify a PR range\n  gh verify release                   Verify the latest release\n  gh verify repo --ref main           Check dependency signatures\n  gh verify pr 42 --policy oss        Use OSS-friendly policy\n  gh verify pr 42 --format sarif      Output SARIF for code scanning"
+    long_about = "Verify pull requests, releases, and repositories against SDLC compliance controls.\nCatches common issues like missing reviews, unsigned commits, and oversized PRs.\nSupports SLSA source/build integrity, SOC2 CC7/CC8, dependency signatures, and more.",
+    after_help = "Examples:\n  gh verify pr 42                    Verify PR #42 in current repo\n  gh verify pr 42 --audit            Report without failing (dry-run)\n  gh verify pr '#100..#200'           Batch verify a PR range\n  gh verify release                   Verify the latest release\n  gh verify repo --ref main           Check repository security\n  gh verify pr 42 --policy oss        Use OSS-friendly policy\n  gh verify pr 42 --format sarif      Output SARIF for code scanning\n  gh verify controls                  List all available controls\n  gh verify policies                  List all policy presets\n\nExit codes: 0 = pass, 1 = verification failure, 2 = infrastructure error"
 )]
 struct Cli {
     #[command(subcommand)]

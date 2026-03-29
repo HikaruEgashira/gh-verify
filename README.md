@@ -10,60 +10,77 @@
 
 ---
 
-gh-verify verifies that pull requests and releases follow
-supply chain security and compliance practices (SLSA, SOC2, and custom OPA policies).
-It runs as a `gh` CLI extension, powered by [libverify](https://github.com/HikaruEgashira/libverify).
+gh-verify checks your pull requests, releases, and repository settings for common security and quality problems -- like missing code reviews, unsigned commits, or oversized PRs. It can enforce industry frameworks (SLSA, SOC2) or just basic hygiene.
+
+Runs as a `gh` CLI extension, powered by [libverify](https://github.com/HikaruEgashira/libverify).
 
 > [!WARNING]
 >
 > This project is under active development. Controls and output format may change.
+
+## Quick Start
+
+```bash
+# 1. Install
+gh extension install HikaruEgashira/gh-verify
+
+# 2. Try it on any public repo
+gh verify pr 6933 --repo expressjs/express
+
+# 3. Try audit mode (reports without failing)
+gh verify pr 42 --audit
+```
 
 ## Usage
 
 ### CLI
 
 ```bash
-# Install
-gh extension install HikaruEgashira/gh-verify
-
-# Verify a pull request
-gh verify pr 6933 --repo expressjs/express
+# Verify a pull request (auto-detects repo from git remote)
+gh verify pr 42
 
 # Verify a release tag
 gh verify release 0.15.7 --repo astral-sh/ruff
 
-# Verify repository security posture
+# Check repository security settings
 gh verify repo --repo cli/cli --policy soc2
 
-# Verify a release range
-gh verify release v5.2.0..v5.2.1 --repo expressjs/express
+# Batch verify a PR range
+gh verify pr '#100..#200'
 
-# Policy preset (includes SLSA levels)
-gh verify pr 6933 --repo expressjs/express --policy slsa-l3
-gh verify release 0.15.7 --repo astral-sh/ruff --policy soc2
+# Audit mode: report without failing (useful for onboarding)
+gh verify pr 42 --audit
+
+# Quiet mode: suppress progress messages (useful for CI)
+gh verify pr 42 --quiet
+
+# Policy presets
+gh verify pr 42 --policy oss        # OSS-friendly
+gh verify pr 42 --policy slsa-l3    # SLSA Level 3
 
 # Custom OPA policy file
-gh verify pr 6933 --repo expressjs/express --policy policy.rego
+gh verify pr 42 --policy policy.rego
 
-# Exclude specific controls
+# Exclude specific controls (see 'gh verify controls' for IDs)
 gh verify pr 42 --exclude secret-scanning,conventional-title
 
 # Output formats: human (default), json, sarif
-gh verify release 1.94.0 --repo rust-lang/rust --format json
+gh verify pr 42 --format json
+gh verify pr 42 --format sarif      # For GitHub Code Scanning
 ```
 
-Exit codes: `0` = pass, `1` = fail.
+Exit codes: `0` = all controls pass, `1` = verification failure, `2` = infrastructure error (API/auth/network).
 
 ### GitHub Action
 
 ```yaml
-- uses: HikaruEgashira/gh-verify@v0.11
+- uses: HikaruEgashira/gh-verify@v0.12
   with:
     command: pr
     argument: ${{ github.event.pull_request.number }}
 
 # With policy and exclusions
-- uses: HikaruEgashira/gh-verify@v0.11
+- uses: HikaruEgashira/gh-verify@v0.12
   with:
     command: repo
     policy: soc2
@@ -71,6 +88,16 @@ Exit codes: `0` = pass, `1` = fail.
 ```
 
 See [action.yml](action.yml) for full input/output details.
+
+### Which policy should I use?
+
+| Scenario | Recommended |
+|----------|-------------|
+| Open source project | `--policy oss` |
+| Getting started / evaluation | `--audit` (no policy needed) |
+| SOC2 audit preparation | `--policy soc2` |
+| SLSA compliance | `--policy slsa-l1` through `slsa-l4` |
+| No specific requirements | omit `--policy` (uses `default`) |
 
 ## Controls & Policies
 
@@ -105,11 +132,11 @@ Full details are in [libverify](https://github.com/HikaruEgashira/libverify).
 
 | Preset | Description |
 |--------|-------------|
-| `default` | All controls strict (indeterminate/violated → fail) |
-| `oss` | Tolerates unsigned commits and self-reviewed merges |
-| `aiops` | Escalates all indeterminate to human review instead of fail |
-| `soc1` | Strict on ICFR-relevant controls; advisory on compliance controls |
-| `soc2` | Strict on all CC6/CC7/CC8 controls; review on build-track indeterminate |
+| `default` | All controls strict -- uncertain or non-compliant results map to fail |
+| `oss` | Allows unsigned commits and self-reviewed merges (maps to review instead of fail) |
+| `aiops` | Maps all uncertain results to human review instead of fail |
+| `soc1` | Strict on ICFR-relevant controls; informational on compliance controls |
+| `soc2` | Strict on all CC6/CC7/CC8 controls; review on uncertain build-track results |
 | `slsa-l1`..`slsa-l4` | Enforce SLSA source/build/dependencies controls at the specified level |
 
 ## Development
