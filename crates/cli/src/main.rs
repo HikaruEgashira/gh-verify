@@ -108,9 +108,15 @@ enum Commands {
 }
 
 fn main() {
+    // Disable ANSI colors when stdout is not a TTY (e.g., piped output)
+    if !std::io::IsTerminal::is_terminal(&std::io::stdout()) {
+        colored::control::set_override(false);
+    }
+
     if let Err(e) = run() {
         eprintln!("Error: {e:#}");
-        process::exit(1);
+        // Exit code 2 for infrastructure/configuration errors (distinct from exit 1 for verification failures)
+        process::exit(2);
     }
 }
 
@@ -224,7 +230,7 @@ fn run() -> Result<()> {
 
             if !opts.quiet {
                 eprintln!(
-                    "Checking security posture at ref: {reference} (policy: {})",
+                    "Checking security at ref: {reference} (policy: {})",
                     opts.policy.as_deref().unwrap_or("default")
                 );
             }
@@ -428,6 +434,12 @@ fn print_controls() {
         ),
     ];
 
+    println!(
+        "{}",
+        "SLSA levels: L1 (basic) → L2 (attested) → L3 (hardened) → L4 (comprehensive)".dimmed()
+    );
+    println!();
+
     for (title, controls) in sections {
         println!("{}", title.bold());
         for (id, desc) in *controls {
@@ -445,23 +457,23 @@ fn print_policies() {
     let presets: &[(&str, &str)] = &[
         (
             "default",
-            "All controls strict \u{2014} indeterminate/violated maps to fail",
+            "All controls strict \u{2014} uncertain or non-compliant results map to fail",
         ),
         (
             "oss",
-            "Tolerates unsigned commits and self-reviewed merges (review instead of fail)",
+            "Allows unsigned commits and self-reviewed merges (maps to review instead of fail)",
         ),
         (
             "aiops",
-            "Escalates all indeterminate to human review instead of fail",
+            "Maps all uncertain results to human review instead of fail",
         ),
         (
             "soc1",
-            "Strict on ICFR-relevant controls; advisory on compliance controls",
+            "Strict on ICFR-relevant controls; informational (non-blocking) on compliance controls",
         ),
         (
             "soc2",
-            "Strict on CC6/CC7/CC8 controls; review on build-track indeterminate",
+            "Strict on CC6/CC7/CC8 controls; review on uncertain build-track results",
         ),
         (
             "slsa-l1",
@@ -538,7 +550,9 @@ fn check_repo_exists(owner: &str, repo: &str) -> Result<()> {
         .stderr(std::process::Stdio::piped())
         .stdout(std::process::Stdio::null())
         .output()
-        .context("failed to run 'gh api' — is the GitHub CLI installed?")?;
+        .context(
+            "failed to run 'gh api'. Ensure the GitHub CLI (gh) is installed and authenticated",
+        )?;
     if !output.status.success() {
         anyhow::bail!(
             "repository '{owner}/{repo}' not found or not accessible. Check the name and your permissions"
@@ -572,7 +586,7 @@ fn detect_repo_from_git_remote() -> Result<String> {
     let output = std::process::Command::new("git")
         .args(["remote", "get-url", "origin"])
         .output()
-        .context("failed to run 'git remote get-url origin' — is git installed?")?;
+        .context("failed to run 'git remote get-url origin'. Ensure git is installed")?;
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
         anyhow::bail!("git remote get-url origin failed: {}", stderr.trim());
@@ -646,7 +660,9 @@ fn detect_pr_number() -> Result<u32> {
     let output = std::process::Command::new("gh")
         .args(["pr", "view", "--json", "number", "--jq", ".number"])
         .output()
-        .context("failed to run 'gh pr view' — is the GitHub CLI installed?")?;
+        .context(
+            "failed to run 'gh pr view'. Ensure the GitHub CLI (gh) is installed and authenticated",
+        )?;
     if !output.status.success() {
         anyhow::bail!(
             "no PR number provided and no open PR found for current branch. Specify a PR number: gh verify pr 123"
