@@ -3,6 +3,56 @@ use colored::Colorize;
 use libverify_core::assessment::{BatchReport, VerificationResult};
 use libverify_core::profile::GateDecision;
 
+fn remediation_hint(control_id: &str) -> Option<&'static str> {
+    match control_id {
+        "source-authenticity" => Some("Sign commits: git config commit.gpgsign true"),
+        "review-independence" => Some("Ensure PRs are reviewed by someone other than the author"),
+        "branch-history-integrity" => {
+            Some("Use linear history (rebase/squash, avoid merge commits)")
+        }
+        "branch-protection-enforcement" => {
+            Some("Enable branch protection rules at Settings > Branches")
+        }
+        "two-party-review" => Some("Require at least 2 reviewers in branch protection rules"),
+        "required-status-checks" => Some("Add required status checks in branch protection rules"),
+        "build-provenance" => {
+            Some("Generate SLSA provenance with slsa-framework/slsa-github-generator")
+        }
+        "hosted-build-platform" => Some("Use GitHub-hosted runners instead of self-hosted"),
+        "provenance-authenticity" => {
+            Some("Verify build provenance signatures with cosign/slsa-verifier")
+        }
+        "build-isolation" => Some("Ensure builds run in ephemeral, isolated environments"),
+        "dependency-signature" => Some("Use signed dependencies; verify with cosign or sigstore"),
+        "dependency-provenance" => Some("Ensure dependencies publish SLSA provenance attestations"),
+        "dependency-signer-verified" => Some("Verify dependency signers against a trusted list"),
+        "dependency-completeness" => Some("Ensure all transitive dependencies have provenance"),
+        "change-request-size" => Some("Keep PRs small and focused; split large changes"),
+        "test-coverage" => Some("Add or update tests for changed source files"),
+        "scoped-change" => Some("Limit PR to a single logical change; split unrelated changes"),
+        "issue-linkage" => Some("Reference an issue in the PR body: Fixes #123 or Closes #456"),
+        "description-quality" => Some("Add a meaningful PR description explaining the change"),
+        "merge-commit-policy" => {
+            Some("Use squash or rebase merge strategy instead of merge commits")
+        }
+        "conventional-title" => Some("Use Conventional Commits format: type(scope): description"),
+        "stale-review" => Some("Re-request review if changes were pushed after approval"),
+        "security-file-change" => Some("Security-sensitive file changes require additional review"),
+        "release-traceability" => Some("Link release to merged PRs and resolved issues"),
+        "codeowners-coverage" => Some("Add a CODEOWNERS file to define code ownership"),
+        "secret-scanning" => {
+            Some("Enable secret scanning at Settings > Code security and analysis")
+        }
+        "vulnerability-scanning" => {
+            Some("Enable Dependabot alerts at Settings > Code security and analysis")
+        }
+        "security-policy" => {
+            Some("Add a SECURITY.md file with vulnerability reporting instructions")
+        }
+        _ => None,
+    }
+}
+
 pub fn print(result: &VerificationResult, only_failures: bool) -> Result<()> {
     let report = &result.report;
 
@@ -26,6 +76,12 @@ pub fn print(result: &VerificationResult, only_failures: bool) -> Result<()> {
             severity_str,
             outcome.rationale
         );
+
+        if outcome.decision == GateDecision::Fail
+            && let Some(hint) = remediation_hint(&outcome.control_id.to_string())
+        {
+            println!("  {} {}", "hint:".cyan(), hint);
+        }
     }
 
     let (mut pass_count, mut review_count, mut fail_count) = (0usize, 0usize, 0usize);
