@@ -3,7 +3,7 @@ use colored::Colorize;
 use libverify_core::assessment::{BatchReport, VerificationResult};
 use libverify_core::profile::GateDecision;
 
-fn remediation_hint(control_id: &str) -> Option<&'static str> {
+pub fn remediation_hint(control_id: &str) -> Option<&'static str> {
     match control_id {
         "source-authenticity" => Some("Sign commits: git config commit.gpgsign true"),
         "review-independence" => Some("Ensure PRs are reviewed by someone other than the author"),

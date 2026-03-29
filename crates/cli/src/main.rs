@@ -888,4 +888,35 @@ mod tests {
         assert_eq!(owner, "owner");
         assert_eq!(repo, "repo");
     }
+
+    #[test]
+    fn all_controls_have_remediation_hints() {
+        let missing: Vec<&str> = CONTROLS
+            .iter()
+            .flat_map(|s| s.controls.iter())
+            .filter(|(id, _)| output::human::remediation_hint(id).is_none())
+            .map(|(id, _)| *id)
+            .collect();
+        assert!(
+            missing.is_empty(),
+            "Controls without remediation hints: {:?}",
+            missing
+        );
+    }
+
+    #[test]
+    fn controls_data_not_empty() {
+        let total: usize = CONTROLS.iter().map(|s| s.controls.len()).sum();
+        assert_eq!(total, 28, "Expected 28 controls, found {total}");
+    }
+
+    #[test]
+    fn policies_data_not_empty() {
+        assert_eq!(
+            POLICIES.len(),
+            9,
+            "Expected 9 policies, found {}",
+            POLICIES.len()
+        );
+    }
 }
