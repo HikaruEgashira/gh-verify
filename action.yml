@@ -46,6 +46,14 @@ inputs:
     description: "Upload SARIF results to GitHub Code Scanning (auto-enabled when format=sarif)"
     required: false
     default: "false"
+  audit:
+    description: "Report results without failing the workflow (always exit 0). Useful for gradual rollout"
+    required: false
+    default: "false"
+  only:
+    description: "Comma-separated control IDs to include (all others excluded). See 'gh verify controls'"
+    required: false
+    default: ""
 
 outputs:
   result:
@@ -106,20 +114,28 @@ runs:
         INPUT_POLICY: ${{ inputs.policy }}
         INPUT_EXCLUDE: ${{ inputs.exclude }}
         INPUT_WITH_EVIDENCE: ${{ inputs.with-evidence }}
+        INPUT_AUDIT: ${{ inputs.audit }}
+        INPUT_ONLY: ${{ inputs.only }}
       run: |
         ARGS=("$INPUT_COMMAND")
         if [ -n "$INPUT_ARGUMENT" ]; then
           ARGS+=("$INPUT_ARGUMENT")
         fi
-        ARGS+=(--repo "$INPUT_REPO" --format json)
+        ARGS+=(--repo "$INPUT_REPO" --format json --quiet)
         if [ -n "$INPUT_POLICY" ]; then
           ARGS+=(--policy "$INPUT_POLICY")
         fi
         if [ -n "$INPUT_EXCLUDE" ]; then
           ARGS+=(--exclude "$INPUT_EXCLUDE")
         fi
+        if [ -n "$INPUT_ONLY" ]; then
+          ARGS+=(--only "$INPUT_ONLY")
+        fi
         if [ "$INPUT_WITH_EVIDENCE" = "true" ]; then
           ARGS+=(--with-evidence)
+        fi
+        if [ "$INPUT_AUDIT" = "true" ]; then
+          ARGS+=(--audit)
         fi
 
         set +e
@@ -243,6 +259,6 @@ runs:
         sarif_file: ${{ steps.sarif.outputs.sarif-file }}
 
     - name: Exit on failure
-      if: steps.parse.outputs.result == 'fail'
+      if: steps.parse.outputs.result == 'fail' && inputs.audit != 'true'
       shell: bash
       run: exit 1

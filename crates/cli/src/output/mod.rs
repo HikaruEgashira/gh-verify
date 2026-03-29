@@ -1,6 +1,6 @@
 pub mod human;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use clap::ValueEnum;
 use libverify_core::assessment::{BatchReport, VerificationResult};
 
@@ -29,6 +29,7 @@ pub struct OutputOptions {
     pub only_failures: bool,
     pub policy: Option<String>,
     pub excluded: Vec<String>,
+    pub output_file: Option<String>,
 }
 
 fn lib_output_opts(
@@ -43,6 +44,20 @@ fn lib_output_opts(
     }
 }
 
+fn emit(output_file: Option<&str>, content: &str) -> Result<()> {
+    match output_file {
+        Some(path) => {
+            std::fs::write(path, format!("{content}\n"))
+                .with_context(|| format!("failed to write output to '{path}'"))?;
+            Ok(())
+        }
+        None => {
+            println!("{content}");
+            Ok(())
+        }
+    }
+}
+
 pub fn print(opts: &OutputOptions, result: &VerificationResult) -> Result<()> {
     match opts.format {
         Format::Human => human::print(
@@ -53,13 +68,13 @@ pub fn print(opts: &OutputOptions, result: &VerificationResult) -> Result<()> {
         ),
         Format::Json => {
             let out_opts = lib_output_opts(libverify_output::Format::Json, opts.only_failures);
-            println!("{}", libverify_output::render(&out_opts, result)?);
-            Ok(())
+            let rendered = libverify_output::render(&out_opts, result)?;
+            emit(opts.output_file.as_deref(), &rendered)
         }
         Format::Sarif => {
             let out_opts = lib_output_opts(libverify_output::Format::Sarif, opts.only_failures);
-            println!("{}", libverify_output::render(&out_opts, result)?);
-            Ok(())
+            let rendered = libverify_output::render(&out_opts, result)?;
+            emit(opts.output_file.as_deref(), &rendered)
         }
     }
 }
@@ -74,13 +89,13 @@ pub fn print_batch(opts: &OutputOptions, batch: &BatchReport) -> Result<()> {
         ),
         Format::Json => {
             let out_opts = lib_output_opts(libverify_output::Format::Json, opts.only_failures);
-            println!("{}", libverify_output::render_batch(&out_opts, batch)?);
-            Ok(())
+            let rendered = libverify_output::render_batch(&out_opts, batch)?;
+            emit(opts.output_file.as_deref(), &rendered)
         }
         Format::Sarif => {
             let out_opts = lib_output_opts(libverify_output::Format::Sarif, opts.only_failures);
-            println!("{}", libverify_output::render_batch(&out_opts, batch)?);
-            Ok(())
+            let rendered = libverify_output::render_batch(&out_opts, batch)?;
+            emit(opts.output_file.as_deref(), &rendered)
         }
     }
 }

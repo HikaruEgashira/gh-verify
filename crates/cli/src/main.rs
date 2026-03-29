@@ -44,6 +44,9 @@ struct CommonOpts {
     /// Report results without failing on violations (always exit 0). Useful for audits and incident response
     #[arg(long)]
     audit: bool,
+    /// Write output to a file instead of stdout
+    #[arg(long, short = 'o')]
+    output_file: Option<String>,
 }
 
 #[derive(Parser)]
@@ -144,6 +147,7 @@ fn run() -> Result<()> {
                 only_failures: opts.only_failures,
                 policy: opts.policy.clone(),
                 excluded: opts.exclude.clone(),
+                output_file: opts.output_file.clone(),
             };
             let cfg = GitHubConfig::load()?;
             let (owner, repo_name) = resolve_repo(&cfg, opts.repo.as_deref())?;
@@ -211,6 +215,7 @@ fn run() -> Result<()> {
                 only_failures,
                 policy: None,
                 excluded: vec![],
+                output_file: None,
             };
             let input = std::io::read_to_string(std::io::stdin())
                 .context("failed to read JSON from stdin")?;
@@ -240,6 +245,7 @@ fn run() -> Result<()> {
                 only_failures: opts.only_failures,
                 policy: opts.policy.clone(),
                 excluded: opts.exclude.clone(),
+                output_file: opts.output_file.clone(),
             };
             let cfg = GitHubConfig::load()?;
             let (owner, repo_name) = resolve_repo(&cfg, opts.repo.as_deref())?;
@@ -274,6 +280,7 @@ fn run() -> Result<()> {
                 only_failures: opts.only_failures,
                 policy: opts.policy.clone(),
                 excluded: opts.exclude.clone(),
+                output_file: opts.output_file.clone(),
             };
             let cfg = GitHubConfig::load()?;
             let (owner, repo_name) = resolve_repo(&cfg, opts.repo.as_deref())?;
