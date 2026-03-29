@@ -14,9 +14,27 @@ gh-verify checks your pull requests, releases, and repository settings for commo
 
 Runs as a `gh` CLI extension, powered by [libverify](https://github.com/HikaruEgashira/libverify).
 
-> [!WARNING]
+> [!NOTE]
 >
-> This project is under active development. Controls and output format may change.
+> gh-verify follows semver. The 0.x series may introduce breaking changes between minor versions.
+> Pin to a specific version in CI (e.g., `@v0.12`). The CLI interface, exit codes, and SARIF schema are stable.
+
+## Why gh-verify?
+
+GitHub branch protection rules enforce reviews and status checks. gh-verify goes further:
+
+- **Detects stale reviews** -- code pushed after the last approval is flagged, not just whether a review exists
+- **Checks commit signing** -- verifies all commits are cryptographically signed, not just that the branch is protected
+- **Analyzes PR quality** -- size, scope, description, test coverage, conventional commit titles
+- **Verifies dependencies** -- signatures, provenance, and completeness of the supply chain
+- **Maps to compliance frameworks** -- SLSA L1-L4 and SOC2 CC7/CC8 controls, ready for audits
+
+## Adoption Path
+
+1. **Evaluate** -- Run `gh verify pr 42 --audit` on a few repos to see findings without blocking CI
+2. **Tune** -- Use `--policy oss` or `--exclude` to suppress controls that do not apply to your project
+3. **Enforce** -- Remove `--audit` and let gh-verify gate your CI pipeline
+4. **Scale** -- Add the GitHub Action to your org-wide reusable workflow
 
 ## Quick Start
 
