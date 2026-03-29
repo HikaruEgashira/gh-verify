@@ -44,7 +44,7 @@ fn format_utc_now() -> String {
         30,
         31,
     ];
-    let mut month = 0;
+    let mut month = 12; // fallback to December if loop exhausts
     for (i, &d) in month_days.iter().enumerate() {
         if remaining < d as i64 {
             month = i + 1;

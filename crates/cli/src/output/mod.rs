@@ -59,6 +59,9 @@ fn emit(output_file: Option<&str>, content: &str) -> Result<()> {
 }
 
 pub fn print(opts: &OutputOptions, result: &VerificationResult) -> Result<()> {
+    if opts.output_file.is_some() && matches!(opts.format, Format::Human) {
+        anyhow::bail!("--output-file is only supported with --format json or --format sarif");
+    }
     match opts.format {
         Format::Human => human::print(
             result,
@@ -80,6 +83,9 @@ pub fn print(opts: &OutputOptions, result: &VerificationResult) -> Result<()> {
 }
 
 pub fn print_batch(opts: &OutputOptions, batch: &BatchReport) -> Result<()> {
+    if opts.output_file.is_some() && matches!(opts.format, Format::Human) {
+        anyhow::bail!("--output-file is only supported with --format json or --format sarif");
+    }
     match opts.format {
         Format::Human => human::print_batch(
             batch,

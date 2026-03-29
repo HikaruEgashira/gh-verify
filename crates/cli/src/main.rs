@@ -36,7 +36,7 @@ struct CommonOpts {
     #[arg(long, value_delimiter = ',')]
     exclude: Vec<String>,
     /// Include only specific controls in results (comma-separated; see 'gh verify controls' for valid IDs)
-    #[arg(long, value_delimiter = ',')]
+    #[arg(long, value_delimiter = ',', conflicts_with = "exclude")]
     only: Vec<String>,
     /// Suppress progress messages on stderr (useful for CI/CD pipelines)
     #[arg(long, short)]
@@ -174,6 +174,7 @@ fn run() -> Result<()> {
                     )?;
                     apply_batch_exclusions(&mut batch, &opts.exclude);
                     apply_batch_only_filter(&mut batch, &opts.only);
+                    recalculate_batch_totals(&mut batch);
                     output::print_batch(&out_opts, &batch)?;
                     if !opts.audit && batch.total_fail > 0 {
                         process::exit(1);
@@ -628,6 +629,23 @@ fn apply_only_filter(result: &mut libverify_core::assessment::VerificationResult
         .report
         .findings
         .retain(|f| only.iter().any(|e| f.control_id.to_string() == *e));
+}
+
+fn recalculate_batch_totals(batch: &mut libverify_core::assessment::BatchReport) {
+    use libverify_core::profile::GateDecision;
+    let (mut pass, mut review, mut fail) = (0usize, 0usize, 0usize);
+    for entry in &batch.reports {
+        for o in &entry.result.report.outcomes {
+            match o.decision {
+                GateDecision::Pass => pass += 1,
+                GateDecision::Review => review += 1,
+                GateDecision::Fail => fail += 1,
+            }
+        }
+    }
+    batch.total_pass = pass;
+    batch.total_review = review;
+    batch.total_fail = fail;
 }
 
 fn apply_batch_only_filter(batch: &mut libverify_core::assessment::BatchReport, only: &[String]) {

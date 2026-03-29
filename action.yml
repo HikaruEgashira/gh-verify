@@ -119,7 +119,11 @@ runs:
       run: |
         ARGS=("$INPUT_COMMAND")
         if [ -n "$INPUT_ARGUMENT" ]; then
-          ARGS+=("$INPUT_ARGUMENT")
+          if [ "$INPUT_COMMAND" = "repo" ]; then
+            ARGS+=(--ref "$INPUT_ARGUMENT")
+          else
+            ARGS+=("$INPUT_ARGUMENT")
+          fi
         fi
         ARGS+=(--repo "$INPUT_REPO" --format json --quiet)
         if [ -n "$INPUT_POLICY" ]; then
