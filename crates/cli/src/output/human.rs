@@ -38,7 +38,24 @@ pub fn print(result: &VerificationResult, only_failures: bool) -> Result<()> {
     }
 
     println!();
-    println!("Summary: {pass_count} pass, {review_count} review, {fail_count} fail");
+    if only_failures {
+        let hidden: Vec<String> = [
+            (pass_count, "pass"),
+            (review_count, "review"),
+        ]
+        .iter()
+        .filter(|(c, _)| *c > 0)
+        .map(|(c, label)| format!("{c} {label}"))
+        .collect();
+
+        if hidden.is_empty() {
+            println!("Summary: {fail_count} fail");
+        } else {
+            println!("Summary: {fail_count} fail ({} hidden)", hidden.join(", "));
+        }
+    } else {
+        println!("Summary: {pass_count} pass, {review_count} review, {fail_count} fail");
+    }
 
     Ok(())
 }

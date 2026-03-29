@@ -15,8 +15,31 @@ mod output;
 
 const VERSION: &str = env!("GH_VERIFY_VERSION");
 
+#[derive(clap::Args)]
+struct CommonOpts {
+    /// Output format
+    #[arg(long, default_value_t = output::Format::Human)]
+    format: output::Format,
+    /// Repository in OWNER/REPO format
+    #[arg(long)]
+    repo: Option<String>,
+    /// Policy: preset name (default, oss, aiops, soc1, soc2, slsa-l1..l4) or .rego file path
+    #[arg(long)]
+    policy: Option<String>,
+    /// Include raw collected evidence in output
+    #[arg(long)]
+    with_evidence: bool,
+    /// Only show failing controls in output
+    #[arg(long)]
+    only_failures: bool,
+}
+
 #[derive(Parser)]
-#[command(name = "gh-verify", version = VERSION, about = "GitHub SDLC health checker")]
+#[command(name = "gh-verify", version = VERSION,
+    about = "GitHub SDLC health checker",
+    long_about = "Verify pull requests, releases, and repositories against SDLC compliance controls.\nChecks include SLSA source/build integrity, SOC2 CC7/CC8, dependency signatures, and more.",
+    after_help = "Examples:\n  gh verify pr 42                    Verify PR #42 in current repo\n  gh verify pr '#100..#200'           Batch verify a PR range\n  gh verify release                   Verify the latest release\n  gh verify repo --ref main           Check dependency signatures\n  gh verify pr 42 --policy oss        Use OSS-friendly policy\n  gh verify pr 42 --format sarif      Output SARIF for code scanning"
+)]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -25,51 +48,29 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     /// Verify a pull request
+    #[command(after_help = "Examples:\n  gh verify pr 42\n  gh verify pr '#100..#200' --policy oss\n  gh verify pr 42 --format json | jq .")]
     Pr {
         /// PR number or range (#N..#M, SHA..SHA, TAG..TAG, DATE..DATE)
+        #[arg(value_name = "PR")]
         arg: Option<String>,
-        /// Output format (human, json, or sarif)
-        #[arg(long, default_value = "human")]
-        format: String,
-        /// Repository in OWNER/REPO format
-        #[arg(long)]
-        repo: Option<String>,
-        /// Policy: preset name (default, oss, aiops, soc1, soc2, slsa-l1..l4) or .rego file path
-        #[arg(long)]
-        policy: Option<String>,
-        /// Include raw collected evidence in output
-        #[arg(long)]
-        with_evidence: bool,
-        /// Only show failing controls in output
-        #[arg(long)]
-        only_failures: bool,
+        #[command(flatten)]
+        opts: CommonOpts,
     },
     /// Verify repository dependency signatures
+    #[command(after_help = "Examples:\n  gh verify repo\n  gh verify repo --ref main --policy soc2\n  gh verify repo --format sarif")]
     Repo {
         /// Git reference (branch, tag, or SHA). Defaults to HEAD.
         #[arg(long, default_value = "HEAD")]
         r#ref: String,
-        /// Output format (human, json, or sarif)
-        #[arg(long, default_value = "human")]
-        format: String,
-        /// Repository in OWNER/REPO format
-        #[arg(long)]
-        repo: Option<String>,
-        /// Policy: preset name (default, oss, aiops, soc1, soc2, slsa-l1..l4) or .rego file path
-        #[arg(long)]
-        policy: Option<String>,
-        /// Include raw collected evidence in output
-        #[arg(long)]
-        with_evidence: bool,
-        /// Only show failing controls in output
-        #[arg(long)]
-        only_failures: bool,
+        #[command(flatten)]
+        opts: CommonOpts,
     },
     /// Convert JSON output to another format (reads from stdin)
+    #[command(after_help = "Examples:\n  gh verify pr 42 --format json | gh verify fmt --format sarif\n  gh verify pr '#1..#10' --format json | gh verify fmt --batch")]
     Fmt {
-        /// Output format (human, json, or sarif)
-        #[arg(long, default_value = "human")]
-        format: String,
+        /// Output format
+        #[arg(long, default_value_t = output::Format::Human)]
+        format: output::Format,
         /// Only show failing controls in output
         #[arg(long)]
         only_failures: bool,
@@ -78,24 +79,13 @@ enum Commands {
         batch: bool,
     },
     /// Verify release integrity
+    #[command(after_help = "Examples:\n  gh verify release\n  gh verify release v1.0.0\n  gh verify release v1.0.0..v2.0.0")]
     Release {
         /// Tag or BASE..HEAD range (omit to use latest release)
+        #[arg(value_name = "TAG")]
         arg: Option<String>,
-        /// Output format (human, json, or sarif)
-        #[arg(long, default_value = "human")]
-        format: String,
-        /// Repository in OWNER/REPO format
-        #[arg(long)]
-        repo: Option<String>,
-        /// Policy: preset name (default, oss, aiops, soc1, soc2, slsa-l1..l4) or .rego file path
-        #[arg(long)]
-        policy: Option<String>,
-        /// Include raw collected evidence in output
-        #[arg(long)]
-        with_evidence: bool,
-        /// Only show failing controls in output
-        #[arg(long)]
-        only_failures: bool,
+        #[command(flatten)]
+        opts: CommonOpts,
     },
 }
 
@@ -110,20 +100,13 @@ fn run() -> Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Pr {
-            arg,
-            format,
-            repo: repo_override,
-            policy,
-            with_evidence,
-            only_failures,
-        } => {
-            let opts = output::OutputOptions {
-                format: output::parse_format(&format)?,
-                only_failures,
+        Commands::Pr { arg, opts } => {
+            let out_opts = output::OutputOptions {
+                format: opts.format,
+                only_failures: opts.only_failures,
             };
             let cfg = GitHubConfig::load()?;
-            let (owner, repo_name) = resolve_repo(&cfg, repo_override.as_deref())?;
+            let (owner, repo_name) = resolve_repo(&cfg, opts.repo.as_deref())?;
             let client = GitHubClient::new(&cfg)?;
 
             match arg.as_deref().and_then(parse_range) {
@@ -139,10 +122,10 @@ fn run() -> Result<()> {
                         &owner,
                         &repo_name,
                         &pr_numbers,
-                        policy.as_deref(),
-                        with_evidence,
+                        opts.policy.as_deref(),
+                        opts.with_evidence,
                     )?;
-                    output::print_batch(&opts, &batch)?;
+                    output::print_batch(&out_opts, &batch)?;
                     if batch.total_fail > 0 {
                         process::exit(1);
                     }
@@ -157,10 +140,10 @@ fn run() -> Result<()> {
                         &owner,
                         &repo_name,
                         pr_number,
-                        policy.as_deref(),
-                        with_evidence,
+                        opts.policy.as_deref(),
+                        opts.with_evidence,
                     )?;
-                    output::print(&opts, &result)?;
+                    output::print(&out_opts, &result)?;
                     exit_if_assessment_fails(&result);
                 }
             }
@@ -170,8 +153,8 @@ fn run() -> Result<()> {
             only_failures,
             batch,
         } => {
-            let opts = output::OutputOptions {
-                format: output::parse_format(&format)?,
+            let out_opts = output::OutputOptions {
+                format,
                 only_failures,
             };
             let input = std::io::read_to_string(std::io::stdin())
@@ -179,28 +162,24 @@ fn run() -> Result<()> {
             if batch {
                 let batch_report: libverify_core::assessment::BatchReport =
                     serde_json::from_str(&input).context("invalid batch JSON on stdin")?;
-                output::print_batch(&opts, &batch_report)?;
+                output::print_batch(&out_opts, &batch_report)?;
             } else {
                 let result: libverify_core::assessment::VerificationResult =
                     serde_json::from_str(&input).context("invalid JSON on stdin")?;
-                output::print(&opts, &result)?;
+                output::print(&out_opts, &result)?;
                 exit_if_assessment_fails(&result);
             }
         }
         Commands::Repo {
             r#ref: reference,
-            format,
-            repo: repo_override,
-            policy,
-            with_evidence,
-            only_failures,
+            opts,
         } => {
-            let opts = output::OutputOptions {
-                format: output::parse_format(&format)?,
-                only_failures,
+            let out_opts = output::OutputOptions {
+                format: opts.format,
+                only_failures: opts.only_failures,
             };
             let cfg = GitHubConfig::load()?;
-            let (owner, repo_name) = resolve_repo(&cfg, repo_override.as_deref())?;
+            let (owner, repo_name) = resolve_repo(&cfg, opts.repo.as_deref())?;
             let client = GitHubClient::new(&cfg)?;
 
             eprintln!("Checking dependency signatures at ref: {reference}");
@@ -210,26 +189,19 @@ fn run() -> Result<()> {
                 &owner,
                 &repo_name,
                 &reference,
-                policy.as_deref(),
-                with_evidence,
+                opts.policy.as_deref(),
+                opts.with_evidence,
             )?;
-            output::print(&opts, &result)?;
+            output::print(&out_opts, &result)?;
             exit_if_assessment_fails(&result);
         }
-        Commands::Release {
-            arg,
-            format,
-            repo: repo_override,
-            policy,
-            with_evidence,
-            only_failures,
-        } => {
-            let opts = output::OutputOptions {
-                format: output::parse_format(&format)?,
-                only_failures,
+        Commands::Release { arg, opts } => {
+            let out_opts = output::OutputOptions {
+                format: opts.format,
+                only_failures: opts.only_failures,
             };
             let cfg = GitHubConfig::load()?;
-            let (owner, repo_name) = resolve_repo(&cfg, repo_override.as_deref())?;
+            let (owner, repo_name) = resolve_repo(&cfg, opts.repo.as_deref())?;
             let client = GitHubClient::new(&cfg)?;
 
             let release_arg = match arg {
@@ -240,7 +212,7 @@ fn run() -> Result<()> {
             let (base_tag, head_tag) =
                 parse_release_arg(&release_arg, &client, &owner, &repo_name)?;
 
-            println!("Checking release: {base_tag}..{head_tag}");
+            eprintln!("Checking release: {base_tag}..{head_tag}");
 
             let result = verify_release(
                 &client,
@@ -248,10 +220,10 @@ fn run() -> Result<()> {
                 &repo_name,
                 &base_tag,
                 &head_tag,
-                policy.as_deref(),
-                with_evidence,
+                opts.policy.as_deref(),
+                opts.with_evidence,
             )?;
-            output::print(&opts, &result)?;
+            output::print(&out_opts, &result)?;
             exit_if_assessment_fails(&result);
         }
     }
@@ -352,10 +324,8 @@ fn detect_pr_number() -> Result<u32> {
         .output()
         .context("failed to run 'gh pr view' — is the GitHub CLI installed?")?;
     if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
         anyhow::bail!(
-            "gh pr view failed (no open PR for current branch?): {}",
-            stderr.trim()
+            "no PR number provided and no open PR found for current branch. Specify a PR number: gh verify pr 123"
         );
     }
     let stdout = String::from_utf8(output.stdout)

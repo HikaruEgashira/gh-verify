@@ -1,27 +1,32 @@
 pub mod human;
 
 use anyhow::Result;
+use clap::ValueEnum;
 use libverify_core::assessment::{BatchReport, VerificationResult};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, ValueEnum)]
 pub enum Format {
+    #[value(name = "human")]
     Human,
+    #[value(name = "json")]
     Json,
+    #[value(name = "sarif")]
     Sarif,
+}
+
+impl std::fmt::Display for Format {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Format::Human => write!(f, "human"),
+            Format::Json => write!(f, "json"),
+            Format::Sarif => write!(f, "sarif"),
+        }
+    }
 }
 
 pub struct OutputOptions {
     pub format: Format,
     pub only_failures: bool,
-}
-
-pub fn parse_format(s: &str) -> Result<Format> {
-    match s {
-        "human" => Ok(Format::Human),
-        "json" => Ok(Format::Json),
-        "sarif" => Ok(Format::Sarif),
-        _ => anyhow::bail!("invalid format: {s} (use 'human', 'json', or 'sarif')"),
-    }
 }
 
 fn lib_output_opts(
