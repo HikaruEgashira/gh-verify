@@ -83,16 +83,22 @@ pub fn remediation_hint(control_id: &str) -> Option<&'static str> {
         "change-request-size" => Some(
             "Keep PRs small and focused; split large changes. Monorepo cross-package PRs may false-positive here -- use --exclude change-request-size",
         ),
-        "test-coverage" => Some("Add or update tests for changed source files"),
+        "test-coverage" => Some(
+            "Add or update tests for changed source files. Dependency-only PRs may false-positive here -- use --exclude test-coverage",
+        ),
         "scoped-change" => Some(
             "Limit PR to a single logical change; split unrelated changes. In monorepos, features spanning multiple packages are expected -- use --exclude scoped-change",
         ),
-        "issue-linkage" => Some("Reference an issue in the PR body: Fixes #123 or Closes #456"),
+        "issue-linkage" => Some(
+            "Reference an issue in the PR body: Fixes #123 or Closes #456. Bot PRs (Dependabot/Renovate) don't link issues -- use --exclude issue-linkage",
+        ),
         "description-quality" => Some("Add a meaningful PR description explaining the change"),
         "merge-commit-policy" => {
             Some("Use squash or rebase merge strategy instead of merge commits")
         }
-        "conventional-title" => Some("Use Conventional Commits format: type(scope): description"),
+        "conventional-title" => Some(
+            "Use Conventional Commits format: type(scope): description. Bot PRs use their own title format -- use --exclude conventional-title",
+        ),
         "stale-review" => Some("Re-request review if changes were pushed after approval"),
         "security-file-change" => Some("Security-sensitive file changes require additional review"),
         "release-traceability" => Some("Link release to merged PRs and resolved issues"),

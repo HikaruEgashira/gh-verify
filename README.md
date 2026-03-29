@@ -107,6 +107,16 @@ Exit codes: `0` = all controls pass, `1` = verification failure, `2` = infrastru
     exclude: secret-scanning,vulnerability-scanning
 ```
 
+```yaml
+# For bot PRs (Dependabot/Renovate): exclude noise controls
+- uses: HikaruEgashira/gh-verify@v0.13
+  with:
+    command: pr
+    argument: ${{ github.event.pull_request.number }}
+    exclude: ${{ github.actor == 'dependabot[bot]' && 'issue-linkage,test-coverage,conventional-title' || '' }}
+    audit: ${{ github.actor == 'dependabot[bot]' && 'true' || 'false' }}
+```
+
 See [action.yml](action.yml) for full input/output details.
 
 ### Which policy should I use?
