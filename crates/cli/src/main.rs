@@ -53,7 +53,7 @@ struct CommonOpts {
 #[command(name = "gh-verify", version = VERSION,
     about = "GitHub SDLC health checker",
     long_about = "Verify pull requests, releases, and repositories against SDLC compliance controls.\nCatches common issues like missing reviews, unsigned commits, and oversized PRs.\nSupports SLSA source/build integrity, SOC2 CC7/CC8, dependency signatures, and more.",
-    after_help = "Examples:\n  gh verify pr 42                    Verify PR #42 in current repo\n  gh verify pr 42 --audit            Report without failing (dry-run)\n  gh verify pr '#100..#200'           Batch verify a PR range\n  gh verify release                   Verify the latest release\n  gh verify repo --ref main           Check repository security\n  gh verify pr 42 --policy oss        Use OSS-friendly policy\n  gh verify pr 42 --format sarif      Output SARIF for code scanning\n  gh verify controls                  List all available controls\n  gh verify policies                  List all policy presets\n\nExit codes: 0 = pass, 1 = verification failure, 2 = infrastructure error"
+    after_help = "Examples:\n  gh verify pr 42                    Verify PR #42 in current repo\n  gh verify pr 42 --audit            Report without failing (dry-run)\n  gh verify pr '#100..#200'           Batch verify a PR range\n  gh verify release                   Verify the latest release\n  gh verify repo --ref main           Check repository security\n  gh verify pr 42 --policy oss        Use OSS-friendly policy\n  gh verify pr 42 --format sarif      Output SARIF for code scanning\n  gh verify controls                  List all available controls\n  gh verify policies                  List all policy presets\n\nExit codes: 0 = pass, 1 = verification failure, 2 = infrastructure error\n\nOn PowerShell, use double quotes for ranges: gh verify pr \"#100..#200\""
 )]
 struct Cli {
     #[command(subcommand)]
@@ -64,7 +64,7 @@ struct Cli {
 enum Commands {
     /// Verify a pull request
     #[command(
-        after_help = "Examples:\n  gh verify pr 42                         Single PR\n  gh verify pr '#100..#200' --policy oss   All merged PRs in range\n  gh verify pr 42 --format json | jq .     JSON output\n\nRanges verify all merged PRs within the specified bounds."
+        after_help = "Examples:\n  gh verify pr 42                         Single PR\n  gh verify pr '#100..#200' --policy oss   All merged PRs in range\n  gh verify pr 42 --format json             JSON output\n\nRanges verify all merged PRs within the specified bounds."
     )]
     Pr {
         /// PR number, or range to batch-verify all merged PRs: #N..#M, SHA..SHA, TAG..TAG, DATE..DATE

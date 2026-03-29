@@ -89,6 +89,8 @@ gh verify pr 42 --format sarif      # For GitHub Code Scanning
 
 Exit codes: `0` = all controls pass, `1` = verification failure, `2` = infrastructure error (API/auth/network).
 
+> **PowerShell users:** Use double quotes for range arguments: `gh verify pr "#100..#200"`
+
 ### GitHub Action
 
 ```yaml
@@ -116,9 +118,12 @@ See [action.yml](action.yml) for full input/output details.
 | Getting started / evaluation | `--audit` (no policy needed) |
 | SOC2 audit preparation | `--policy soc2` |
 | SLSA compliance | `--policy slsa-l1` through `slsa-l4` |
+| Monorepo (multi-package) | `--exclude change-request-size,scoped-change` or `--policy oss --exclude change-request-size,scoped-change` |
 | No specific requirements | omit `--policy` (uses `default`) |
 
 > **Solo developers:** Some controls (review-independence, two-party-review, stale-review, security-file-change, codeowners-coverage) require a team and will always fail for solo projects. Exclude them to focus on actionable checks like PR size, test coverage, and dependency security.
+
+> **Monorepos:** Controls like `change-request-size` and `scoped-change` may produce false positives for PRs that span multiple packages (e.g., API + frontend + shared library). These controls evaluate the entire PR without awareness of package boundaries. Use `--exclude change-request-size,scoped-change` to suppress them, or use `--only` to run only the controls relevant to your workflow.
 
 ## Controls & Policies
 

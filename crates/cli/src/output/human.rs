@@ -80,9 +80,13 @@ pub fn remediation_hint(control_id: &str) -> Option<&'static str> {
         "dependency-provenance" => Some("Ensure dependencies publish SLSA provenance attestations"),
         "dependency-signer-verified" => Some("Verify dependency signers against a trusted list"),
         "dependency-completeness" => Some("Ensure all transitive dependencies have provenance"),
-        "change-request-size" => Some("Keep PRs small and focused; split large changes"),
+        "change-request-size" => Some(
+            "Keep PRs small and focused; split large changes. Monorepo cross-package PRs may false-positive here -- use --exclude change-request-size",
+        ),
         "test-coverage" => Some("Add or update tests for changed source files"),
-        "scoped-change" => Some("Limit PR to a single logical change; split unrelated changes"),
+        "scoped-change" => Some(
+            "Limit PR to a single logical change; split unrelated changes. In monorepos, features spanning multiple packages are expected -- use --exclude scoped-change",
+        ),
         "issue-linkage" => Some("Reference an issue in the PR body: Fixes #123 or Closes #456"),
         "description-quality" => Some("Add a meaningful PR description explaining the change"),
         "merge-commit-policy" => {
