@@ -224,6 +224,18 @@ runs:
           echo "| Review | ${REVIEW} |"
           echo "| Fail   | ${FAIL} |"
           echo ""
+
+          # Show actionable items (fail + review) in a readable table
+          ACTIONABLE=$(jq -r '[.outcomes[] | select(.decision != "pass")] | length' "$RUNNER_TEMP/gh-verify-output.json")
+          if [ "$ACTIONABLE" -gt 0 ]; then
+            echo "### Action required"
+            echo ""
+            echo "| Control | Decision | Rationale |"
+            echo "|---------|----------|-----------|"
+            jq -r '.outcomes[] | select(.decision != "pass") | "| `\(.control_id)` | \(.decision) | \(.rationale) |"' "$RUNNER_TEMP/gh-verify-output.json"
+            echo ""
+          fi
+
           echo "<details><summary>Full JSON output</summary>"
           echo ""
           echo '```json'

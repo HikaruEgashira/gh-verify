@@ -139,7 +139,7 @@ pub fn print(
             outcome.rationale
         );
 
-        if outcome.decision == GateDecision::Fail
+        if matches!(outcome.decision, GateDecision::Fail | GateDecision::Review)
             && let Some(hint) = remediation_hint(&outcome.control_id.to_string())
         {
             println!("  -> {} {}", "Hint:".cyan(), hint);
