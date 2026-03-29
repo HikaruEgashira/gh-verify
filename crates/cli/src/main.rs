@@ -32,6 +32,9 @@ struct CommonOpts {
     /// Only show failing controls in output
     #[arg(long)]
     only_failures: bool,
+    /// Exclude specific controls from results (comma-separated control IDs)
+    #[arg(long, value_delimiter = ',')]
+    exclude: Vec<String>,
 }
 
 #[derive(Parser)]
@@ -126,7 +129,7 @@ fn run() -> Result<()> {
                         return Ok(());
                     }
                     eprintln!("Found {} PRs to verify", pr_numbers.len());
-                    let batch = verify_pr_batch(
+                    let mut batch = verify_pr_batch(
                         &client,
                         &owner,
                         &repo_name,
@@ -134,6 +137,7 @@ fn run() -> Result<()> {
                         opts.policy.as_deref(),
                         opts.with_evidence,
                     )?;
+                    apply_batch_exclusions(&mut batch, &opts.exclude);
                     output::print_batch(&out_opts, &batch)?;
                     if batch.total_fail > 0 {
                         process::exit(1);
@@ -148,7 +152,7 @@ fn run() -> Result<()> {
                         })?,
                         None => detect_pr_number()?,
                     };
-                    let result = verify_pr(
+                    let mut result = verify_pr(
                         &client,
                         &owner,
                         &repo_name,
@@ -156,6 +160,7 @@ fn run() -> Result<()> {
                         opts.policy.as_deref(),
                         opts.with_evidence,
                     )?;
+                    apply_exclusions(&mut result, &opts.exclude);
                     output::print(&out_opts, &result)?;
                     exit_if_assessment_fails(&result);
                 }
@@ -204,7 +209,7 @@ fn run() -> Result<()> {
 
             eprintln!("Checking security posture at ref: {reference}");
 
-            let result = verify_repo(
+            let mut result = verify_repo(
                 &client,
                 &owner,
                 &repo_name,
@@ -212,6 +217,7 @@ fn run() -> Result<()> {
                 opts.policy.as_deref(),
                 opts.with_evidence,
             )?;
+            apply_exclusions(&mut result, &opts.exclude);
             output::print(&out_opts, &result)?;
             exit_if_assessment_fails(&result);
         }
@@ -235,7 +241,7 @@ fn run() -> Result<()> {
 
             eprintln!("Checking release: {base_tag}..{head_tag}");
 
-            let result = verify_release(
+            let mut result = verify_release(
                 &client,
                 &owner,
                 &repo_name,
@@ -244,12 +250,39 @@ fn run() -> Result<()> {
                 opts.policy.as_deref(),
                 opts.with_evidence,
             )?;
+            apply_exclusions(&mut result, &opts.exclude);
             output::print(&out_opts, &result)?;
             exit_if_assessment_fails(&result);
         }
     }
 
     Ok(())
+}
+
+fn apply_exclusions(
+    result: &mut libverify_core::assessment::VerificationResult,
+    exclude: &[String],
+) {
+    if exclude.is_empty() {
+        return;
+    }
+    result
+        .report
+        .outcomes
+        .retain(|o| !exclude.iter().any(|e| o.control_id.to_string() == *e));
+    result
+        .report
+        .findings
+        .retain(|f| !exclude.iter().any(|e| f.control_id.to_string() == *e));
+}
+
+fn apply_batch_exclusions(batch: &mut libverify_core::assessment::BatchReport, exclude: &[String]) {
+    if exclude.is_empty() {
+        return;
+    }
+    for entry in &mut batch.reports {
+        apply_exclusions(&mut entry.result, exclude);
+    }
 }
 
 fn check_repo_exists(owner: &str, repo: &str) -> Result<()> {
