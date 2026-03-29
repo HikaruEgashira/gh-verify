@@ -53,7 +53,12 @@ fn remediation_hint(control_id: &str) -> Option<&'static str> {
     }
 }
 
-pub fn print(result: &VerificationResult, only_failures: bool) -> Result<()> {
+pub fn print(
+    result: &VerificationResult,
+    only_failures: bool,
+    policy: Option<&str>,
+    excluded: &[String],
+) -> Result<()> {
     let report = &result.report;
 
     for outcome in &report.outcomes {
@@ -107,16 +112,43 @@ pub fn print(result: &VerificationResult, only_failures: bool) -> Result<()> {
             println!("Summary: {fail_count} fail ({} hidden)", hidden.join(", "));
         }
     } else {
-        println!("Summary: {pass_count} pass, {review_count} review, {fail_count} fail");
+        let total = pass_count + review_count + fail_count;
+        let pass_rate = if total > 0 {
+            (pass_count as f64 / total as f64) * 100.0
+        } else {
+            0.0
+        };
+        if excluded.is_empty() {
+            println!(
+                "Summary: {pass_count} pass, {review_count} review, {fail_count} fail ({pass_rate:.0}% pass rate)"
+            );
+        } else {
+            println!(
+                "Summary: {pass_count} pass, {review_count} review, {fail_count} fail ({pass_rate:.0}% pass rate, {} excluded)",
+                excluded.len()
+            );
+        }
     }
+
+    let policy_name = policy.unwrap_or("default");
+    print!("Policy: {policy_name}");
+    if !excluded.is_empty() {
+        print!(" | Excluded: {}", excluded.join(", "));
+    }
+    println!();
 
     Ok(())
 }
 
-pub fn print_batch(batch: &BatchReport, only_failures: bool) -> Result<()> {
+pub fn print_batch(
+    batch: &BatchReport,
+    only_failures: bool,
+    policy: Option<&str>,
+    excluded: &[String],
+) -> Result<()> {
     for entry in &batch.reports {
         println!("{}", format!("--- {} ---", entry.subject_id).bold());
-        print(&entry.result, only_failures)?;
+        print(&entry.result, only_failures, policy, excluded)?;
         println!();
     }
 

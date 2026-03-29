@@ -32,9 +32,12 @@ struct CommonOpts {
     /// Only show failing controls in output
     #[arg(long)]
     only_failures: bool,
-    /// Exclude specific controls from results (comma-separated control IDs)
+    /// Exclude specific controls from results (comma-separated; see 'gh verify controls' for valid IDs)
     #[arg(long, value_delimiter = ',')]
     exclude: Vec<String>,
+    /// Suppress progress messages on stderr (useful for CI/CD pipelines)
+    #[arg(long, short)]
+    quiet: bool,
 }
 
 #[derive(Parser)]
@@ -119,6 +122,8 @@ fn run() -> Result<()> {
             let out_opts = output::OutputOptions {
                 format: opts.format,
                 only_failures: opts.only_failures,
+                policy: opts.policy.clone(),
+                excluded: opts.exclude.clone(),
             };
             let cfg = GitHubConfig::load()?;
             let (owner, repo_name) = resolve_repo(&cfg, opts.repo.as_deref())?;
@@ -132,7 +137,9 @@ fn run() -> Result<()> {
                         println!("No merged PRs found for the given range");
                         return Ok(());
                     }
-                    eprintln!("Found {} PRs to verify", pr_numbers.len());
+                    if !opts.quiet {
+                        eprintln!("Found {} PRs to verify", pr_numbers.len());
+                    }
                     let mut batch = verify_pr_batch(
                         &client,
                         &owner,
@@ -178,6 +185,8 @@ fn run() -> Result<()> {
             let out_opts = output::OutputOptions {
                 format,
                 only_failures,
+                policy: None,
+                excluded: vec![],
             };
             let input = std::io::read_to_string(std::io::stdin())
                 .context("failed to read JSON from stdin")?;
@@ -195,7 +204,7 @@ fn run() -> Result<()> {
                 let result: libverify_core::assessment::VerificationResult =
                     serde_json::from_str(input).context("invalid JSON on stdin")?;
                 output::print(&out_opts, &result)?;
-                exit_if_assessment_fails(&result);
+                // fmt is a pure format converter; exit code reflects the original command, not fmt
             }
         }
         Commands::Repo {
@@ -205,13 +214,20 @@ fn run() -> Result<()> {
             let out_opts = output::OutputOptions {
                 format: opts.format,
                 only_failures: opts.only_failures,
+                policy: opts.policy.clone(),
+                excluded: opts.exclude.clone(),
             };
             let cfg = GitHubConfig::load()?;
             let (owner, repo_name) = resolve_repo(&cfg, opts.repo.as_deref())?;
             check_repo_exists(&owner, &repo_name)?;
             let client = GitHubClient::new(&cfg)?;
 
-            eprintln!("Checking security posture at ref: {reference}");
+            if !opts.quiet {
+                eprintln!(
+                    "Checking security posture at ref: {reference} (policy: {})",
+                    opts.policy.as_deref().unwrap_or("default")
+                );
+            }
 
             let mut result = verify_repo(
                 &client,
@@ -229,6 +245,8 @@ fn run() -> Result<()> {
             let out_opts = output::OutputOptions {
                 format: opts.format,
                 only_failures: opts.only_failures,
+                policy: opts.policy.clone(),
+                excluded: opts.exclude.clone(),
             };
             let cfg = GitHubConfig::load()?;
             let (owner, repo_name) = resolve_repo(&cfg, opts.repo.as_deref())?;
@@ -243,7 +261,12 @@ fn run() -> Result<()> {
             let (base_tag, head_tag) =
                 parse_release_arg(&release_arg, &client, &owner, &repo_name)?;
 
-            eprintln!("Checking release: {base_tag}..{head_tag}");
+            if !opts.quiet {
+                eprintln!(
+                    "Checking release: {base_tag}..{head_tag} (policy: {})",
+                    opts.policy.as_deref().unwrap_or("default")
+                );
+            }
 
             let mut result = verify_release(
                 &client,
@@ -476,6 +499,20 @@ fn apply_exclusions(
     if exclude.is_empty() {
         return;
     }
+    let known_ids: std::collections::HashSet<String> = result
+        .report
+        .outcomes
+        .iter()
+        .map(|o| o.control_id.to_string())
+        .collect();
+    for e in exclude {
+        if !known_ids.contains(e) {
+            eprintln!(
+                "warning: unknown control ID '{}' in --exclude (see 'gh verify controls' for valid IDs)",
+                e
+            );
+        }
+    }
     result
         .report
         .outcomes
@@ -512,7 +549,8 @@ fn check_repo_exists(owner: &str, repo: &str) -> Result<()> {
 
 fn resolve_repo(cfg: &GitHubConfig, override_repo: Option<&str>) -> Result<(String, String)> {
     let repo_str: String = match override_repo {
-        Some(s) if !s.is_empty() => s.to_string(),
+        Some(s) if !s.trim().is_empty() => s.to_string(),
+        Some(_) => anyhow::bail!("--repo value cannot be empty. Use OWNER/REPO format"),
         _ if !cfg.repo.is_empty() => cfg.repo.clone(),
         _ => detect_repo_from_git_remote()?,
     };
@@ -521,6 +559,12 @@ fn resolve_repo(cfg: &GitHubConfig, override_repo: Option<&str>) -> Result<(Stri
         .context("could not resolve repo. Use --repo OWNER/REPO or set GH_REPO env var")?;
     let owner = repo_str[..slash_idx].to_string();
     let repo_name = repo_str[slash_idx + 1..].to_string();
+    if owner.is_empty() || repo_name.is_empty() || repo_name.contains('/') {
+        anyhow::bail!(
+            "invalid repo format '{}'. Expected OWNER/REPO (e.g. cli/cli)",
+            repo_str
+        );
+    }
     Ok((owner, repo_name))
 }
 
@@ -613,4 +657,115 @@ fn detect_pr_number() -> Result<u32> {
         .trim()
         .parse::<u32>()
         .with_context(|| format!("gh pr view returned unexpected output: {:?}", stdout.trim()))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_ssh_github_com() {
+        let url = "git@github.com:cli/cli.git";
+        assert_eq!(parse_github_remote_url(url), Some("cli/cli".to_string()));
+    }
+
+    #[test]
+    fn parse_ssh_no_dot_git() {
+        let url = "git@github.com:owner/repo";
+        assert_eq!(parse_github_remote_url(url), Some("owner/repo".to_string()));
+    }
+
+    #[test]
+    fn parse_https_github_com() {
+        let url = "https://github.com/cli/cli.git";
+        assert_eq!(parse_github_remote_url(url), Some("cli/cli".to_string()));
+    }
+
+    #[test]
+    fn parse_https_no_dot_git() {
+        let url = "https://github.com/owner/repo";
+        assert_eq!(parse_github_remote_url(url), Some("owner/repo".to_string()));
+    }
+
+    #[test]
+    fn parse_http_url() {
+        let url = "http://github.com/owner/repo.git";
+        assert_eq!(parse_github_remote_url(url), Some("owner/repo".to_string()));
+    }
+
+    #[test]
+    fn parse_extra_path_segments_rejected() {
+        let url = "https://github.com/owner/repo/extra";
+        assert_eq!(parse_github_remote_url(url), None);
+    }
+
+    #[test]
+    fn parse_no_slash_rejected() {
+        let url = "https://github.com/onlyowner";
+        assert_eq!(parse_github_remote_url(url), None);
+    }
+
+    #[test]
+    fn parse_empty_rejected() {
+        assert_eq!(parse_github_remote_url(""), None);
+    }
+
+    #[test]
+    fn parse_ssh_extra_path_rejected() {
+        let url = "git@github.com:owner/repo/extra.git";
+        assert_eq!(parse_github_remote_url(url), None);
+    }
+
+    #[test]
+    fn resolve_repo_rejects_extra_slashes() {
+        let cfg = GitHubConfig {
+            repo: String::new(),
+            host: String::new(),
+            token: String::new(),
+        };
+        let result = resolve_repo(&cfg, Some("owner/repo/extra"));
+        assert!(result.is_err());
+        assert!(
+            result
+                .unwrap_err()
+                .to_string()
+                .contains("invalid repo format")
+        );
+    }
+
+    #[test]
+    fn resolve_repo_rejects_empty() {
+        let cfg = GitHubConfig {
+            repo: String::new(),
+            host: String::new(),
+            token: String::new(),
+        };
+        let result = resolve_repo(&cfg, Some(""));
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn resolve_repo_rejects_whitespace() {
+        let cfg = GitHubConfig {
+            repo: String::new(),
+            host: String::new(),
+            token: String::new(),
+        };
+        let result = resolve_repo(&cfg, Some("  "));
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn resolve_repo_valid() {
+        let cfg = GitHubConfig {
+            repo: String::new(),
+            host: String::new(),
+            token: String::new(),
+        };
+        let result = resolve_repo(&cfg, Some("owner/repo"));
+        assert!(result.is_ok());
+        let (owner, repo) = result.unwrap();
+        assert_eq!(owner, "owner");
+        assert_eq!(repo, "repo");
+    }
 }

@@ -27,6 +27,8 @@ impl std::fmt::Display for Format {
 pub struct OutputOptions {
     pub format: Format,
     pub only_failures: bool,
+    pub policy: Option<String>,
+    pub excluded: Vec<String>,
 }
 
 fn lib_output_opts(
@@ -43,7 +45,12 @@ fn lib_output_opts(
 
 pub fn print(opts: &OutputOptions, result: &VerificationResult) -> Result<()> {
     match opts.format {
-        Format::Human => human::print(result, opts.only_failures),
+        Format::Human => human::print(
+            result,
+            opts.only_failures,
+            opts.policy.as_deref(),
+            &opts.excluded,
+        ),
         Format::Json => {
             let out_opts = lib_output_opts(libverify_output::Format::Json, opts.only_failures);
             println!("{}", libverify_output::render(&out_opts, result)?);
@@ -59,7 +66,12 @@ pub fn print(opts: &OutputOptions, result: &VerificationResult) -> Result<()> {
 
 pub fn print_batch(opts: &OutputOptions, batch: &BatchReport) -> Result<()> {
     match opts.format {
-        Format::Human => human::print_batch(batch, opts.only_failures),
+        Format::Human => human::print_batch(
+            batch,
+            opts.only_failures,
+            opts.policy.as_deref(),
+            &opts.excluded,
+        ),
         Format::Json => {
             let out_opts = lib_output_opts(libverify_output::Format::Json, opts.only_failures);
             println!("{}", libverify_output::render_batch(&out_opts, batch)?);
