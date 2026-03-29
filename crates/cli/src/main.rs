@@ -35,6 +35,9 @@ struct CommonOpts {
     /// Exclude specific controls from results (comma-separated; see 'gh verify controls' for valid IDs)
     #[arg(long, value_delimiter = ',')]
     exclude: Vec<String>,
+    /// Include only specific controls in results (comma-separated; see 'gh verify controls' for valid IDs)
+    #[arg(long, value_delimiter = ',')]
+    only: Vec<String>,
     /// Suppress progress messages on stderr (useful for CI/CD pipelines)
     #[arg(long, short)]
     quiet: bool,
@@ -105,9 +108,17 @@ enum Commands {
         opts: CommonOpts,
     },
     /// List available controls and their descriptions
-    Controls,
+    Controls {
+        /// Output format (human or json)
+        #[arg(long, default_value_t = output::Format::Human)]
+        format: output::Format,
+    },
     /// List available policy presets and their descriptions
-    Policies,
+    Policies {
+        /// Output format (human or json)
+        #[arg(long, default_value_t = output::Format::Human)]
+        format: output::Format,
+    },
 }
 
 fn main() {
@@ -158,6 +169,7 @@ fn run() -> Result<()> {
                         opts.with_evidence,
                     )?;
                     apply_batch_exclusions(&mut batch, &opts.exclude);
+                    apply_batch_only_filter(&mut batch, &opts.only);
                     output::print_batch(&out_opts, &batch)?;
                     if !opts.audit && batch.total_fail > 0 {
                         process::exit(1);
@@ -181,6 +193,7 @@ fn run() -> Result<()> {
                         opts.with_evidence,
                     )?;
                     apply_exclusions(&mut result, &opts.exclude);
+                    apply_only_filter(&mut result, &opts.only);
                     output::print(&out_opts, &result)?;
                     if !opts.audit {
                         exit_if_assessment_fails(&result);
@@ -249,6 +262,7 @@ fn run() -> Result<()> {
                 opts.with_evidence,
             )?;
             apply_exclusions(&mut result, &opts.exclude);
+            apply_only_filter(&mut result, &opts.only);
             output::print(&out_opts, &result)?;
             if !opts.audit {
                 exit_if_assessment_fails(&result);
@@ -291,17 +305,20 @@ fn run() -> Result<()> {
                 opts.with_evidence,
             )?;
             apply_exclusions(&mut result, &opts.exclude);
+            apply_only_filter(&mut result, &opts.only);
             output::print(&out_opts, &result)?;
             if !opts.audit {
                 exit_if_assessment_fails(&result);
             }
         }
-        Commands::Controls => {
-            print_controls();
-        }
-        Commands::Policies => {
-            print_policies();
-        }
+        Commands::Controls { format } => match format {
+            output::Format::Human => print_controls(),
+            _ => print_controls_json(),
+        },
+        Commands::Policies { format } => match format {
+            output::Format::Human => print_policies(),
+            _ => print_policies_json(),
+        },
     }
 
     Ok(())
@@ -310,148 +327,15 @@ fn run() -> Result<()> {
 fn print_controls() {
     use colored::Colorize;
 
-    let sections: &[(&str, &[(&str, &str)])] = &[
-        (
-            "SLSA Source Track",
-            &[
-                (
-                    "source-authenticity",
-                    "All commits are signed or verified (L1)",
-                ),
-                (
-                    "review-independence",
-                    "PRs reviewed by someone other than the author (L1)",
-                ),
-                (
-                    "branch-history-integrity",
-                    "Linear commit history without force pushes (L2)",
-                ),
-                (
-                    "branch-protection-enforcement",
-                    "Branch protection rules are enabled (L3)",
-                ),
-                (
-                    "two-party-review",
-                    "At least 2 independent reviewers approved (L4)",
-                ),
-            ],
-        ),
-        (
-            "SLSA Build Track",
-            &[
-                (
-                    "build-provenance",
-                    "Build produces SLSA provenance attestation (L1)",
-                ),
-                (
-                    "required-status-checks",
-                    "Required CI checks pass on HEAD commit (L1)",
-                ),
-                (
-                    "hosted-build-platform",
-                    "Builds run on hosted (non-self-hosted) runners (L2)",
-                ),
-                (
-                    "provenance-authenticity",
-                    "Build provenance signatures are valid (L2)",
-                ),
-                (
-                    "build-isolation",
-                    "Builds run in ephemeral, isolated environments (L3)",
-                ),
-            ],
-        ),
-        (
-            "SLSA Dependencies Track",
-            &[
-                (
-                    "dependency-signature",
-                    "Dependencies have valid signatures (L1)",
-                ),
-                (
-                    "dependency-provenance",
-                    "Dependencies publish provenance attestations (L2)",
-                ),
-                (
-                    "dependency-signer-verified",
-                    "Dependency signers match a trusted list (L3)",
-                ),
-                (
-                    "dependency-completeness",
-                    "All transitive dependencies have provenance (L4)",
-                ),
-            ],
-        ),
-        (
-            "SOC2 CC7 (Traceability & Anomaly Detection)",
-            &[
-                (
-                    "issue-linkage",
-                    "PR references an issue (Fixes #N, Closes #N)",
-                ),
-                (
-                    "release-traceability",
-                    "Release linked to merged PRs and issues",
-                ),
-                ("stale-review", "No code pushed after last approval"),
-                (
-                    "security-file-change",
-                    "Security-sensitive changes get extra review",
-                ),
-            ],
-        ),
-        (
-            "SOC2 CC8 (Change Management)",
-            &[
-                (
-                    "change-request-size",
-                    "PR is reasonably sized (not too large)",
-                ),
-                (
-                    "test-coverage",
-                    "Changed source files have matching test updates",
-                ),
-                ("scoped-change", "PR contains a single logical change"),
-                ("description-quality", "PR has a meaningful description"),
-                (
-                    "merge-commit-policy",
-                    "Uses squash or rebase (no merge commits)",
-                ),
-                (
-                    "conventional-title",
-                    "Title follows Conventional Commits format",
-                ),
-            ],
-        ),
-        (
-            "Repository Security",
-            &[
-                (
-                    "codeowners-coverage",
-                    "CODEOWNERS file defines code ownership",
-                ),
-                ("secret-scanning", "Secret scanning is enabled"),
-                (
-                    "vulnerability-scanning",
-                    "Dependabot vulnerability alerts are enabled",
-                ),
-                (
-                    "security-policy",
-                    "SECURITY.md with disclosure process exists",
-                ),
-            ],
-        ),
-    ];
-
     println!(
         "{}",
         "SLSA levels: L1 (basic) → L2 (attested) → L3 (hardened) → L4 (comprehensive)".dimmed()
     );
     println!();
 
-    for (title, controls) in sections {
-        println!("{}", title.bold());
-        for (id, desc) in *controls {
+    for section in CONTROLS {
+        println!("{}", section.title.bold());
+        for (id, desc) in section.controls {
             println!("  {:<35} {desc}", id);
         }
         println!();
@@ -463,46 +347,7 @@ fn print_policies() {
     println!("{}", "Available policy presets:".bold());
     println!();
 
-    let presets: &[(&str, &str)] = &[
-        (
-            "default",
-            "All controls strict \u{2014} uncertain or non-compliant results map to fail",
-        ),
-        (
-            "oss",
-            "Allows unsigned commits and self-reviewed merges (maps to review instead of fail)",
-        ),
-        (
-            "aiops",
-            "Maps all uncertain results to human review instead of fail",
-        ),
-        (
-            "soc1",
-            "Strict on ICFR-relevant controls; informational (non-blocking) on compliance controls",
-        ),
-        (
-            "soc2",
-            "Strict on CC6/CC7/CC8 controls; review on uncertain build-track results",
-        ),
-        (
-            "slsa-l1",
-            "Enforce SLSA source/build/dependencies at Level 1",
-        ),
-        (
-            "slsa-l2",
-            "Enforce SLSA source/build/dependencies at Level 2",
-        ),
-        (
-            "slsa-l3",
-            "Enforce SLSA source/build/dependencies at Level 3",
-        ),
-        (
-            "slsa-l4",
-            "Enforce SLSA source/build/dependencies at Level 4",
-        ),
-    ];
-
-    for (name, desc) in presets {
+    for (name, desc) in POLICIES {
         println!("  {:<12} {desc}", name.bold());
     }
 
@@ -511,6 +356,212 @@ fn print_policies() {
     println!("       gh verify pr 42 --policy ./custom.rego");
     println!();
     println!("See docs/custom-policies.md for custom policy authoring.");
+}
+
+struct ControlSection {
+    title: &'static str,
+    controls: &'static [(&'static str, &'static str)],
+}
+
+const CONTROLS: &[ControlSection] = &[
+    ControlSection {
+        title: "SLSA Source Track",
+        controls: &[
+            (
+                "source-authenticity",
+                "All commits are signed or verified (L1)",
+            ),
+            (
+                "review-independence",
+                "PRs reviewed by someone other than the author (L1)",
+            ),
+            (
+                "branch-history-integrity",
+                "Linear commit history without force pushes (L2)",
+            ),
+            (
+                "branch-protection-enforcement",
+                "Branch protection rules are enabled (L3)",
+            ),
+            (
+                "two-party-review",
+                "At least 2 independent reviewers approved (L4)",
+            ),
+        ],
+    },
+    ControlSection {
+        title: "SLSA Build Track",
+        controls: &[
+            (
+                "build-provenance",
+                "Build produces SLSA provenance attestation (L1)",
+            ),
+            (
+                "required-status-checks",
+                "Required CI checks pass on HEAD commit (L1)",
+            ),
+            (
+                "hosted-build-platform",
+                "Builds run on hosted (non-self-hosted) runners (L2)",
+            ),
+            (
+                "provenance-authenticity",
+                "Build provenance signatures are valid (L2)",
+            ),
+            (
+                "build-isolation",
+                "Builds run in ephemeral, isolated environments (L3)",
+            ),
+        ],
+    },
+    ControlSection {
+        title: "SLSA Dependencies Track",
+        controls: &[
+            (
+                "dependency-signature",
+                "Dependencies have valid signatures (L1)",
+            ),
+            (
+                "dependency-provenance",
+                "Dependencies publish provenance attestations (L2)",
+            ),
+            (
+                "dependency-signer-verified",
+                "Dependency signers match a trusted list (L3)",
+            ),
+            (
+                "dependency-completeness",
+                "All transitive dependencies have provenance (L4)",
+            ),
+        ],
+    },
+    ControlSection {
+        title: "SOC2 CC7 (Traceability & Anomaly Detection)",
+        controls: &[
+            (
+                "issue-linkage",
+                "PR references an issue (Fixes #N, Closes #N)",
+            ),
+            (
+                "release-traceability",
+                "Release linked to merged PRs and issues",
+            ),
+            ("stale-review", "No code pushed after last approval"),
+            (
+                "security-file-change",
+                "Security-sensitive changes get extra review",
+            ),
+        ],
+    },
+    ControlSection {
+        title: "SOC2 CC8 (Change Management)",
+        controls: &[
+            (
+                "change-request-size",
+                "PR is reasonably sized (not too large)",
+            ),
+            (
+                "test-coverage",
+                "Changed source files have matching test updates",
+            ),
+            ("scoped-change", "PR contains a single logical change"),
+            ("description-quality", "PR has a meaningful description"),
+            (
+                "merge-commit-policy",
+                "Uses squash or rebase (no merge commits)",
+            ),
+            (
+                "conventional-title",
+                "Title follows Conventional Commits format",
+            ),
+        ],
+    },
+    ControlSection {
+        title: "Repository Security",
+        controls: &[
+            (
+                "codeowners-coverage",
+                "CODEOWNERS file defines code ownership",
+            ),
+            ("secret-scanning", "Secret scanning is enabled"),
+            (
+                "vulnerability-scanning",
+                "Dependabot vulnerability alerts are enabled",
+            ),
+            (
+                "security-policy",
+                "SECURITY.md with disclosure process exists",
+            ),
+        ],
+    },
+];
+
+fn print_controls_json() {
+    let items: Vec<serde_json::Value> = CONTROLS
+        .iter()
+        .flat_map(|section| {
+            section.controls.iter().map(move |(id, desc)| {
+                serde_json::json!({
+                    "id": id,
+                    "description": desc,
+                    "section": section.title
+                })
+            })
+        })
+        .collect();
+    println!("{}", serde_json::to_string_pretty(&items).unwrap());
+}
+
+const POLICIES: &[(&str, &str)] = &[
+    (
+        "default",
+        "All controls strict \u{2014} uncertain or non-compliant results map to fail",
+    ),
+    (
+        "oss",
+        "Allows unsigned commits and self-reviewed merges (maps to review instead of fail)",
+    ),
+    (
+        "aiops",
+        "Maps all uncertain results to human review instead of fail",
+    ),
+    (
+        "soc1",
+        "Strict on ICFR-relevant controls; informational (non-blocking) on compliance controls",
+    ),
+    (
+        "soc2",
+        "Strict on CC6/CC7/CC8 controls; review on uncertain build-track results",
+    ),
+    (
+        "slsa-l1",
+        "Enforce SLSA source/build/dependencies at Level 1",
+    ),
+    (
+        "slsa-l2",
+        "Enforce SLSA source/build/dependencies at Level 2",
+    ),
+    (
+        "slsa-l3",
+        "Enforce SLSA source/build/dependencies at Level 3",
+    ),
+    (
+        "slsa-l4",
+        "Enforce SLSA source/build/dependencies at Level 4",
+    ),
+];
+
+fn print_policies_json() {
+    let items: Vec<serde_json::Value> = POLICIES
+        .iter()
+        .map(|(name, desc)| {
+            serde_json::json!({
+                "name": name,
+                "description": desc
+            })
+        })
+        .collect();
+    println!("{}", serde_json::to_string_pretty(&items).unwrap());
 }
 
 fn apply_exclusions(
@@ -542,6 +593,43 @@ fn apply_exclusions(
         .report
         .findings
         .retain(|f| !exclude.iter().any(|e| f.control_id.to_string() == *e));
+}
+
+fn apply_only_filter(result: &mut libverify_core::assessment::VerificationResult, only: &[String]) {
+    if only.is_empty() {
+        return;
+    }
+    let known_ids: std::collections::HashSet<String> = result
+        .report
+        .outcomes
+        .iter()
+        .map(|o| o.control_id.to_string())
+        .collect();
+    for o in only {
+        if !known_ids.contains(o) {
+            eprintln!(
+                "warning: unknown control ID '{}' in --only (see 'gh verify controls' for valid IDs)",
+                o
+            );
+        }
+    }
+    result
+        .report
+        .outcomes
+        .retain(|o| only.iter().any(|e| o.control_id.to_string() == *e));
+    result
+        .report
+        .findings
+        .retain(|f| only.iter().any(|e| f.control_id.to_string() == *e));
+}
+
+fn apply_batch_only_filter(batch: &mut libverify_core::assessment::BatchReport, only: &[String]) {
+    if only.is_empty() {
+        return;
+    }
+    for entry in &mut batch.reports {
+        apply_only_filter(&mut entry.result, only);
+    }
 }
 
 fn apply_batch_exclusions(batch: &mut libverify_core::assessment::BatchReport, exclude: &[String]) {
