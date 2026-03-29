@@ -38,6 +38,9 @@ struct CommonOpts {
     /// Suppress progress messages on stderr (useful for CI/CD pipelines)
     #[arg(long, short)]
     quiet: bool,
+    /// Report results without failing on violations (always exit 0). Useful for audits and incident response
+    #[arg(long)]
+    audit: bool,
 }
 
 #[derive(Parser)]
@@ -156,7 +159,7 @@ fn run() -> Result<()> {
                     )?;
                     apply_batch_exclusions(&mut batch, &opts.exclude);
                     output::print_batch(&out_opts, &batch)?;
-                    if batch.total_fail > 0 {
+                    if !opts.audit && batch.total_fail > 0 {
                         process::exit(1);
                     }
                 }
@@ -179,7 +182,9 @@ fn run() -> Result<()> {
                     )?;
                     apply_exclusions(&mut result, &opts.exclude);
                     output::print(&out_opts, &result)?;
-                    exit_if_assessment_fails(&result);
+                    if !opts.audit {
+                        exit_if_assessment_fails(&result);
+                    }
                 }
             }
         }
@@ -245,7 +250,9 @@ fn run() -> Result<()> {
             )?;
             apply_exclusions(&mut result, &opts.exclude);
             output::print(&out_opts, &result)?;
-            exit_if_assessment_fails(&result);
+            if !opts.audit {
+                exit_if_assessment_fails(&result);
+            }
         }
         Commands::Release { arg, opts } => {
             let out_opts = output::OutputOptions {
@@ -285,7 +292,9 @@ fn run() -> Result<()> {
             )?;
             apply_exclusions(&mut result, &opts.exclude);
             output::print(&out_opts, &result)?;
-            exit_if_assessment_fails(&result);
+            if !opts.audit {
+                exit_if_assessment_fails(&result);
+            }
         }
         Commands::Controls => {
             print_controls();

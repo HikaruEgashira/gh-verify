@@ -131,7 +131,8 @@ pub fn print(
     }
 
     let policy_name = policy.unwrap_or("default");
-    print!("Policy: {policy_name}");
+    let version = env!("GH_VERIFY_VERSION");
+    print!("Policy: {policy_name} | gh-verify {version}");
     if !excluded.is_empty() {
         print!(" | Excluded: {}", excluded.join(", "));
     }
