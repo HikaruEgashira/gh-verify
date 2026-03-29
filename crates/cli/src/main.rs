@@ -905,6 +905,21 @@ mod tests {
     }
 
     #[test]
+    fn parse_ghes_ssh_without_env_returns_none() {
+        // GHES SSH remotes require GH_HOST to be set
+        let url = "git@ghes.internal.corp:owner/repo.git";
+        // Without GH_HOST set to ghes.internal.corp, this should return None
+        // (falls through to github.com which doesn't match)
+        assert_eq!(parse_github_remote_url(url), None);
+    }
+
+    #[test]
+    fn parse_ghes_https_without_env_returns_none() {
+        let url = "https://ghes.internal.corp/owner/repo.git";
+        assert_eq!(parse_github_remote_url(url), None);
+    }
+
+    #[test]
     fn controls_data_not_empty() {
         let total: usize = CONTROLS.iter().map(|s| s.controls.len()).sum();
         assert_eq!(total, 28, "Expected 28 controls, found {total}");

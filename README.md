@@ -165,6 +165,36 @@ Full details are in [libverify](https://github.com/HikaruEgashira/libverify).
 | `soc2` | Strict on all CC6/CC7/CC8 controls; review on uncertain build-track results |
 | `slsa-l1`..`slsa-l4` | Enforce SLSA source/build/dependencies controls at the specified level |
 
+## GitHub Enterprise Server
+
+gh-verify supports GitHub Enterprise Server. Set the hostname before running:
+
+```bash
+# Authenticate with your GHES instance
+gh auth login --hostname github.internal.corp
+
+# Set GH_HOST for gh-verify
+export GH_HOST=github.internal.corp
+gh verify pr 42 --repo myorg/myrepo
+```
+
+The tool resolves hosts in this priority: `GH_HOST` > `GITHUB_SERVER_URL` > `github.com`.
+
+## gh-verify vs OpenSSF Scorecard
+
+gh-verify and [Scorecard](https://github.com/ossf/scorecard) are complementary:
+
+| Aspect | gh-verify | Scorecard |
+|--------|-----------|-----------|
+| Scope | PR, release, and repo verification | Repo-level security posture |
+| Compliance mapping | SLSA L1-L4, SOC2 CC7/CC8 | SLSA (partial) |
+| PR-level checks | Stale reviews, PR size, test coverage, description quality | No |
+| Dependency checks | Signatures, provenance, completeness | Pinned dependencies, vulnerabilities |
+| Custom policies | OPA/Rego | No |
+| Output | Human, JSON, SARIF | JSON, SARIF |
+
+Use both: Scorecard for repo-level hygiene, gh-verify for PR/release-level compliance.
+
 ## Development
 
 See [HACKING.md](HACKING.md) for build commands and contribution guide.
