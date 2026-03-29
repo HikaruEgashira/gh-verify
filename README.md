@@ -17,7 +17,7 @@ Runs as a `gh` CLI extension, powered by [libverify](https://github.com/HikaruEg
 > [!NOTE]
 >
 > gh-verify follows semver. The 0.x series may introduce breaking changes between minor versions.
-> Pin to a specific version in CI (e.g., `@v0.12`). The CLI interface, exit codes, and SARIF schema are stable.
+> Pin to a specific version in CI (e.g., `@v0.13`). The CLI interface, exit codes, and SARIF schema are stable.
 
 ## Why gh-verify?
 
@@ -94,13 +94,13 @@ Exit codes: `0` = all controls pass, `1` = verification failure, `2` = infrastru
 ### GitHub Action
 
 ```yaml
-- uses: HikaruEgashira/gh-verify@v0.12
+- uses: HikaruEgashira/gh-verify@v0.13
   with:
     command: pr
     argument: ${{ github.event.pull_request.number }}
 
 # With policy and exclusions
-- uses: HikaruEgashira/gh-verify@v0.12
+- uses: HikaruEgashira/gh-verify@v0.13
   with:
     command: repo
     policy: soc2
