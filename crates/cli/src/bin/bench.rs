@@ -304,7 +304,7 @@ fn assess_bundle(
         .outcomes
         .iter()
         .map(|o| o.decision)
-        .max_by_key(|d| decision_rank(d))
+        .max_by_key(decision_rank)
         .unwrap_or(GateDecision::Pass);
 
     decision_to_result(max_decision)
@@ -582,8 +582,13 @@ fn discover_repo(
     // Use search API to find recent merged PRs, then fetch full data via GraphQL
     let now = timestamp_now();
     let since = "2020-01-01"; // broad range; we limit by prs_per_repo
-    let pr_numbers =
-        pr_api::search_merged_prs(github, owner, repo, since, &now.split('T').next().unwrap_or(&now))?;
+    let pr_numbers = pr_api::search_merged_prs(
+        github,
+        owner,
+        repo,
+        since,
+        now.split('T').next().unwrap_or(&now),
+    )?;
     let pr_numbers: Vec<u32> = pr_numbers.into_iter().take(prs_per_repo).collect();
     let fetched = graphql::fetch_prs(github, owner, repo, &pr_numbers);
     let mut prs = Vec::new();
@@ -596,8 +601,11 @@ fn discover_repo(
                 continue;
             }
         };
-        let changed_paths: Vec<String> =
-            pr_data.files.iter().map(|file| file.filename.clone()).collect();
+        let changed_paths: Vec<String> = pr_data
+            .files
+            .iter()
+            .map(|file| file.filename.clone())
+            .collect();
         let code_paths: Vec<String> = pr_data
             .files
             .iter()

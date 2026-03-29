@@ -26,7 +26,7 @@ struct CommonOpts {
     /// Policy: preset name (default, oss, aiops, soc1, soc2, slsa-l1..l4) or .rego file path
     #[arg(long)]
     policy: Option<String>,
-    /// Include raw collected evidence in output
+    /// Include raw collected evidence in output (only affects json/sarif formats)
     #[arg(long)]
     with_evidence: bool,
     /// Only show failing controls in output
@@ -48,16 +48,20 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     /// Verify a pull request
-    #[command(after_help = "Examples:\n  gh verify pr 42\n  gh verify pr '#100..#200' --policy oss\n  gh verify pr 42 --format json | jq .")]
+    #[command(
+        after_help = "Examples:\n  gh verify pr 42                         Single PR\n  gh verify pr '#100..#200' --policy oss   All merged PRs in range\n  gh verify pr 42 --format json | jq .     JSON output\n\nRanges verify all merged PRs within the specified bounds."
+    )]
     Pr {
-        /// PR number or range (#N..#M, SHA..SHA, TAG..TAG, DATE..DATE)
+        /// PR number, or range to batch-verify all merged PRs: #N..#M, SHA..SHA, TAG..TAG, DATE..DATE
         #[arg(value_name = "PR")]
         arg: Option<String>,
         #[command(flatten)]
         opts: CommonOpts,
     },
     /// Verify repository security posture
-    #[command(after_help = "Examples:\n  gh verify repo\n  gh verify repo --ref main --policy soc2\n  gh verify repo --format sarif")]
+    #[command(
+        after_help = "Examples:\n  gh verify repo\n  gh verify repo --ref main --policy soc2\n  gh verify repo --format sarif"
+    )]
     Repo {
         /// Git reference (branch, tag, or SHA). Defaults to HEAD.
         #[arg(long, default_value = "HEAD")]
@@ -66,7 +70,9 @@ enum Commands {
         opts: CommonOpts,
     },
     /// Convert JSON output to another format (reads from stdin)
-    #[command(after_help = "Examples:\n  gh verify pr 42 --format json | gh verify fmt --format sarif\n  gh verify pr '#1..#10' --format json | gh verify fmt --batch")]
+    #[command(
+        after_help = "Examples:\n  gh verify pr 42 --format json | gh verify fmt --format sarif\n  gh verify pr '#1..#10' --format json | gh verify fmt --batch"
+    )]
     Fmt {
         /// Output format
         #[arg(long, default_value_t = output::Format::Human)]
@@ -79,7 +85,9 @@ enum Commands {
         batch: bool,
     },
     /// Verify release integrity
-    #[command(after_help = "Examples:\n  gh verify release\n  gh verify release v1.0.0\n  gh verify release v1.0.0..v2.0.0")]
+    #[command(
+        after_help = "Examples:\n  gh verify release\n  gh verify release v1.0.0\n  gh verify release v1.0.0..v2.0.0"
+    )]
     Release {
         /// Tag or BASE..HEAD range (omit to use latest release)
         #[arg(value_name = "TAG")]
@@ -166,7 +174,9 @@ fn run() -> Result<()> {
                 .context("failed to read JSON from stdin")?;
             let input = input.trim();
             if input.is_empty() {
-                anyhow::bail!("no input on stdin. Pipe JSON from another command, e.g.:\n  gh verify pr 42 --format json | gh verify fmt --format sarif");
+                anyhow::bail!(
+                    "no input on stdin. Pipe JSON from another command, e.g.:\n  gh verify pr 42 --format json | gh verify fmt --format sarif"
+                );
             }
             if batch {
                 let batch_report: libverify_core::assessment::BatchReport =
@@ -334,10 +344,11 @@ fn parse_github_remote_url(url: &str) -> Option<String> {
         let path = url
             .strip_prefix(https_prefix.as_str())
             .or_else(|| url.strip_prefix(http_prefix.as_str()));
-        if let Some(path) = path {
-            if path.matches('/').count() == 1 && !path.starts_with('/') {
-                return Some(path.to_string());
-            }
+        if let Some(path) = path
+            && path.matches('/').count() == 1
+            && !path.starts_with('/')
+        {
+            return Some(path.to_string());
         }
     }
 
@@ -354,8 +365,7 @@ fn detect_pr_number() -> Result<u32> {
             "no PR number provided and no open PR found for current branch. Specify a PR number: gh verify pr 123"
         );
     }
-    let stdout = String::from_utf8(output.stdout)
-        .context("gh pr view returned invalid UTF-8")?;
+    let stdout = String::from_utf8(output.stdout).context("gh pr view returned invalid UTF-8")?;
     stdout
         .trim()
         .parse::<u32>()
