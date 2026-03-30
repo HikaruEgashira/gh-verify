@@ -205,6 +205,123 @@ pub fn print(
     Ok(())
 }
 
+pub fn print_fleet_matrix(matrix: &crate::FleetMatrix) -> Result<()> {
+    let policies = &matrix.policies;
+
+    // Calculate column widths
+    let repo_col_width = matrix
+        .rows
+        .iter()
+        .map(|r| r.repo_id.len())
+        .max()
+        .unwrap_or(10)
+        .max(10);
+    let policy_col_width = policies
+        .iter()
+        .map(|p| p.len())
+        .max()
+        .unwrap_or(8)
+        .max(14); // "Pass/Total  %" minimum
+
+    // Header
+    print!("{:<width$}", "", width = repo_col_width + 2);
+    for policy in policies {
+        print!("  {:<width$}", policy.bold(), width = policy_col_width);
+    }
+    println!();
+
+    // Separator
+    let total_width = repo_col_width + 2 + policies.len() * (policy_col_width + 2);
+    println!("{}", "─".repeat(total_width));
+
+    // Rows
+    let mut any_fail = false;
+    for row in &matrix.rows {
+        print!("{:<width$}", row.repo_id, width = repo_col_width + 2);
+        for policy in policies {
+            let summary = row.results.get(policy.as_str());
+            match summary {
+                Some(s) => {
+                    let total = s.total();
+                    let rate = if total > 0 {
+                        (s.pass as f64 / total as f64) * 100.0
+                    } else {
+                        0.0
+                    };
+                    let cell = format!("{}/{} {:>3.0}%", s.pass, total, rate);
+                    let colored_cell = if s.fail > 0 {
+                        any_fail = true;
+                        cell.red()
+                    } else if s.review > 0 {
+                        cell.yellow()
+                    } else {
+                        cell.green()
+                    };
+                    print!("  {:<width$}", colored_cell, width = policy_col_width);
+                }
+                None => {
+                    print!("  {:<width$}", "-", width = policy_col_width);
+                }
+            }
+        }
+        println!();
+    }
+
+    // Separator
+    println!("{}", "─".repeat(total_width));
+
+    // Fleet average
+    print!("{:<width$}", "Fleet average".bold(), width = repo_col_width + 2);
+    for policy in policies {
+        let (total_pass, total_all) = matrix.rows.iter().fold((0usize, 0usize), |(p, t), row| {
+            match row.results.get(policy.as_str()) {
+                Some(s) => (p + s.pass, t + s.total()),
+                None => (p, t),
+            }
+        });
+        let rate = if total_all > 0 {
+            (total_pass as f64 / total_all as f64) * 100.0
+        } else {
+            0.0
+        };
+        print!("  {:<width$}", format!("{rate:.0}%").bold(), width = policy_col_width);
+    }
+    println!();
+    println!();
+
+    // Hotspots (worst controls)
+    if !matrix.control_hotspots.is_empty() && any_fail {
+        println!("{}", "Worst controls across fleet:".bold());
+        for hotspot in matrix.control_hotspots.iter().take(5) {
+            let parts: Vec<String> = hotspot
+                .fail_by_policy
+                .iter()
+                .map(|(policy, count)| {
+                    format!(
+                        "{count}/{} repos fail ({policy})",
+                        hotspot.total_repos
+                    )
+                })
+                .collect();
+            println!(
+                "  {:<35} {}",
+                hotspot.control_id,
+                parts.join(", ").red()
+            );
+        }
+        println!();
+    }
+
+    let version = env!("GH_VERIFY_VERSION");
+    let timestamp = format_utc_now();
+    println!(
+        "Policies: {} | gh-verify {version} | {timestamp}",
+        policies.join(", ")
+    );
+
+    Ok(())
+}
+
 pub fn print_batch(
     batch: &BatchReport,
     only_failures: bool,

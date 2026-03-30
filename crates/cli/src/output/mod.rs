@@ -27,9 +27,20 @@ impl std::fmt::Display for Format {
 pub struct OutputOptions {
     pub format: Format,
     pub only_failures: bool,
-    pub policy: Option<String>,
+    pub policy: Vec<String>,
     pub excluded: Vec<String>,
     pub output_file: Option<String>,
+}
+
+impl OutputOptions {
+    /// Single policy name for display, or "default".
+    pub fn single_policy(&self) -> &str {
+        match self.policy.as_slice() {
+            [] => "default",
+            [one] => one.as_str(),
+            [first, ..] => first.as_str(),
+        }
+    }
 }
 
 fn lib_output_opts(
@@ -66,7 +77,7 @@ pub fn print(opts: &OutputOptions, result: &VerificationResult) -> Result<()> {
         Format::Human => human::print(
             result,
             opts.only_failures,
-            opts.policy.as_deref(),
+            Some(opts.single_policy()),
             &opts.excluded,
         ),
         Format::Json => {
@@ -82,6 +93,20 @@ pub fn print(opts: &OutputOptions, result: &VerificationResult) -> Result<()> {
     }
 }
 
+pub fn print_fleet_matrix(opts: &OutputOptions, matrix: &crate::FleetMatrix) -> Result<()> {
+    match opts.format {
+        Format::Human => human::print_fleet_matrix(matrix),
+        Format::Json => {
+            let json = serde_json::to_string_pretty(matrix)
+                .context("failed to serialize fleet matrix")?;
+            emit(opts.output_file.as_deref(), &json)
+        }
+        Format::Sarif => {
+            anyhow::bail!("SARIF output is not supported for fleet matrix. Use --format json")
+        }
+    }
+}
+
 pub fn print_batch(opts: &OutputOptions, batch: &BatchReport) -> Result<()> {
     if opts.output_file.is_some() && matches!(opts.format, Format::Human) {
         anyhow::bail!("--output-file is only supported with --format json or --format sarif");
@@ -90,7 +115,7 @@ pub fn print_batch(opts: &OutputOptions, batch: &BatchReport) -> Result<()> {
         Format::Human => human::print_batch(
             batch,
             opts.only_failures,
-            opts.policy.as_deref(),
+            Some(opts.single_policy()),
             &opts.excluded,
         ),
         Format::Json => {

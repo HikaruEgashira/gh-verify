@@ -9,6 +9,7 @@ use libverify_github::range::{
 use libverify_github::verify::exit_if_assessment_fails;
 use libverify_github::{
     GitHubClient, GitHubConfig, verify_pr, verify_pr_batch, verify_release, verify_repo,
+    collect_repo_evidence, assess_repo_bundle,
 };
 
 mod output;
@@ -23,9 +24,10 @@ struct CommonOpts {
     /// Repository in OWNER/REPO format
     #[arg(long)]
     repo: Option<String>,
-    /// Policy: preset name (default, oss, aiops, soc1, soc2, slsa-l1..l4) or .rego file path
-    #[arg(long)]
-    policy: Option<String>,
+    /// Policy: preset name (default, oss, aiops, soc1, soc2, slsa-l1..l4) or .rego file path.
+    /// Comma-separated for multi-policy matrix output (e.g. --policy soc2,slsa-l2).
+    #[arg(long, value_delimiter = ',')]
+    policy: Vec<String>,
     /// Include raw collected evidence in output (only affects json/sarif formats)
     #[arg(long)]
     with_evidence: bool,
@@ -47,6 +49,32 @@ struct CommonOpts {
     /// Write output to a file instead of stdout
     #[arg(long, short = 'o')]
     output_file: Option<String>,
+}
+
+impl CommonOpts {
+    /// Return the single policy name for legacy (non-matrix) paths.
+    /// Returns None (meaning "default") when no --policy is given.
+    fn single_policy(&self) -> Option<&str> {
+        match self.policy.as_slice() {
+            [] => None,
+            [one] => Some(one.as_str()),
+            _ => Some(self.policy[0].as_str()),
+        }
+    }
+
+    /// Return the list of policies, falling back to ["default"].
+    fn policies(&self) -> Vec<&str> {
+        if self.policy.is_empty() {
+            vec!["default"]
+        } else {
+            self.policy.iter().map(|s| s.as_str()).collect()
+        }
+    }
+
+    /// Whether this invocation requests multi-policy matrix output.
+    fn is_matrix(&self) -> bool {
+        self.policy.len() > 1
+    }
 }
 
 #[derive(Parser)]
@@ -75,12 +103,16 @@ enum Commands {
     },
     /// Verify repository security posture
     #[command(
-        after_help = "Examples:\n  gh verify repo\n  gh verify repo --ref main --policy soc2\n  gh verify repo --format sarif"
+        after_help = "Examples:\n  gh verify repo\n  gh verify repo --ref main --policy soc2\n  gh verify repo --format sarif\n  gh verify repo --repos org/api,org/web --policy soc2,slsa-l2"
     )]
     Repo {
         /// Git reference (branch, tag, or SHA). Defaults to HEAD.
         #[arg(long, default_value = "HEAD")]
         r#ref: String,
+        /// Verify multiple repositories (comma-separated OWNER/REPO).
+        /// Combined with multiple --policy values, produces a fleet matrix.
+        #[arg(long, value_delimiter = ',')]
+        repos: Vec<String>,
         #[command(flatten)]
         opts: CommonOpts,
     },
@@ -169,7 +201,7 @@ fn run() -> Result<()> {
                         &owner,
                         &repo_name,
                         &pr_numbers,
-                        opts.policy.as_deref(),
+                        opts.single_policy(),
                         opts.with_evidence,
                     )?;
                     apply_batch_exclusions(&mut batch, &opts.exclude);
@@ -194,7 +226,7 @@ fn run() -> Result<()> {
                         &owner,
                         &repo_name,
                         pr_number,
-                        opts.policy.as_deref(),
+                        opts.single_policy(),
                         opts.with_evidence,
                     )?;
                     apply_exclusions(&mut result, &opts.exclude);
@@ -214,7 +246,7 @@ fn run() -> Result<()> {
             let out_opts = output::OutputOptions {
                 format,
                 only_failures,
-                policy: None,
+                policy: vec![],
                 excluded: vec![],
                 output_file: None,
             };
@@ -239,6 +271,7 @@ fn run() -> Result<()> {
         }
         Commands::Repo {
             r#ref: reference,
+            repos,
             opts,
         } => {
             let out_opts = output::OutputOptions {
@@ -248,31 +281,66 @@ fn run() -> Result<()> {
                 excluded: opts.exclude.clone(),
                 output_file: opts.output_file.clone(),
             };
-            let cfg = GitHubConfig::load()?;
-            let (owner, repo_name) = resolve_repo(&cfg, opts.repo.as_deref())?;
-            check_repo_exists(&owner, &repo_name)?;
-            let client = GitHubClient::new(&cfg)?;
 
-            if !opts.quiet {
-                eprintln!(
-                    "Checking security at ref: {reference} (policy: {})",
-                    opts.policy.as_deref().unwrap_or("default")
-                );
-            }
+            // Fleet matrix mode: multiple repos and/or multiple policies
+            if !repos.is_empty() || opts.is_matrix() {
+                let cfg = GitHubConfig::load()?;
+                let client = GitHubClient::new(&cfg)?;
+                let policies = opts.policies();
 
-            let mut result = verify_repo(
-                &client,
-                &owner,
-                &repo_name,
-                &reference,
-                opts.policy.as_deref(),
-                opts.with_evidence,
-            )?;
-            apply_exclusions(&mut result, &opts.exclude);
-            apply_only_filter(&mut result, &opts.only);
-            output::print(&out_opts, &result)?;
-            if !opts.audit {
-                exit_if_assessment_fails(&result);
+                let repo_list: Vec<(String, String)> = if repos.is_empty() {
+                    let (owner, repo_name) = resolve_repo(&cfg, opts.repo.as_deref())?;
+                    vec![(owner, repo_name)]
+                } else {
+                    repos
+                        .iter()
+                        .map(|r| {
+                            let (o, n) = resolve_repo(&cfg, Some(r.as_str()))?;
+                            Ok((o, n))
+                        })
+                        .collect::<Result<Vec<_>>>()?
+                };
+
+                let matrix = run_fleet_matrix(
+                    &client,
+                    &repo_list,
+                    &policies,
+                    &reference,
+                    &opts.exclude,
+                    &opts.only,
+                    opts.quiet,
+                )?;
+
+                output::print_fleet_matrix(&out_opts, &matrix)?;
+
+                if !opts.audit && matrix.has_failures() {
+                    process::exit(1);
+                }
+            } else {
+                let cfg = GitHubConfig::load()?;
+                let (owner, repo_name) = resolve_repo(&cfg, opts.repo.as_deref())?;
+                check_repo_exists(&owner, &repo_name)?;
+                let client = GitHubClient::new(&cfg)?;
+
+                if !opts.quiet {
+                    let policy_name = opts.single_policy().unwrap_or("default");
+                    eprintln!("Checking security at ref: {reference} (policy: {policy_name})");
+                }
+
+                let mut result = verify_repo(
+                    &client,
+                    &owner,
+                    &repo_name,
+                    &reference,
+                    opts.single_policy(),
+                    opts.with_evidence,
+                )?;
+                apply_exclusions(&mut result, &opts.exclude);
+                apply_only_filter(&mut result, &opts.only);
+                output::print(&out_opts, &result)?;
+                if !opts.audit {
+                    exit_if_assessment_fails(&result);
+                }
             }
         }
         Commands::Release { arg, opts } => {
@@ -299,7 +367,7 @@ fn run() -> Result<()> {
             if !opts.quiet {
                 eprintln!(
                     "Checking release: {base_tag}..{head_tag} (policy: {})",
-                    opts.policy.as_deref().unwrap_or("default")
+                    opts.single_policy().unwrap_or("default")
                 );
             }
 
@@ -309,7 +377,7 @@ fn run() -> Result<()> {
                 &repo_name,
                 &base_tag,
                 &head_tag,
-                opts.policy.as_deref(),
+                opts.single_policy(),
                 opts.with_evidence,
             )?;
             apply_exclusions(&mut result, &opts.exclude);
@@ -795,6 +863,154 @@ fn detect_pr_number() -> Result<u32> {
         .trim()
         .parse::<u32>()
         .with_context(|| format!("gh pr view returned unexpected output: {:?}", stdout.trim()))
+}
+
+// ---------------------------------------------------------------------------
+// Fleet Matrix: multi-repo × multi-policy verification
+// ---------------------------------------------------------------------------
+
+use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
+
+/// Summary of pass/review/fail counts for a single policy evaluation.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct PolicySummary {
+    pub pass: usize,
+    pub review: usize,
+    pub fail: usize,
+    pub failing_controls: Vec<String>,
+}
+
+impl PolicySummary {
+    pub fn total(&self) -> usize {
+        self.pass + self.review + self.fail
+    }
+}
+
+/// One row in the fleet matrix: a repo evaluated against multiple policies.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FleetMatrixRow {
+    pub repo_id: String,
+    pub results: BTreeMap<String, PolicySummary>,
+}
+
+/// Fleet matrix: repos × policies.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FleetMatrix {
+    pub policies: Vec<String>,
+    pub rows: Vec<FleetMatrixRow>,
+    /// Per-control worst-across-fleet stats, keyed by control_id then policy.
+    pub control_hotspots: Vec<ControlHotspot>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ControlHotspot {
+    pub control_id: String,
+    /// policy -> number of repos that failed this control
+    pub fail_by_policy: BTreeMap<String, usize>,
+    pub total_repos: usize,
+}
+
+impl FleetMatrix {
+    pub fn has_failures(&self) -> bool {
+        self.rows
+            .iter()
+            .any(|row| row.results.values().any(|s| s.fail > 0))
+    }
+}
+
+fn run_fleet_matrix(
+    client: &GitHubClient,
+    repo_list: &[(String, String)],
+    policies: &[&str],
+    reference: &str,
+    exclude: &[String],
+    only: &[String],
+    quiet: bool,
+) -> Result<FleetMatrix> {
+    use libverify_core::profile::GateDecision;
+
+    let mut rows = Vec::new();
+    // control_id -> policy -> fail_count
+    let mut hotspot_map: BTreeMap<String, BTreeMap<String, usize>> = BTreeMap::new();
+
+    for (owner, repo_name) in repo_list {
+        let repo_id = format!("{owner}/{repo_name}");
+        if !quiet {
+            eprintln!("Collecting evidence for {repo_id}...");
+        }
+
+        check_repo_exists(owner, repo_name)?;
+
+        let bundle = collect_repo_evidence(client, owner, repo_name, reference)
+            .with_context(|| format!("failed to collect evidence for {repo_id}"))?;
+
+        let mut results = BTreeMap::new();
+
+        for &policy in policies {
+            if !quiet {
+                eprintln!("  Assessing {repo_id} with policy: {policy}");
+            }
+
+            let mut report = assess_repo_bundle(&bundle, Some(policy))
+                .with_context(|| format!("failed to assess {repo_id} with policy {policy}"))?;
+
+            // Apply exclusions/only filters
+            if !exclude.is_empty() {
+                report
+                    .outcomes
+                    .retain(|o| !exclude.iter().any(|e| o.control_id.to_string() == *e));
+            }
+            if !only.is_empty() {
+                report
+                    .outcomes
+                    .retain(|o| only.iter().any(|e| o.control_id.to_string() == *e));
+            }
+
+            let mut summary = PolicySummary::default();
+            for outcome in &report.outcomes {
+                match outcome.decision {
+                    GateDecision::Pass => summary.pass += 1,
+                    GateDecision::Review => summary.review += 1,
+                    GateDecision::Fail => {
+                        summary.fail += 1;
+                        let cid = outcome.control_id.to_string();
+                        summary.failing_controls.push(cid.clone());
+                        *hotspot_map
+                            .entry(cid)
+                            .or_default()
+                            .entry(policy.to_string())
+                            .or_default() += 1;
+                    }
+                }
+            }
+            results.insert(policy.to_string(), summary);
+        }
+
+        rows.push(FleetMatrixRow { repo_id, results });
+    }
+
+    // Build hotspots sorted by total failures descending
+    let total_repos = repo_list.len();
+    let mut control_hotspots: Vec<ControlHotspot> = hotspot_map
+        .into_iter()
+        .map(|(control_id, fail_by_policy)| ControlHotspot {
+            control_id,
+            fail_by_policy,
+            total_repos,
+        })
+        .collect();
+    control_hotspots.sort_by(|a, b| {
+        let a_total: usize = a.fail_by_policy.values().sum();
+        let b_total: usize = b.fail_by_policy.values().sum();
+        b_total.cmp(&a_total)
+    });
+
+    Ok(FleetMatrix {
+        policies: policies.iter().map(|s| s.to_string()).collect(),
+        rows,
+        control_hotspots,
+    })
 }
 
 #[cfg(test)]
