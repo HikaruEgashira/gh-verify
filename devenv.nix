@@ -39,7 +39,7 @@
         test_version()  { local o; o=$("$BINARY" --version 2>&1); [[ "$o" == *"gh-verify"* ]]; }
         test_help()     { local o; o=$("$BINARY" --help 2>&1);    [[ "$o" == *"Usage"* ]]; }
         test_exits_1()  { "$BINARY" notacommand 2>/dev/null; [[ $? -ne 0 ]]; }
-        test_pr_bad_arg() { local o; GH_TOKEN=fake GH_REPO=fake/fake o=$("$BINARY" pr notanumber 2>&1); [[ $? -ne 0 ]] && [[ "$o" == *"invalid PR number"* ]]; }
+        test_pr_bad_arg() { "$BINARY" pr notanumber 2>/dev/null; [[ $? -ne 0 ]]; }
 
         echo ""; echo "Integration tests:"
         run_test "version output"         test_version

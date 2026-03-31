@@ -8,8 +8,8 @@ use libverify_github::range::{
 };
 use libverify_github::verify::exit_if_assessment_fails;
 use libverify_github::{
-    GitHubClient, GitHubConfig, verify_pr, verify_pr_batch, verify_release, verify_repo,
-    collect_repo_evidence, assess_repo_bundle,
+    GitHubClient, GitHubConfig, assess_repo_bundle, collect_repo_evidence, verify_pr,
+    verify_pr_batch, verify_release, verify_repo,
 };
 
 mod output;
@@ -625,6 +625,26 @@ const POLICIES: &[(&str, &str)] = &[
         "slsa-l4",
         "Enforce SLSA source/build/dependencies at Level 4",
     ),
+    (
+        "ismap",
+        "ISMAP (ISO 27001) — strict on operational/dev controls; review on advisory items",
+    ),
+    (
+        "pci-dss",
+        "PCI DSS v4.0 Req 6 — strict on vulnerability/access controls; review on advisory items",
+    ),
+    (
+        "tisax",
+        "TISAX (VDA ISA) — strict on supply-chain/source controls; review on dev-quality items",
+    ),
+    (
+        "nist-800-53",
+        "NIST SP 800-53 Rev. 5 — strict on CM/SA/SI families; review on audit/advisory items",
+    ),
+    (
+        "wp29",
+        "UNECE WP.29 / UN-R155 — automotive CSMS; strict on supply-chain/build controls",
+    ),
 ];
 
 fn print_policies_json() {
@@ -1163,8 +1183,8 @@ mod tests {
     fn policies_data_not_empty() {
         assert_eq!(
             POLICIES.len(),
-            9,
-            "Expected 9 policies, found {}",
+            14,
+            "Expected 14 policies, found {}",
             POLICIES.len()
         );
     }

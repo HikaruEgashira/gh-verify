@@ -216,12 +216,7 @@ pub fn print_fleet_matrix(matrix: &crate::FleetMatrix) -> Result<()> {
         .max()
         .unwrap_or(10)
         .max(10);
-    let policy_col_width = policies
-        .iter()
-        .map(|p| p.len())
-        .max()
-        .unwrap_or(8)
-        .max(14); // "Pass/Total  %" minimum
+    let policy_col_width = policies.iter().map(|p| p.len()).max().unwrap_or(8).max(14); // "Pass/Total  %" minimum
 
     // Header
     print!("{:<width$}", "", width = repo_col_width + 2);
@@ -271,7 +266,11 @@ pub fn print_fleet_matrix(matrix: &crate::FleetMatrix) -> Result<()> {
     println!("{}", "─".repeat(total_width));
 
     // Fleet average
-    print!("{:<width$}", "Fleet average".bold(), width = repo_col_width + 2);
+    print!(
+        "{:<width$}",
+        "Fleet average".bold(),
+        width = repo_col_width + 2
+    );
     for policy in policies {
         let (total_pass, total_all) = matrix.rows.iter().fold((0usize, 0usize), |(p, t), row| {
             match row.results.get(policy.as_str()) {
@@ -284,7 +283,11 @@ pub fn print_fleet_matrix(matrix: &crate::FleetMatrix) -> Result<()> {
         } else {
             0.0
         };
-        print!("  {:<width$}", format!("{rate:.0}%").bold(), width = policy_col_width);
+        print!(
+            "  {:<width$}",
+            format!("{rate:.0}%").bold(),
+            width = policy_col_width
+        );
     }
     println!();
     println!();
@@ -297,17 +300,10 @@ pub fn print_fleet_matrix(matrix: &crate::FleetMatrix) -> Result<()> {
                 .fail_by_policy
                 .iter()
                 .map(|(policy, count)| {
-                    format!(
-                        "{count}/{} repos fail ({policy})",
-                        hotspot.total_repos
-                    )
+                    format!("{count}/{} repos fail ({policy})", hotspot.total_repos)
                 })
                 .collect();
-            println!(
-                "  {:<35} {}",
-                hotspot.control_id,
-                parts.join(", ").red()
-            );
+            println!("  {:<35} {}", hotspot.control_id, parts.join(", ").red());
         }
         println!();
     }

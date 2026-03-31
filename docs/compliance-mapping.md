@@ -103,9 +103,9 @@ Relevant requirements: 6 (Develop and Maintain Secure Systems and Software).
 
 ```bash
 # PCI DSS focused verification
-gh verify pr 42 --policy soc2 --exclude secret-scanning
+gh verify pr 42 --policy pci-dss
 # Add vulnerability scanning check
-gh verify repo --repo myorg/payment-service --policy soc2
+gh verify repo --repo myorg/payment-service --policy pci-dss
 ```
 
 ---
@@ -202,16 +202,16 @@ gh-verify addresses the **software development phase** of CSMS.
 | 7.2.2.5(b) | Security testing in development | `test-coverage`, `required-status-checks` | Direct |
 | 7.3.3 | Verify software is secured | `source-authenticity`, `build-provenance`, `release-traceability` | Direct |
 | 7.3.5 | Software update integrity | `provenance-authenticity`, `dependency-completeness` | Direct |
-| 7.2.2.2(d) | Secret push protection | `secret-scanning-push-protection` | Partial |
-| 7.2.2.5(c) | Admin branch enforcement | `branch-protection-admin-enforcement` | Partial |
-| 7.2.2.2(e) | Dismiss stale reviews on push | `dismiss-stale-reviews-on-push` | Partial |
-| 7.2.2.5(d) | Pinned CI/CD dependencies | `actions-pinned-dependencies` | Direct |
-| 7.2.2.5(e) | Environment protection rules | `environment-protection-rules` | Partial |
-| 7.2.2.2(f) | Code scanning alert resolution | `code-scanning-alerts-resolved` | Direct |
-| 7.2.2.3.1 | Dependency license compliance | `dependency-license-compliance` | Partial |
-| 7.3.4 | SBOM attestation | `sbom-attestation` | Direct |
-| 7.3.6 | Release asset attestation | `release-asset-attestation` | Direct |
-| 7.2.2.5(f) | Privileged workflow detection | `privileged-workflow-detection` | Direct |
+| 7.2.2.2 | Processes for managing risks — secret leak prevention | `secret-scanning-push-protection` | Partial |
+| 7.2.2.2 | Processes for managing risks — code vulnerability resolution | `code-scanning-alerts-resolved` | Partial |
+| 7.2.2.5 | Security design — admin branch enforcement | `branch-protection-admin-enforcement` | Partial |
+| 7.2.2.5 | Security design — stale review dismissal | `dismiss-stale-reviews-on-push` | Partial |
+| 7.2.2.5 | Security design — pinned CI/CD dependencies | `actions-pinned-dependencies` | Partial |
+| 7.2.2.5 | Security design — environment protection | `environment-protection-rules` | Partial |
+| 7.2.2.5 | Security design — privileged workflow detection | `privileged-workflow-detection` | Partial |
+| 7.2.2.3 | Supply chain — dependency license compliance | `dependency-license-compliance` | Partial |
+| 7.3.3 | Verify software — SBOM attestation | `sbom-attestation` | Partial |
+| 7.3.5 | Software update integrity — release asset attestation | `release-asset-attestation` | Partial |
 
 ### WP.29 Note
 
@@ -219,9 +219,9 @@ UN-R155 is a **vehicle type-approval regulation**. gh-verify provides evidence f
 
 For automotive SDLC verification, we recommend:
 ```bash
-gh verify pr 42 --policy slsa-l3
-gh verify release v1.0.0 --policy slsa-l3
-gh verify repo --policy soc2
+gh verify pr 42 --policy wp29
+gh verify release v1.0.0 --policy wp29
+gh verify repo --policy wp29
 ```
 
 ---
@@ -355,7 +355,7 @@ All other violations and indeterminate results are `fail`.
 | PCI DSS v4.0 | 13 | 7 | 6 (runtime/data) |
 | ISMAP | 15 | 8 | 2 |
 | TISAX | 17 | 4 | — |
-| WP.29 / UN-R155 | 8 | 7 | — |
+| WP.29 / UN-R155 | 5 | 12 | — |
 | ISO/SAE 21434 | 5 | 0 | — |
 
 ## Requesting New Mappings

@@ -97,8 +97,8 @@ pub fn print_fleet_matrix(opts: &OutputOptions, matrix: &crate::FleetMatrix) -> 
     match opts.format {
         Format::Human => human::print_fleet_matrix(matrix),
         Format::Json => {
-            let json = serde_json::to_string_pretty(matrix)
-                .context("failed to serialize fleet matrix")?;
+            let json =
+                serde_json::to_string_pretty(matrix).context("failed to serialize fleet matrix")?;
             emit(opts.output_file.as_deref(), &json)
         }
         Format::Sarif => {

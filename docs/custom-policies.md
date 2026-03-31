@@ -101,4 +101,5 @@ All control IDs that can appear in `input.control_id` (also available via `gh ve
 | Build track | `build-provenance`, `required-status-checks`, `hosted-build-platform`, `provenance-authenticity`, `build-isolation` |
 | Dependencies track | `dependency-signature`, `dependency-provenance`, `dependency-signer-verified`, `dependency-completeness` |
 | Compliance | `change-request-size`, `test-coverage`, `scoped-change`, `issue-linkage`, `stale-review`, `description-quality`, `merge-commit-policy`, `conventional-title`, `security-file-change`, `release-traceability` |
-| Repository security | `codeowners-coverage`, `secret-scanning`, `vulnerability-scanning`, `security-policy` |
+| Repository security | `codeowners-coverage`, `secret-scanning`, `vulnerability-scanning`, `security-policy`, `secret-scanning-push-protection`, `branch-protection-admin-enforcement`, `dismiss-stale-reviews-on-push`, `actions-pinned-dependencies`, `environment-protection-rules`, `code-scanning-alerts-resolved` |
+| Supply chain | `dependency-license-compliance`, `sbom-attestation`, `release-asset-attestation`, `privileged-workflow-detection` |
