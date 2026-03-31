@@ -592,6 +592,10 @@ const CONTROLS: &[ControlSection] = &[
                 "security-test-in-ci",
                 "Security testing (SAST/DAST) is active in CI pipelines",
             ),
+            (
+                "protected-tags",
+                "Tag protection rules prevent unauthorized release tags",
+            ),
         ],
     },
 ];
@@ -1204,7 +1208,7 @@ mod tests {
     #[test]
     fn controls_data_not_empty() {
         let total: usize = CONTROLS.iter().map(|s| s.controls.len()).sum();
-        assert_eq!(total, 33, "Expected 33 controls, found {total}");
+        assert_eq!(total, 34, "Expected 34 controls, found {total}");
     }
 
     #[test]

@@ -157,6 +157,9 @@ pub fn remediation_hint(control_id: &str) -> Option<&'static str> {
         "security-test-in-ci" => {
             Some("Add CodeQL or Semgrep to GitHub Actions: github/codeql-action/analyze")
         }
+        "protected-tags" => {
+            Some("Add tag protection rules at Settings > Tags to prevent unauthorized releases")
+        }
         _ => None,
     }
 }
