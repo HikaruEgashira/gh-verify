@@ -2,7 +2,7 @@
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability in gh-verify, please report it responsibly:
+If you discover a security vulnerability in gh-verify, please report a vulnerability responsibly:
 
 1. **Do not** open a public GitHub issue
 2. Use [GitHub Security Advisories](https://github.com/HikaruEgashira/gh-verify/security/advisories/new) to report privately

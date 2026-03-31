@@ -28,4 +28,3 @@ jobs:
           argument: ${{ github.event.pull_request.number }}
           format: json
           policy: oss
-          audit: "true"
