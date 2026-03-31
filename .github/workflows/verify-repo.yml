@@ -22,3 +22,4 @@ jobs:
           command: repo
           format: json
           policy: oss
+          audit: "true"
