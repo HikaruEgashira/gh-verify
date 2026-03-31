@@ -59,6 +59,9 @@ outputs:
   result:
     description: "Overall gate result: pass, review, or fail"
     value: ${{ steps.parse.outputs.result }}
+  exit-code:
+    description: "Raw exit code from gh-verify: 0=pass, 1=verification failure, 2=infrastructure error"
+    value: ${{ steps.verify.outputs.exit-code }}
   pass-count:
     description: "Number of controls with pass decision"
     value: ${{ steps.parse.outputs.pass-count }}

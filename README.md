@@ -5,7 +5,12 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/HikaruEgashira/libverify">libverify</a> · <a href="HACKING.md">Hacking</a>
+  <a href="https://github.com/HikaruEgashira/libverify">libverify</a> · <a href="HACKING.md">Hacking</a> · <a href="docs/compliance-mapping.md">Compliance</a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/HikaruEgashira/gh-verify/actions/workflows/check-pr.yml"><img src="https://github.com/HikaruEgashira/gh-verify/actions/workflows/check-pr.yml/badge.svg" alt="dogfooding: gh-verify on itself"></a>
+  <a href="https://github.com/HikaruEgashira/gh-verify/actions/workflows/scorecard.yml"><img src="https://github.com/HikaruEgashira/gh-verify/actions/workflows/scorecard.yml/badge.svg" alt="OpenSSF Scorecard"></a>
 </p>
 
 ---
