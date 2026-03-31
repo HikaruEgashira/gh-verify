@@ -87,7 +87,7 @@ gh verify pr 42 --format json
 gh verify pr 42 --format sarif      # For GitHub Code Scanning
 ```
 
-Exit codes: `0` = all controls pass, `1` = verification failure, `2` = infrastructure error (API/auth/network).
+Exit codes: `0` = all controls pass, `1` = verification failure, `2` = infrastructure error (API/auth/network). See [docs/fail-open-design.md](docs/fail-open-design.md) for CI resilience patterns.
 
 > **PowerShell users:** Use double quotes for range arguments: `gh verify pr "#100..#200"`
 
@@ -139,6 +139,8 @@ See [action.yml](action.yml) for full input/output details.
 
 Policy selection via `--policy` determines which controls are enforced and how strictly.
 Full details are in [libverify](https://github.com/HikaruEgashira/libverify).
+
+For enterprise compliance framework mappings (NIST SP 800-53, PCI DSS v4.0, ISMAP, TISAX, WP.29), see [docs/compliance-mapping.md](docs/compliance-mapping.md).
 
 ### SLSA v1.2
 

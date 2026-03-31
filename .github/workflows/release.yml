@@ -73,10 +73,19 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           path: dist
           merge-multiple: true
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          artifact-name: gh-verify-sbom.cdx.json
+          output-file: dist/gh-verify-sbom.cdx.json
+          format: cyclonedx-json
 
       - name: Attest build provenance
         if: github.event.repository.visibility == 'public'
