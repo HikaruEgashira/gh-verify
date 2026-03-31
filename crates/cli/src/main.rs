@@ -599,55 +599,59 @@ const POLICIES: &[(&str, &str)] = &[
     ),
     (
         "oss",
-        "Allows unsigned commits and self-reviewed merges (maps to review instead of fail)",
+        "OSS/solo-dev: relaxes unsigned commits, self-review, security-policy, stale-review to review",
     ),
     (
         "aiops",
-        "Maps all uncertain results to human review instead of fail",
+        "AI-driven SDLC: uncertain\u{2192}review, dev-quality violated\u{2192}review for AI-generated PRs",
     ),
     (
         "soc1",
-        "Strict on ICFR-relevant controls; informational (non-blocking) on compliance controls",
+        "SOC1 (SSAE 18): strict on ICFR controls; non-ICFR controls are out-of-scope (review)",
     ),
     (
         "soc2",
-        "Strict on CC6/CC7/CC8 controls; review on uncertain build-track results",
+        "SOC2 (TSC): strict on CC6/CC7/CC8/PI; commit signing and security-policy are advisory",
     ),
     (
         "slsa-l1",
-        "Enforce SLSA source/build/dependencies at Level 1",
+        "SLSA v1.2 L1: requires build-provenance + dependency-signature only",
     ),
     (
         "slsa-l2",
-        "Enforce SLSA source/build/dependencies at Level 2",
+        "SLSA v1.2 L2: adds history, hosted-build, vuln-scanning to L1",
     ),
     (
         "slsa-l3",
-        "Enforce SLSA source/build/dependencies at Level 3",
+        "SLSA v1.2 L3: adds branch-protection, build-isolation, dep-provenance to L2",
     ),
     (
         "slsa-l4",
-        "Enforce SLSA source/build/dependencies at Level 4",
+        "SLSA v1.2 L4: adds two-party-review, dep-completeness to L3 (maximum)",
     ),
     (
         "ismap",
-        "ISMAP (ISO 27001) — strict on operational/dev controls; review on advisory items",
+        "ISMAP (ISO 27001): strict on operational/dev controls; review on advisory items",
     ),
     (
         "pci-dss",
-        "PCI DSS v4.0 Req 6 — strict on vulnerability/access controls; review on advisory items",
+        "PCI DSS v4.0 Req 6: strict on review/vuln/access; dev-quality is advisory",
     ),
     (
         "tisax",
-        "TISAX (VDA ISA) — strict on supply-chain/source controls; review on dev-quality items",
+        "TISAX (VDA ISA AL3): strict on supply-chain/source; SBOM/license are recommended",
     ),
     (
         "nist-800-53",
-        "NIST SP 800-53 Rev. 5 — strict on CM/SA/SI families; review on audit/advisory items",
+        "NIST 800-53 Rev.5 Moderate: strict on CM/SA/SI/SR; audit/dev-quality are advisory",
     ),
     (
         "wp29",
-        "UNECE WP.29 / UN-R155 — automotive CSMS; strict on supply-chain/build controls",
+        "UN-R155 (WP.29): automotive CSMS; strict on supply-chain/build controls",
+    ),
+    (
+        "scorecard",
+        "OpenSSF Scorecard: critical/high\u{2192}fail, medium\u{2192}fail/review, unmapped\u{2192}review",
     ),
 ];
 
@@ -1187,8 +1191,8 @@ mod tests {
     fn policies_data_not_empty() {
         assert_eq!(
             POLICIES.len(),
-            14,
-            "Expected 14 policies, found {}",
+            15,
+            "Expected 15 policies, found {}",
             POLICIES.len()
         );
     }
