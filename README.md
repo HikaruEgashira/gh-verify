@@ -9,10 +9,13 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/HikaruEgashira/gh-verify/actions/workflows/release.yml"><img src="https://github.com/HikaruEgashira/gh-verify/actions/workflows/release.yml/badge.svg" alt="release"></a>
-  <a href="https://github.com/HikaruEgashira/gh-verify/actions/workflows/check-pr.yml"><img src="https://github.com/HikaruEgashira/gh-verify/actions/workflows/check-pr.yml/badge.svg" alt="dogfooding: PR verify"></a>
-  <a href="https://github.com/HikaruEgashira/gh-verify/actions/workflows/verify-repo.yml"><img src="https://github.com/HikaruEgashira/gh-verify/actions/workflows/verify-repo.yml/badge.svg" alt="dogfooding: repo verify (oss)"></a>
+  <a href="https://github.com/HikaruEgashira/gh-verify/releases/latest"><img src="https://github.com/HikaruEgashira/gh-verify/actions/workflows/release.yml/badge.svg" alt="release"></a>
   <a href="https://github.com/HikaruEgashira/gh-verify/actions/workflows/scorecard.yml"><img src="https://github.com/HikaruEgashira/gh-verify/actions/workflows/scorecard.yml/badge.svg" alt="OpenSSF Scorecard"></a>
+</p>
+<p align="center">
+  <sub>dogfooding:</sub>
+  <a href="https://github.com/HikaruEgashira/gh-verify/actions/workflows/check-pr.yml"><img src="https://img.shields.io/github/actions/workflow/status/HikaruEgashira/gh-verify/check-pr.yml?label=PR%20verify&logo=github" alt="PR verify"></a>
+  <a href="https://github.com/HikaruEgashira/gh-verify/actions/workflows/verify-repo.yml"><img src="https://img.shields.io/github/actions/workflow/status/HikaruEgashira/gh-verify/verify-repo.yml?label=repo%20verify%20(oss)&logo=github" alt="repo verify (oss)"></a>
 </p>
 
 ---
