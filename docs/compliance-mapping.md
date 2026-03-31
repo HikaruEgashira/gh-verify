@@ -1,6 +1,6 @@
 # Compliance Framework Mapping
 
-gh-verify's 28 SDLC controls map to multiple compliance frameworks.
+gh-verify's 38 SDLC controls map to multiple compliance frameworks.
 This document provides cross-reference tables for audit preparation.
 
 ## How to Read This Document
@@ -49,6 +49,13 @@ Relevant control families: CM (Configuration Management), SA (System and Service
 | SR-3 | Supply Chain Controls | `dependency-signature`, `dependency-provenance`, `dependency-completeness` | Direct |
 | SR-4 | Provenance | `build-provenance`, `dependency-provenance`, `provenance-authenticity` | Direct |
 | SR-11 | Component Authenticity | `dependency-signer-verified`, `source-authenticity` | Direct |
+| CM-3(6) | Cryptography Management | `secret-scanning-push-protection` | Direct |
+| CM-5(1) | Automated Access Enforcement | `branch-protection-admin-enforcement` | Direct |
+| CM-3(4) | Security/Privacy Rep | `dismiss-stale-reviews-on-push` | Partial |
+| SA-12(2) | Supplier Assessments | `actions-pinned-dependencies`, `dependency-license-compliance` | Direct |
+| SA-12(14) | Identity and Traceability | `sbom-attestation`, `release-asset-attestation` | Direct |
+| SI-7(12) | Integrity Verification | `code-scanning-alerts-resolved` | Direct |
+| CM-7(5) | Authorized Software | `environment-protection-rules`, `privileged-workflow-detection` | Direct |
 
 ### FedRAMP Applicability
 
@@ -81,6 +88,16 @@ Relevant requirements: 6 (Develop and Maintain Secure Systems and Software).
 | 6.5.4 | Separation of duties | `review-independence`, `two-party-review`, `codeowners-coverage` | Direct |
 | 6.5.5 | Live PANs not used in test | — | Not covered (data-level) |
 | 6.5.6 | Test data/accounts removed | — | Not covered (data-level) |
+| 6.3.1.1 | Push protection for secrets | `secret-scanning-push-protection` | Direct |
+| 6.5.4.1 | Admin enforcement on branches | `branch-protection-admin-enforcement` | Direct |
+| 6.2.3.2 | Stale review dismissal | `dismiss-stale-reviews-on-push` | Partial |
+| 6.3.2.1 | Pinned CI dependencies | `actions-pinned-dependencies` | Direct |
+| 6.5.3.1 | Environment protection | `environment-protection-rules` | Direct |
+| 6.3.1.2 | Code scanning resolution | `code-scanning-alerts-resolved` | Direct |
+| 6.3.2.2 | Dependency license compliance | `dependency-license-compliance` | Direct |
+| 6.3.2.3 | Software bill of materials | `sbom-attestation` | Partial |
+| 6.3.2.4 | Release asset attestation | `release-asset-attestation` | Partial |
+| 6.2.3.3 | Privileged workflow detection | `privileged-workflow-detection` | Direct |
 
 ### PCI DSS Quick Start
 
@@ -115,6 +132,16 @@ The following maps gh-verify controls to ISMAP management criteria categories.
 | 15.1.2 | Addressing security in supplier agreements | `dependency-provenance`, `dependency-signer-verified` | Direct |
 | 15.2.1 | Monitoring and review of supplier services | `dependency-completeness`, `vulnerability-scanning` | Partial |
 | 16.1.2 | Reporting information security events | `security-file-change`, `stale-review` | Indirect |
+| 12.6.1 | Secret push protection | `secret-scanning-push-protection` | Direct |
+| 14.2.5.1 | Admin branch enforcement | `branch-protection-admin-enforcement` | Direct |
+| 14.2.3.1 | Dismiss stale reviews on push | `dismiss-stale-reviews-on-push` | Direct |
+| 14.2.6.1 | Pinned CI/CD dependencies | `actions-pinned-dependencies` | Partial |
+| 12.1.3 | Environment protection rules | `environment-protection-rules` | Direct |
+| 12.6.2 | Code scanning alert resolution | `code-scanning-alerts-resolved` | Direct |
+| 15.1.3 | Dependency license compliance | `dependency-license-compliance` | Partial |
+| 14.2.9.1 | SBOM attestation | `sbom-attestation` | Partial |
+| 14.2.9.2 | Release asset attestation | `release-asset-attestation` | Partial |
+| 12.1.5 | Privileged workflow detection | `privileged-workflow-detection` | Direct |
 
 ### ISMAP Note
 
@@ -140,6 +167,16 @@ TISAX is based on the VDA ISA (Information Security Assessment) catalog, aligned
 | 4.1.1 | Supplier evaluation | `dependency-signer-verified`, `dependency-provenance` | Direct |
 | 4.1.2 | Supply chain risk management | `dependency-signature`, `dependency-completeness`, `vulnerability-scanning` | Direct |
 | 5.2.6 | Anomaly detection | `stale-review`, `security-file-change` | Partial |
+| 1.6.2 | Secret push protection | `secret-scanning-push-protection` | Direct |
+| 3.1.3.1 | Admin branch enforcement | `branch-protection-admin-enforcement` | Direct |
+| 1.3.3 | Dismiss stale reviews on push | `dismiss-stale-reviews-on-push` | Direct |
+| 4.1.2.1 | Pinned CI/CD dependencies | `actions-pinned-dependencies` | Direct |
+| 3.1.2.1 | Environment protection rules | `environment-protection-rules` | Direct |
+| 4.1.2.2 | Code scanning alert resolution | `code-scanning-alerts-resolved` | Direct |
+| 4.1.3 | Dependency license compliance | `dependency-license-compliance` | Direct |
+| 2.1.2 | SBOM attestation | `sbom-attestation` | Direct |
+| 2.1.3 | Release asset attestation | `release-asset-attestation` | Direct |
+| 5.2.7 | Privileged workflow detection | `privileged-workflow-detection` | Direct |
 
 ### TISAX Assessment Levels
 
@@ -165,6 +202,16 @@ gh-verify addresses the **software development phase** of CSMS.
 | 7.2.2.5(b) | Security testing in development | `test-coverage`, `required-status-checks` | Direct |
 | 7.3.3 | Verify software is secured | `source-authenticity`, `build-provenance`, `release-traceability` | Direct |
 | 7.3.5 | Software update integrity | `provenance-authenticity`, `dependency-completeness` | Direct |
+| 7.2.2.2(d) | Secret push protection | `secret-scanning-push-protection` | Partial |
+| 7.2.2.5(c) | Admin branch enforcement | `branch-protection-admin-enforcement` | Partial |
+| 7.2.2.2(e) | Dismiss stale reviews on push | `dismiss-stale-reviews-on-push` | Partial |
+| 7.2.2.5(d) | Pinned CI/CD dependencies | `actions-pinned-dependencies` | Direct |
+| 7.2.2.5(e) | Environment protection rules | `environment-protection-rules` | Partial |
+| 7.2.2.2(f) | Code scanning alert resolution | `code-scanning-alerts-resolved` | Direct |
+| 7.2.2.3.1 | Dependency license compliance | `dependency-license-compliance` | Partial |
+| 7.3.4 | SBOM attestation | `sbom-attestation` | Direct |
+| 7.3.6 | Release asset attestation | `release-asset-attestation` | Direct |
+| 7.2.2.5(f) | Privileged workflow detection | `privileged-workflow-detection` | Direct |
 
 ### WP.29 Note
 
@@ -195,11 +242,11 @@ gh verify repo --policy soc2
 
 | Framework | Direct Mappings | Partial Mappings | Not Covered |
 |---|---|---|---|
-| NIST SP 800-53 | 15 | 2 | — |
-| PCI DSS v4.0 | 6 | 4 | 6 (runtime/data) |
-| ISMAP | 9 | 4 | 2 |
-| TISAX | 7 | 3 | — |
-| WP.29 / UN-R155 | 4 | 3 | — |
+| NIST SP 800-53 | 22 | 3 | — |
+| PCI DSS v4.0 | 13 | 7 | 6 (runtime/data) |
+| ISMAP | 15 | 8 | 2 |
+| TISAX | 17 | 4 | — |
+| WP.29 / UN-R155 | 8 | 7 | — |
 | ISO/SAE 21434 | 5 | 0 | — |
 
 ## Requesting New Mappings
