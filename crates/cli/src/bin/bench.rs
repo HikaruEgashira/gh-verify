@@ -624,7 +624,7 @@ fn discover_repo(
         );
         let observed = {
             let ctrls = controls::all_controls();
-            let profile = OpaProfile::slsa_l1_preset()?;
+            let profile = OpaProfile::from_preset_or_file("slsa-l1")?;
             assess_bundle(&bundle, &ctrls, &profile, None)
         };
 
