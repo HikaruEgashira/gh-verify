@@ -203,6 +203,7 @@ fn run() -> Result<()> {
                         &pr_numbers,
                         opts.single_policy(),
                         opts.with_evidence,
+                        Vec::new,
                     )?;
                     apply_batch_exclusions(&mut batch, &opts.exclude);
                     apply_batch_only_filter(&mut batch, &opts.only);
@@ -228,6 +229,7 @@ fn run() -> Result<()> {
                         pr_number,
                         opts.single_policy(),
                         opts.with_evidence,
+                        vec![],
                     )?;
                     apply_exclusions(&mut result, &opts.exclude);
                     apply_only_filter(&mut result, &opts.only);
@@ -334,6 +336,7 @@ fn run() -> Result<()> {
                     &reference,
                     opts.single_policy(),
                     opts.with_evidence,
+                    vec![],
                 )?;
                 apply_exclusions(&mut result, &opts.exclude);
                 apply_only_filter(&mut result, &opts.only);
@@ -379,6 +382,7 @@ fn run() -> Result<()> {
                 &head_tag,
                 opts.single_policy(),
                 opts.with_evidence,
+                vec![],
             )?;
             apply_exclusions(&mut result, &opts.exclude);
             apply_only_filter(&mut result, &opts.only);
@@ -972,7 +976,7 @@ fn run_fleet_matrix(
                 eprintln!("  Assessing {repo_id} with policy: {policy}");
             }
 
-            let mut report = assess_repo_bundle(&bundle, Some(policy))
+            let mut report = assess_repo_bundle(&bundle, Some(policy), vec![])
                 .with_context(|| format!("failed to assess {repo_id} with policy {policy}"))?;
 
             // Apply exclusions/only filters
