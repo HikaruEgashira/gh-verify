@@ -151,6 +151,12 @@ pub fn remediation_hint(control_id: &str) -> Option<&'static str> {
         "repository-permissions-audit" => {
             Some("Reduce admin count (<= 3), use team-based access instead of direct collaborators")
         }
+        "default-branch-settings-baseline" => {
+            Some("Enable branch protection, admin enforcement, and stale review dismissal on default branch")
+        }
+        "security-test-in-ci" => {
+            Some("Add CodeQL or Semgrep to GitHub Actions: github/codeql-action/analyze")
+        }
         _ => None,
     }
 }

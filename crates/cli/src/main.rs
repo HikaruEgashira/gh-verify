@@ -584,6 +584,14 @@ const CONTROLS: &[ControlSection] = &[
                 "repository-permissions-audit",
                 "Repository access follows least-privilege (limited admins, team-based)",
             ),
+            (
+                "default-branch-settings-baseline",
+                "Default branch has protection baseline (protection + admin enforcement + stale dismissal)",
+            ),
+            (
+                "security-test-in-ci",
+                "Security testing (SAST/DAST) is active in CI pipelines",
+            ),
         ],
     },
 ];
@@ -1196,7 +1204,7 @@ mod tests {
     #[test]
     fn controls_data_not_empty() {
         let total: usize = CONTROLS.iter().map(|s| s.controls.len()).sum();
-        assert_eq!(total, 31, "Expected 31 controls, found {total}");
+        assert_eq!(total, 33, "Expected 33 controls, found {total}");
     }
 
     #[test]
