@@ -112,6 +112,45 @@ pub fn remediation_hint(control_id: &str) -> Option<&'static str> {
         "security-policy" => {
             Some("Add a SECURITY.md file with vulnerability reporting instructions")
         }
+        "secret-scanning-push-protection" => {
+            Some("Enable push protection at Settings > Code security > Secret scanning")
+        }
+        "branch-protection-admin-enforcement" => {
+            Some("Enable 'Include administrators' in branch protection rules")
+        }
+        "dismiss-stale-reviews-on-push" => {
+            Some("Enable 'Dismiss stale pull request approvals when new commits are pushed'")
+        }
+        "actions-pinned-dependencies" => {
+            Some("Pin GitHub Actions to full commit SHAs instead of tags")
+        }
+        "environment-protection-rules" => {
+            Some("Configure environment protection rules at Settings > Environments")
+        }
+        "code-scanning-alerts-resolved" => {
+            Some("Resolve open code scanning alerts at Security > Code scanning alerts")
+        }
+        "dependency-license-compliance" => {
+            Some("Review dependency licenses; remove or replace copyleft dependencies")
+        }
+        "sbom-attestation" => {
+            Some("Generate SBOM with gh attestation or anchore/sbom-action in CI")
+        }
+        "release-asset-attestation" => {
+            Some("Attest release assets with gh attestation or sigstore/cosign")
+        }
+        "privileged-workflow-detection" => {
+            Some("Avoid pull_request_target with checkout of PR code in workflows")
+        }
+        "workflow-permissions-restricted" => {
+            Some("Set default workflow permissions to 'Read' at Settings > Actions > General")
+        }
+        "dependency-update-tool" => {
+            Some("Add .github/dependabot.yml or renovate.json to enable automated dependency updates")
+        }
+        "repository-permissions-audit" => {
+            Some("Reduce admin count (<= 3), use team-based access instead of direct collaborators")
+        }
         _ => None,
     }
 }

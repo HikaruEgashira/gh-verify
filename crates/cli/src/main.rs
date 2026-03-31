@@ -572,6 +572,18 @@ const CONTROLS: &[ControlSection] = &[
                 "security-policy",
                 "SECURITY.md with disclosure process exists",
             ),
+            (
+                "workflow-permissions-restricted",
+                "Default workflow permissions are read-only",
+            ),
+            (
+                "dependency-update-tool",
+                "Dependabot or Renovate is configured",
+            ),
+            (
+                "repository-permissions-audit",
+                "Repository access follows least-privilege (limited admins, team-based)",
+            ),
         ],
     },
 ];
@@ -1184,7 +1196,7 @@ mod tests {
     #[test]
     fn controls_data_not_empty() {
         let total: usize = CONTROLS.iter().map(|s| s.controls.len()).sum();
-        assert_eq!(total, 28, "Expected 28 controls, found {total}");
+        assert_eq!(total, 31, "Expected 31 controls, found {total}");
     }
 
     #[test]
