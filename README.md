@@ -5,12 +5,12 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/HikaruEgashira/libverify">libverify</a> · <a href="HACKING.md">Hacking</a> · <a href="docs/compliance-mapping.md">Compliance</a>
+  <a href="https://github.com/HikaruEgashira/gh-verify/actions/workflows/scorecard.yml"><img src="https://github.com/HikaruEgashira/gh-verify/actions/workflows/scorecard.yml/badge.svg" alt="OpenSSF Scorecard"></a>
+  <a href="https://github.com/HikaruEgashira/gh-verify/actions/workflows/verify-repo.yml"><img src="https://img.shields.io/github/actions/workflow/status/HikaruEgashira/gh-verify/verify-repo.yml?label=verify%20(oss)&logo=github" alt="verify (oss)"></a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/HikaruEgashira/gh-verify/actions/workflows/scorecard.yml"><img src="https://github.com/HikaruEgashira/gh-verify/actions/workflows/scorecard.yml/badge.svg" alt="OpenSSF Scorecard"></a>
-  <a href="https://github.com/HikaruEgashira/gh-verify/actions/workflows/verify-repo.yml"><img src="https://img.shields.io/github/actions/workflow/status/HikaruEgashira/gh-verify/verify-repo.yml?label=verify%20(oss)&logo=github" alt="verify (oss)"></a>
+  <a href="https://github.com/HikaruEgashira/libverify">libverify</a> · <a href="HACKING.md">Hacking</a> · <a href="docs/compliance-mapping.md">Compliance</a>
 </p>
 
 ---
