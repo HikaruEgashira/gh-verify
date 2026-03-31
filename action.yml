@@ -23,7 +23,7 @@ inputs:
     required: false
     default: "json"
   policy:
-    description: "Policy preset (default, oss, aiops, soc1, soc2, slsa-l1..l4) or path to .rego file"
+    description: "Policy preset (default, oss, aiops, soc1, soc2, slsa-l1..l4, ismap, pci-dss, tisax, nist-800-53, wp29) or path to .rego file"
     required: false
     default: ""
   only-failures:

@@ -133,6 +133,11 @@ See [action.yml](action.yml) for full input/output details.
 | Getting started / evaluation | `--audit` (no policy needed) |
 | SOC2 audit preparation | `--policy soc2` |
 | SLSA compliance | `--policy slsa-l1` through `slsa-l4` |
+| Government of Japan (ISMAP) | `--policy ismap` |
+| Payment systems (PCI DSS) | `--policy pci-dss` |
+| Automotive (TISAX AL3) | `--policy tisax` |
+| FedRAMP / US Government | `--policy nist-800-53` |
+| Automotive cybersecurity (WP.29) | `--policy wp29` |
 | Monorepo (multi-package) | `--exclude change-request-size,scoped-change` or `--policy oss --exclude change-request-size,scoped-change` |
 | No specific requirements | omit `--policy` (uses `default`) |
 
@@ -181,6 +186,11 @@ For enterprise compliance framework mappings (NIST SP 800-53, PCI DSS v4.0, ISMA
 | `soc1` | Strict on ICFR-relevant controls; informational on compliance controls |
 | `soc2` | Strict on all CC6/CC7/CC8 controls; review on uncertain build-track results |
 | `slsa-l1`..`slsa-l4` | Enforce SLSA source/build/dependencies controls at the specified level |
+| `ismap` | ISMAP (Government of Japan) -- strict on ISO 27001-aligned development controls |
+| `pci-dss` | PCI DSS v4.0 Req 6.x -- strict on secure development and vulnerability management |
+| `tisax` | TISAX AL3 (automotive) -- strict on VDA ISA controls including supply chain |
+| `nist-800-53` | NIST SP 800-53 Rev. 5 -- strict on CM/SA/SI/SR control families (FedRAMP) |
+| `wp29` | UNECE WP.29 / UN-R155 -- strict on automotive CSMS and software integrity |
 
 ## GitHub Enterprise Server
 
