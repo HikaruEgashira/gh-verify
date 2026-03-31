@@ -10,7 +10,8 @@
 
 <p align="center">
   <a href="https://github.com/HikaruEgashira/gh-verify/actions/workflows/release.yml"><img src="https://github.com/HikaruEgashira/gh-verify/actions/workflows/release.yml/badge.svg" alt="release"></a>
-  <a href="https://github.com/HikaruEgashira/gh-verify/actions/workflows/check-pr.yml"><img src="https://github.com/HikaruEgashira/gh-verify/actions/workflows/check-pr.yml/badge.svg" alt="dogfooding: gh-verify on itself"></a>
+  <a href="https://github.com/HikaruEgashira/gh-verify/actions/workflows/check-pr.yml"><img src="https://github.com/HikaruEgashira/gh-verify/actions/workflows/check-pr.yml/badge.svg" alt="dogfooding: PR verify"></a>
+  <a href="https://github.com/HikaruEgashira/gh-verify/actions/workflows/verify-repo.yml"><img src="https://github.com/HikaruEgashira/gh-verify/actions/workflows/verify-repo.yml/badge.svg" alt="dogfooding: repo verify (oss)"></a>
   <a href="https://github.com/HikaruEgashira/gh-verify/actions/workflows/scorecard.yml"><img src="https://github.com/HikaruEgashira/gh-verify/actions/workflows/scorecard.yml/badge.svg" alt="OpenSSF Scorecard"></a>
 </p>
 
