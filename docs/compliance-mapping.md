@@ -238,6 +238,115 @@ gh verify repo --policy soc2
 
 ---
 
+## Policy Preset Decision Mappings
+
+Each preset maps control statuses (`violated`, `indeterminate`) to decisions (`fail`, `review`).
+`satisfied` always maps to `pass`; `not_applicable` always maps to `pass`.
+
+### default
+
+All violations and indeterminate results are `fail`.
+
+### oss
+
+Relaxed for open-source workflows where unsigned commits and self-review are common.
+
+| On violation → `review` | On indeterminate → `review` |
+|---|---|
+| `source-authenticity` | `review-independence` |
+| `two-party-review` | `required-status-checks` |
+| `branch-protection-enforcement` | `branch-history-integrity` |
+| `issue-linkage` | `branch-protection-enforcement` |
+| `conventional-title` | `two-party-review` |
+| `codeowners-coverage` | `codeowners-coverage` |
+| `vulnerability-scanning` | `vulnerability-scanning` |
+| `secret-scanning` | `secret-scanning` |
+
+All other violations and indeterminate results are `fail`.
+
+### aiops
+
+All violations are `fail`. All indeterminate results are `review`.
+
+### soc1
+
+| On violation → `review` | On indeterminate → `review` |
+|---|---|
+| `change-request-size` | `change-request-size` |
+| `scoped-change` | `scoped-change` |
+| `description-quality` | `description-quality` |
+| `merge-commit-policy` | `merge-commit-policy` |
+| `conventional-title` | `conventional-title` |
+| `test-coverage` | `test-coverage` |
+| `source-authenticity` | `source-authenticity` |
+
+All other violations and indeterminate results are `fail`.
+
+### soc2
+
+| On violation → `review` | On indeterminate → `review` |
+|---|---|
+| Advisory: `change-request-size`, `scoped-change`, `description-quality`, `merge-commit-policy`, `conventional-title`, `issue-linkage` | Build: `build-provenance`, `hosted-build-platform`, `provenance-authenticity`, `build-isolation` |
+| OSS-origin: `security-policy` | Dependency: `dependency-signature`, `dependency-provenance`, `dependency-signer-verified`, `dependency-completeness` |
+| | Advisory + OSS-origin (same as violation list) |
+
+All other violations and indeterminate results are `fail`.
+
+### slsa-l1 through slsa-l4
+
+All violations are `fail`. Indeterminate results for required controls are `fail`; others are `review`.
+
+| Level | Required controls |
+|---|---|
+| L1 | `source-authenticity`, `review-independence`, `build-provenance`, `required-status-checks`, `dependency-signature` |
+| L2 | L1 + `branch-history-integrity`, `hosted-build-platform`, `provenance-authenticity`, `dependency-provenance` |
+| L3 | L2 + `branch-protection-enforcement`, `build-isolation`, `dependency-signer-verified` |
+| L4 | L3 + `two-party-review`, `dependency-completeness` |
+
+### ismap
+
+| On violation → `review` (recommended) | On indeterminate → `review` |
+|---|---|
+| `change-request-size`, `scoped-change`, `description-quality`, `merge-commit-policy`, `conventional-title`, `issue-linkage`, `actions-pinned-dependencies`, `dependency-license-compliance`, `sbom-attestation`, `release-asset-attestation` | Build: `build-provenance`, `hosted-build-platform`, `provenance-authenticity`, `build-isolation` |
+| | Dependency: `dependency-signature`, `dependency-provenance`, `dependency-signer-verified`, `dependency-completeness` |
+
+All other violations and indeterminate results are `fail`.
+
+### pci-dss
+
+| On violation → `review` (advisory) | On indeterminate → `review` |
+|---|---|
+| `test-coverage`, `scoped-change`, `conventional-title`, `merge-commit-policy`, `dismiss-stale-reviews-on-push`, `sbom-attestation`, `release-asset-attestation` | Dependency: `dependency-signature`, `dependency-provenance` |
+
+All other violations and indeterminate results are `fail`.
+
+### tisax
+
+| On violation → `review` (recommended) | On indeterminate → `review` |
+|---|---|
+| `test-coverage`, `scoped-change`, `conventional-title`, `merge-commit-policy`, `issue-linkage` | DevEnv: `build-isolation`, `hosted-build-platform` |
+
+All other violations and indeterminate results are `fail`.
+
+### nist-800-53
+
+| On violation → `review` | On indeterminate → `review` |
+|---|---|
+| Audit: `issue-linkage`, `release-traceability` | Build: `build-provenance`, `hosted-build-platform`, `provenance-authenticity`, `build-isolation` |
+| DevQuality: `change-request-size`, `scoped-change`, `description-quality`, `merge-commit-policy`, `conventional-title`, `dismiss-stale-reviews-on-push`, `dependency-license-compliance`, `sbom-attestation`, `release-asset-attestation` | Dependency: `dependency-signature`, `dependency-provenance`, `dependency-signer-verified`, `dependency-completeness` |
+
+All other violations and indeterminate results are `fail`.
+
+### wp29
+
+| On violation → `review` (recommended) | On indeterminate → `review` |
+|---|---|
+| `change-request-size`, `description-quality`, `scoped-change`, `issue-linkage`, `stale-review`, `conventional-title`, `merge-commit-policy`, `two-party-review`, `codeowners-coverage`, `secret-scanning`, `secret-scanning-push-protection`, `branch-protection-admin-enforcement`, `dismiss-stale-reviews-on-push`, `environment-protection-rules`, `dependency-license-compliance` | DevEnv: `branch-protection-enforcement`, `build-isolation` |
+
+All other violations and indeterminate results are `fail`.
+
+---
+
 ## Coverage Summary
 
 | Framework | Direct Mappings | Partial Mappings | Not Covered |
