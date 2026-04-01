@@ -1177,10 +1177,11 @@ mod tests {
 
     #[test]
     fn all_controls_have_remediation_hints() {
+        use libverify_core::control::builtin_remediation_hint;
         let missing: Vec<&str> = CONTROLS
             .iter()
             .flat_map(|s| s.controls.iter())
-            .filter(|(id, _)| output::human::remediation_hint(id).is_none())
+            .filter(|(id, _)| builtin_remediation_hint(id).is_none())
             .map(|(id, _)| *id)
             .collect();
         assert!(

@@ -1,168 +1,9 @@
 use anyhow::Result;
 use colored::Colorize;
 use libverify_core::assessment::{BatchReport, VerificationResult};
+use libverify_core::control::builtin_remediation_hint;
 use libverify_core::profile::GateDecision;
-
-fn format_utc_now() -> String {
-    let secs = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_secs();
-    // Simple UTC timestamp without chrono dependency
-    let days = secs / 86400;
-    let time_secs = secs % 86400;
-    let h = time_secs / 3600;
-    let m = (time_secs % 3600) / 60;
-    let s = time_secs % 60;
-    // Days since 1970-01-01
-    let mut y = 1970i64;
-    let mut remaining = days as i64;
-    loop {
-        let year_days = if y % 4 == 0 && (y % 100 != 0 || y % 400 == 0) {
-            366
-        } else {
-            365
-        };
-        if remaining < year_days {
-            break;
-        }
-        remaining -= year_days;
-        y += 1;
-    }
-    let leap = y % 4 == 0 && (y % 100 != 0 || y % 400 == 0);
-    let month_days = [
-        31,
-        if leap { 29 } else { 28 },
-        31,
-        30,
-        31,
-        30,
-        31,
-        31,
-        30,
-        31,
-        30,
-        31,
-    ];
-    let mut month = 12; // fallback to December if loop exhausts
-    for (i, &d) in month_days.iter().enumerate() {
-        if remaining < d as i64 {
-            month = i + 1;
-            break;
-        }
-        remaining -= d as i64;
-    }
-    let day = remaining + 1;
-    format!("{y:04}-{month:02}-{day:02}T{h:02}:{m:02}:{s:02}Z")
-}
-
-pub fn remediation_hint(control_id: &str) -> Option<&'static str> {
-    match control_id {
-        "source-authenticity" => Some("Sign commits: git config commit.gpgsign true"),
-        "review-independence" => Some("Ensure PRs are reviewed by someone other than the author"),
-        "branch-history-integrity" => {
-            Some("Use linear history (rebase/squash, avoid merge commits)")
-        }
-        "branch-protection-enforcement" => {
-            Some("Enable branch protection rules at Settings > Branches")
-        }
-        "two-party-review" => Some("Require at least 2 reviewers in branch protection rules"),
-        "required-status-checks" => Some("Add required status checks in branch protection rules"),
-        "build-provenance" => {
-            Some("Generate SLSA provenance with slsa-framework/slsa-github-generator")
-        }
-        "hosted-build-platform" => Some("Use GitHub-hosted runners instead of self-hosted"),
-        "provenance-authenticity" => {
-            Some("Verify build provenance signatures with cosign/slsa-verifier")
-        }
-        "build-isolation" => Some("Ensure builds run in ephemeral, isolated environments"),
-        "dependency-signature" => Some("Use signed dependencies; verify with cosign or sigstore"),
-        "dependency-provenance" => Some("Ensure dependencies publish SLSA provenance attestations"),
-        "dependency-signer-verified" => Some("Verify dependency signers against a trusted list"),
-        "dependency-completeness" => Some("Ensure all transitive dependencies have provenance"),
-        "change-request-size" => Some(
-            "Keep PRs small and focused; split large changes. Monorepo cross-package PRs may false-positive here -- use --exclude change-request-size",
-        ),
-        "test-coverage" => Some(
-            "Add or update tests for changed source files. Dependency-only PRs may false-positive here -- use --exclude test-coverage",
-        ),
-        "scoped-change" => Some(
-            "Limit PR to a single logical change; split unrelated changes. In monorepos, features spanning multiple packages are expected -- use --exclude scoped-change",
-        ),
-        "issue-linkage" => Some(
-            "Reference an issue in the PR body: Fixes #123 or Closes #456. Bot PRs (Dependabot/Renovate) don't link issues -- use --exclude issue-linkage",
-        ),
-        "description-quality" => Some("Add a meaningful PR description explaining the change"),
-        "merge-commit-policy" => {
-            Some("Use squash or rebase merge strategy instead of merge commits")
-        }
-        "conventional-title" => Some(
-            "Use Conventional Commits format: type(scope): description. Bot PRs use their own title format -- use --exclude conventional-title",
-        ),
-        "stale-review" => Some("Re-request review if changes were pushed after approval"),
-        "security-file-change" => Some("Security-sensitive file changes require additional review"),
-        "release-traceability" => Some("Link release to merged PRs and resolved issues"),
-        "codeowners-coverage" => Some("Add a CODEOWNERS file to define code ownership"),
-        "secret-scanning" => {
-            Some("Enable secret scanning at Settings > Code security and analysis")
-        }
-        "vulnerability-scanning" => {
-            Some("Enable Dependabot alerts at Settings > Code security and analysis")
-        }
-        "security-policy" => {
-            Some("Add a SECURITY.md file with vulnerability reporting instructions")
-        }
-        "secret-scanning-push-protection" => {
-            Some("Enable push protection at Settings > Code security > Secret scanning")
-        }
-        "branch-protection-admin-enforcement" => {
-            Some("Enable 'Include administrators' in branch protection rules")
-        }
-        "dismiss-stale-reviews-on-push" => {
-            Some("Enable 'Dismiss stale pull request approvals when new commits are pushed'")
-        }
-        "actions-pinned-dependencies" => {
-            Some("Pin GitHub Actions to full commit SHAs instead of tags")
-        }
-        "environment-protection-rules" => {
-            Some("Configure environment protection rules at Settings > Environments")
-        }
-        "code-scanning-alerts-resolved" => {
-            Some("Resolve open code scanning alerts at Security > Code scanning alerts")
-        }
-        "dependency-license-compliance" => {
-            Some("Review dependency licenses; remove or replace copyleft dependencies")
-        }
-        "sbom-attestation" => {
-            Some("Generate SBOM with gh attestation or anchore/sbom-action in CI")
-        }
-        "release-asset-attestation" => {
-            Some("Attest release assets with gh attestation or sigstore/cosign")
-        }
-        "privileged-workflow-detection" => {
-            Some("Avoid pull_request_target with checkout of PR code in workflows")
-        }
-        "workflow-permissions-restricted" => {
-            Some("Set default workflow permissions to 'Read' at Settings > Actions > General")
-        }
-        "dependency-update-tool" => {
-            Some("Add .github/dependabot.yml or renovate.json to enable automated dependency updates")
-        }
-        "repository-permissions-audit" => {
-            Some("Reduce admin count (<= 3), use team-based access instead of direct collaborators")
-        }
-        "default-branch-settings-baseline" => {
-            Some("Enable branch protection, admin enforcement, and stale review dismissal on default branch")
-        }
-        "security-test-in-ci" => {
-            Some("Add CodeQL or Semgrep to GitHub Actions: github/codeql-action/analyze")
-        }
-        "protected-tags" => {
-            Some("Add tag protection rules at Settings > Tags to prevent unauthorized releases")
-        }
-        _ => None,
-    }
-}
+use libverify_output::utc_now_rfc3339;
 
 pub fn print(
     result: &VerificationResult,
@@ -194,7 +35,7 @@ pub fn print(
         );
 
         if matches!(outcome.decision, GateDecision::Fail | GateDecision::Review)
-            && let Some(hint) = remediation_hint(&outcome.control_id.to_string())
+            && let Some(hint) = builtin_remediation_hint(outcome.control_id.as_str())
         {
             println!("  -> {} {}", "Hint:".cyan(), hint);
         }
@@ -243,7 +84,7 @@ pub fn print(
 
     let policy_name = policy.unwrap_or("default");
     let version = env!("GH_VERIFY_VERSION");
-    let timestamp = format_utc_now();
+    let timestamp = utc_now_rfc3339();
     print!("Policy: {policy_name} | gh-verify {version} | {timestamp}");
     if !excluded.is_empty() {
         print!(" | Excluded: {}", excluded.join(", "));
@@ -357,7 +198,7 @@ pub fn print_fleet_matrix(matrix: &crate::FleetMatrix) -> Result<()> {
     }
 
     let version = env!("GH_VERIFY_VERSION");
-    let timestamp = format_utc_now();
+    let timestamp = utc_now_rfc3339();
     println!(
         "Policies: {} | gh-verify {version} | {timestamp}",
         policies.join(", ")
