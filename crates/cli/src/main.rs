@@ -2,14 +2,16 @@ use std::process;
 
 use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
+use colored::Colorize;
 
 use libverify_github::range::{
     detect_latest_release_tag, parse_range, parse_release_arg, resolve_pr_numbers,
 };
 use libverify_github::verify::exit_if_assessment_fails;
 use libverify_github::{
-    GitHubClient, GitHubConfig, assess_repo_bundle, collect_repo_evidence, verify_pr,
-    verify_pr_batch, verify_release, verify_repo,
+    GitHubClient, GitHubConfig, assess_bundle, assess_repo_bundle, collect_repo_evidence,
+    collect_release_attestation_evidence, collect_release_pr_evidence,
+    collect_release_repo_evidence, verify_pr, verify_pr_batch, verify_repo,
 };
 
 mod output;
@@ -367,23 +369,69 @@ fn run() -> Result<()> {
             let (base_tag, head_tag) =
                 parse_release_arg(&release_arg, &client, &owner, &repo_name)?;
 
-            if !opts.quiet {
+            let policy = opts.single_policy();
+            let quiet = opts.quiet;
+
+            if !quiet {
                 eprintln!(
                     "Checking release: {base_tag}..{head_tag} (policy: {})",
-                    opts.single_policy().unwrap_or("default")
+                    policy.unwrap_or("default")
                 );
             }
 
-            let mut result = verify_release(
+            // Track control IDs already shown so each phase only prints new results
+            let mut seen_controls = std::collections::HashSet::new();
+
+            // Phase 1: PR & commit analysis
+            if !quiet {
+                eprintln!();
+                eprintln!("{}", "Phase 1/3: PR & commit analysis".bold());
+            }
+            let mut bundle =
+                collect_release_pr_evidence(&client, &owner, &repo_name, &base_tag, &head_tag)?;
+            if !quiet {
+                let report = assess_bundle(&bundle, policy, vec![])?;
+                print_phase_results(&report, &mut seen_controls);
+            }
+
+            // Phase 2: Repository security
+            if !quiet {
+                eprintln!();
+                eprintln!("{}", "Phase 2/3: Repository security".bold());
+            }
+            collect_release_repo_evidence(&client, &owner, &repo_name, &head_tag, &mut bundle);
+            if !quiet {
+                let report = assess_bundle(&bundle, policy, vec![])?;
+                print_phase_results(&report, &mut seen_controls);
+            }
+
+            // Phase 3: Attestation verification
+            if !quiet {
+                eprintln!();
+                eprintln!("{}", "Phase 3/3: Attestation verification".bold());
+            }
+            collect_release_attestation_evidence(
                 &client,
                 &owner,
                 &repo_name,
-                &base_tag,
                 &head_tag,
-                opts.single_policy(),
-                opts.with_evidence,
-                vec![],
-            )?;
+                &mut bundle,
+            );
+            if !quiet {
+                let report = assess_bundle(&bundle, policy, vec![])?;
+                print_phase_results(&report, &mut seen_controls);
+                eprintln!();
+            }
+
+            // Final assessment and output
+            let report = assess_bundle(&bundle, policy, vec![])?;
+            let evidence_bundle = if opts.with_evidence {
+                Some(bundle)
+            } else {
+                None
+            };
+            let mut result =
+                libverify_core::assessment::VerificationResult::new(report, evidence_bundle);
             apply_exclusions(&mut result, &opts.exclude);
             apply_only_filter(&mut result, &opts.only);
             output::print(&out_opts, &result)?;
@@ -404,8 +452,32 @@ fn run() -> Result<()> {
     Ok(())
 }
 
+/// Print a compact summary of new assessment outcomes to stderr for progressive display.
+/// Only prints controls not yet in `seen`, then adds them.
+fn print_phase_results(
+    report: &libverify_core::assessment::AssessmentReport,
+    seen: &mut std::collections::HashSet<String>,
+) {
+    use libverify_core::profile::GateDecision;
+
+    for outcome in &report.outcomes {
+        if !seen.insert(outcome.control_id.to_string()) {
+            continue;
+        }
+        let decision_str = match outcome.decision {
+            GateDecision::Pass => "PASS".green(),
+            GateDecision::Review => "REVIEW".yellow(),
+            GateDecision::Fail => "FAIL".red(),
+        };
+        eprintln!(
+            "  [{}] {}",
+            outcome.control_id.to_string().bold(),
+            decision_str,
+        );
+    }
+}
+
 fn print_controls() {
-    use colored::Colorize;
 
     println!(
         "{}",
