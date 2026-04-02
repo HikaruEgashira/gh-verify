@@ -379,37 +379,9 @@ fn run() -> Result<()> {
                 );
             }
 
-            // Track control IDs already shown so each phase only prints new results
-            let mut seen_controls = std::collections::HashSet::new();
-
-            // Phase 1: PR & commit analysis
-            if !quiet {
-                eprintln!();
-                eprintln!("{}", "Phase 1/3: PR & commit analysis".bold());
-            }
             let mut bundle =
                 collect_release_pr_evidence(&client, &owner, &repo_name, &base_tag, &head_tag)?;
-            if !quiet {
-                let report = assess_bundle(&bundle, policy, vec![])?;
-                print_phase_results(&report, &mut seen_controls);
-            }
-
-            // Phase 2: Repository security
-            if !quiet {
-                eprintln!();
-                eprintln!("{}", "Phase 2/3: Repository security".bold());
-            }
             collect_release_repo_evidence(&client, &owner, &repo_name, &head_tag, &mut bundle);
-            if !quiet {
-                let report = assess_bundle(&bundle, policy, vec![])?;
-                print_phase_results(&report, &mut seen_controls);
-            }
-
-            // Phase 3: Attestation verification
-            if !quiet {
-                eprintln!();
-                eprintln!("{}", "Phase 3/3: Attestation verification".bold());
-            }
             collect_release_attestation_evidence(
                 &client,
                 &owner,
@@ -417,11 +389,6 @@ fn run() -> Result<()> {
                 &head_tag,
                 &mut bundle,
             );
-            if !quiet {
-                let report = assess_bundle(&bundle, policy, vec![])?;
-                print_phase_results(&report, &mut seen_controls);
-                eprintln!();
-            }
 
             // Final assessment and output
             let report = assess_bundle(&bundle, policy, vec![])?;
@@ -450,31 +417,6 @@ fn run() -> Result<()> {
     }
 
     Ok(())
-}
-
-/// Print a compact summary of new assessment outcomes to stderr for progressive display.
-/// Only prints controls not yet in `seen`, then adds them.
-fn print_phase_results(
-    report: &libverify_core::assessment::AssessmentReport,
-    seen: &mut std::collections::HashSet<String>,
-) {
-    use libverify_core::profile::GateDecision;
-
-    for outcome in &report.outcomes {
-        if !seen.insert(outcome.control_id.to_string()) {
-            continue;
-        }
-        let decision_str = match outcome.decision {
-            GateDecision::Pass => "PASS".green(),
-            GateDecision::Review => "REVIEW".yellow(),
-            GateDecision::Fail => "FAIL".red(),
-        };
-        eprintln!(
-            "  [{}] {}",
-            outcome.control_id.to_string().bold(),
-            decision_str,
-        );
-    }
 }
 
 fn print_controls() {
