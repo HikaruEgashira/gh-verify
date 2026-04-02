@@ -699,6 +699,8 @@ fn apply_exclusions(
     if exclude.is_empty() {
         return;
     }
+    let exclude_set: std::collections::HashSet<&str> =
+        exclude.iter().map(String::as_str).collect();
     let known_ids: std::collections::HashSet<String> = result
         .report
         .outcomes
@@ -706,7 +708,7 @@ fn apply_exclusions(
         .map(|o| o.control_id.to_string())
         .collect();
     for e in exclude {
-        if !known_ids.contains(e) {
+        if !known_ids.contains(e.as_str()) {
             eprintln!(
                 "warning: unknown control ID '{}' in --exclude (see 'gh verify controls' for valid IDs)",
                 e
@@ -716,17 +718,18 @@ fn apply_exclusions(
     result
         .report
         .outcomes
-        .retain(|o| !exclude.iter().any(|e| o.control_id.to_string() == *e));
+        .retain(|o| !exclude_set.contains(o.control_id.as_ref()));
     result
         .report
         .findings
-        .retain(|f| !exclude.iter().any(|e| f.control_id.to_string() == *e));
+        .retain(|f| !exclude_set.contains(f.control_id.as_ref()));
 }
 
 fn apply_only_filter(result: &mut libverify_core::assessment::VerificationResult, only: &[String]) {
     if only.is_empty() {
         return;
     }
+    let only_set: std::collections::HashSet<&str> = only.iter().map(String::as_str).collect();
     let known_ids: std::collections::HashSet<String> = result
         .report
         .outcomes
@@ -734,7 +737,7 @@ fn apply_only_filter(result: &mut libverify_core::assessment::VerificationResult
         .map(|o| o.control_id.to_string())
         .collect();
     for o in only {
-        if !known_ids.contains(o) {
+        if !known_ids.contains(o.as_str()) {
             eprintln!(
                 "warning: unknown control ID '{}' in --only (see 'gh verify controls' for valid IDs)",
                 o
@@ -744,11 +747,11 @@ fn apply_only_filter(result: &mut libverify_core::assessment::VerificationResult
     result
         .report
         .outcomes
-        .retain(|o| only.iter().any(|e| o.control_id.to_string() == *e));
+        .retain(|o| only_set.contains(o.control_id.as_ref()));
     result
         .report
         .findings
-        .retain(|f| only.iter().any(|e| f.control_id.to_string() == *e));
+        .retain(|f| only_set.contains(f.control_id.as_ref()));
 }
 
 fn recalculate_batch_totals(batch: &mut libverify_core::assessment::BatchReport) {
@@ -981,65 +984,88 @@ fn run_fleet_matrix(
     quiet: bool,
 ) -> Result<FleetMatrix> {
     use libverify_core::profile::GateDecision;
+    use rayon::prelude::*;
 
-    let mut rows = Vec::new();
-    // control_id -> policy -> fail_count
+    let exclude_set: std::collections::HashSet<&str> =
+        exclude.iter().map(String::as_str).collect();
+    let only_set: std::collections::HashSet<&str> = only.iter().map(String::as_str).collect();
+
+    type HotspotMap = BTreeMap<String, BTreeMap<String, usize>>;
+
+    // Parallel evidence collection and assessment per repo
+    let repo_results: Vec<Result<(FleetMatrixRow, HotspotMap)>> = repo_list
+            .par_iter()
+            .map(|(owner, repo_name)| {
+                let repo_id = format!("{owner}/{repo_name}");
+                if !quiet {
+                    eprintln!("Collecting evidence for {repo_id}...");
+                }
+
+                let bundle = collect_repo_evidence(client, owner, repo_name, reference)
+                    .with_context(|| format!("failed to collect evidence for {repo_id}"))?;
+
+                let mut results = BTreeMap::new();
+                let mut local_hotspots: BTreeMap<String, BTreeMap<String, usize>> =
+                    BTreeMap::new();
+
+                for &policy in policies {
+                    if !quiet {
+                        eprintln!("  Assessing {repo_id} with policy: {policy}");
+                    }
+
+                    let mut report =
+                        assess_repo_bundle(&bundle, Some(policy), vec![]).with_context(|| {
+                            format!("failed to assess {repo_id} with policy {policy}")
+                        })?;
+
+                    if !exclude_set.is_empty() {
+                        report
+                            .outcomes
+                            .retain(|o| !exclude_set.contains(o.control_id.as_ref()));
+                    }
+                    if !only_set.is_empty() {
+                        report
+                            .outcomes
+                            .retain(|o| only_set.contains(o.control_id.as_ref()));
+                    }
+
+                    let mut summary = PolicySummary::default();
+                    for outcome in &report.outcomes {
+                        match outcome.decision {
+                            GateDecision::Pass => summary.pass += 1,
+                            GateDecision::Review => summary.review += 1,
+                            GateDecision::Fail => {
+                                summary.fail += 1;
+                                let cid = outcome.control_id.to_string();
+                                summary.failing_controls.push(cid.clone());
+                                *local_hotspots
+                                    .entry(cid)
+                                    .or_default()
+                                    .entry(policy.to_string())
+                                    .or_default() += 1;
+                            }
+                        }
+                    }
+                    results.insert(policy.to_string(), summary);
+                }
+
+                Ok((FleetMatrixRow { repo_id, results }, local_hotspots))
+            })
+            .collect();
+
+    // Merge results preserving input order
+    let mut rows = Vec::with_capacity(repo_list.len());
     let mut hotspot_map: BTreeMap<String, BTreeMap<String, usize>> = BTreeMap::new();
 
-    for (owner, repo_name) in repo_list {
-        let repo_id = format!("{owner}/{repo_name}");
-        if !quiet {
-            eprintln!("Collecting evidence for {repo_id}...");
+    for result in repo_results {
+        let (row, local_hotspots) = result?;
+        rows.push(row);
+        for (control_id, policy_counts) in local_hotspots {
+            let entry = hotspot_map.entry(control_id).or_default();
+            for (policy, count) in policy_counts {
+                *entry.entry(policy).or_default() += count;
+            }
         }
-
-        check_repo_exists(owner, repo_name)?;
-
-        let bundle = collect_repo_evidence(client, owner, repo_name, reference)
-            .with_context(|| format!("failed to collect evidence for {repo_id}"))?;
-
-        let mut results = BTreeMap::new();
-
-        for &policy in policies {
-            if !quiet {
-                eprintln!("  Assessing {repo_id} with policy: {policy}");
-            }
-
-            let mut report = assess_repo_bundle(&bundle, Some(policy), vec![])
-                .with_context(|| format!("failed to assess {repo_id} with policy {policy}"))?;
-
-            // Apply exclusions/only filters
-            if !exclude.is_empty() {
-                report
-                    .outcomes
-                    .retain(|o| !exclude.iter().any(|e| o.control_id.to_string() == *e));
-            }
-            if !only.is_empty() {
-                report
-                    .outcomes
-                    .retain(|o| only.iter().any(|e| o.control_id.to_string() == *e));
-            }
-
-            let mut summary = PolicySummary::default();
-            for outcome in &report.outcomes {
-                match outcome.decision {
-                    GateDecision::Pass => summary.pass += 1,
-                    GateDecision::Review => summary.review += 1,
-                    GateDecision::Fail => {
-                        summary.fail += 1;
-                        let cid = outcome.control_id.to_string();
-                        summary.failing_controls.push(cid.clone());
-                        *hotspot_map
-                            .entry(cid)
-                            .or_default()
-                            .entry(policy.to_string())
-                            .or_default() += 1;
-                    }
-                }
-            }
-            results.insert(policy.to_string(), summary);
-        }
-
-        rows.push(FleetMatrixRow { repo_id, results });
     }
 
     // Build hotspots sorted by total failures descending
