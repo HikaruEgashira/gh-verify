@@ -40,8 +40,10 @@ The manifest records:
 
 - OSS Insight ranking metadata for the selected collection
 - top PR creators per repository
-- recent merged PRs with observed ghverify severity
+- recent merged PRs with observed ghverify severity and `merged_at`
 - changed file paths and code file paths for each discovered PR, so curation can happen from one manifest
+
+The collector uses OSS Insight for repository ranking and the authenticated `gh` CLI session for recent merged PR enumeration, so `gh auth status` must succeed before running it.
 
 Curated benchmark cases should copy the relevant PRs into `cases/` with a `source` block so the provenance remains explicit.
 New case `id` values should be stable descriptive slugs. Legacy severity-prefixed ids remain for historical continuity, but new ids should not encode the expected verdict.
