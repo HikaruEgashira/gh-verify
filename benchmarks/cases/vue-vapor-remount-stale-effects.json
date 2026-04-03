@@ -1,0 +1,20 @@
+{
+  "id": "vue-vapor-remount-stale-effects",
+  "description": "Vue vapor remount fix spans runtime-core, vapor integration code, and regression tests",
+  "repo": "vuejs/core",
+  "pr_number": 14655,
+  "expected": "pass",
+  "rationale": "The runtime-core changes, vapor interop implementation updates, and hydration/vdomInterop regression tests all participate in the same stale-effect remount fix.",
+  "category": "semantic-bridge",
+  "domains_expected": [],
+  "ecosystem": "typescript",
+  "notes": "Current engine correctly reports pass; retained as a live cross-package runtime-vapor regression guard from OSS Insight discovery.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 10005,
+    "collection_name": "Javascript Framework",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-04-03T00:25:46Z"
+  },
+  "target_rule": "detect-unscoped-change"
+}

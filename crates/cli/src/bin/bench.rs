@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use std::process;
 use std::time::Instant;
 
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, bail};
 use clap::{Args, Parser, Subcommand};
 use libverify_core::assessment;
 use libverify_core::control::Control;
@@ -15,7 +15,6 @@ use libverify_core::scope::is_non_code_file;
 use libverify_core::verdict::Severity;
 use libverify_github::graphql;
 use libverify_github::ossinsight::{CollectionRepoRank, OssInsightClient, PullRequestCreator};
-use libverify_github::pr_api;
 use libverify_github::{GitHubClient, GitHubConfig};
 use libverify_policy::OpaProfile;
 use serde::Serialize;
@@ -225,6 +224,19 @@ struct DiscoveryPr {
     code_paths: Vec<String>,
     observed: ActualResult,
     source: BenchCaseSource,
+}
+
+#[derive(Debug, Clone)]
+struct RecentMergedPr {
+    number: u32,
+    merged_at: String,
+}
+
+#[derive(Debug, serde::Deserialize)]
+struct GhPullListItem {
+    number: u32,
+    #[serde(rename = "merged_at")]
+    merged_at: Option<String>,
 }
 
 fn main() {
@@ -579,17 +591,12 @@ fn discover_repo(
         .ok_or_else(|| anyhow::anyhow!("invalid repo name from OSS Insight: {}", rank.repo_name))?;
 
     let top_pr_creators = ossinsight.pull_request_creators(owner, repo, creators_per_repo)?;
-    // Use search API to find recent merged PRs, then fetch full data via GraphQL
-    let now = timestamp_now();
-    let since = "2020-01-01"; // broad range; we limit by prs_per_repo
-    let pr_numbers = pr_api::search_merged_prs(
-        github,
-        owner,
-        repo,
-        since,
-        now.split('T').next().unwrap_or(&now),
-    )?;
-    let pr_numbers: Vec<u32> = pr_numbers.into_iter().take(prs_per_repo).collect();
+    let recent_prs = discover_recent_merged_prs_via_gh(owner, repo, prs_per_repo)?;
+    let merged_at_by_number: HashMap<u32, String> = recent_prs
+        .iter()
+        .map(|pr| (pr.number, pr.merged_at.clone()))
+        .collect();
+    let pr_numbers: Vec<u32> = recent_prs.iter().map(|pr| pr.number).collect();
     let fetched = graphql::fetch_prs(github, owner, repo, &pr_numbers);
     let mut prs = Vec::new();
 
@@ -609,7 +616,7 @@ fn discover_repo(
         let code_paths: Vec<String> = pr_data
             .files
             .iter()
-            .filter(|file| file.patch.is_some() && !is_non_code_file(&file.filename))
+            .filter(|file| !is_non_code_file(&file.filename))
             .map(|file| file.filename.clone())
             .collect();
         let code_files = code_paths.len();
@@ -631,7 +638,10 @@ fn discover_repo(
         prs.push(DiscoveryPr {
             number: pr_number,
             title: pr_data.metadata.title.clone(),
-            merged_at: String::new(), // merged_at not available in GraphQL PrMetadata
+            merged_at: merged_at_by_number
+                .get(&pr_number)
+                .cloned()
+                .unwrap_or_else(|| "unknown".into()),
             changed_files: pr_data.files.len(),
             code_files,
             changed_paths,
@@ -657,6 +667,65 @@ fn discover_repo(
         top_pr_creators,
         prs,
     })
+}
+
+fn discover_recent_merged_prs_via_gh(
+    owner: &str,
+    repo: &str,
+    limit: usize,
+) -> Result<Vec<RecentMergedPr>> {
+    if limit == 0 {
+        return Ok(Vec::new());
+    }
+
+    let mut prs = Vec::new();
+    for page in 1..=10 {
+        let output = process::Command::new("gh")
+            .args([
+                "api",
+                &format!(
+                    "/repos/{owner}/{repo}/pulls?state=closed&sort=updated&direction=desc&per_page=100&page={page}"
+                ),
+            ])
+            .output()
+            .with_context(|| {
+                format!("failed to execute gh api for merged PR discovery in {owner}/{repo}")
+            })?;
+
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+            bail!("gh api failed while discovering merged PRs for {owner}/{repo}: {stderr}");
+        }
+
+        let page_items = parse_gh_pull_page(&output.stdout)
+            .with_context(|| format!("failed to parse gh api pull page for {owner}/{repo}"))?;
+        if page_items.is_empty() {
+            break;
+        }
+
+        prs.extend(page_items.into_iter().filter_map(|item| {
+            item.merged_at.map(|merged_at| RecentMergedPr {
+                number: item.number,
+                merged_at,
+            })
+        }));
+        if prs.len() >= limit {
+            break;
+        }
+    }
+
+    prs.sort_by(|a, b| b.merged_at.cmp(&a.merged_at));
+    prs.truncate(limit);
+
+    if prs.is_empty() {
+        bail!("no merged PRs found via gh api for {owner}/{repo}");
+    }
+
+    Ok(prs)
+}
+
+fn parse_gh_pull_page(bytes: &[u8]) -> Result<Vec<GhPullListItem>> {
+    serde_json::from_slice(bytes).context("invalid gh api pull list payload")
 }
 
 fn run_case_with(
@@ -827,5 +896,45 @@ fn timestamp_now() -> String {
             String::from_utf8_lossy(&output.stdout).trim().to_string()
         }
         _ => "unknown".into(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{RecentMergedPr, parse_gh_pull_page};
+
+    #[test]
+    fn parse_gh_pull_page_keeps_merged_and_unmerged_entries() {
+        let payload = br#"
+        [
+          { "number": 10, "merged_at": "2026-04-02T20:00:00Z" },
+          { "number": 11, "merged_at": null }
+        ]
+        "#;
+
+        let items = parse_gh_pull_page(payload).expect("gh payload should parse");
+        assert_eq!(items.len(), 2);
+        assert_eq!(items[0].number, 10);
+        assert_eq!(items[0].merged_at.as_deref(), Some("2026-04-02T20:00:00Z"));
+        assert_eq!(items[1].number, 11);
+        assert_eq!(items[1].merged_at, None);
+    }
+
+    #[test]
+    fn recent_merged_prs_sort_descending_by_merge_time() {
+        let mut prs = vec![
+            RecentMergedPr {
+                number: 1,
+                merged_at: "2026-04-01T00:00:00Z".into(),
+            },
+            RecentMergedPr {
+                number: 2,
+                merged_at: "2026-04-03T00:00:00Z".into(),
+            },
+        ];
+
+        prs.sort_by(|a, b| b.merged_at.cmp(&a.merged_at));
+        assert_eq!(prs[0].number, 2);
+        assert_eq!(prs[1].number, 1);
     }
 }

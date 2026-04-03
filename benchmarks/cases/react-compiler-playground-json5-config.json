@@ -1,0 +1,20 @@
+{
+  "id": "react-compiler-playground-json5-config",
+  "description": "React playground switches compiler config parsing to JSON5 across editor code and regression tests",
+  "repo": "facebook/react",
+  "pr_number": 36159,
+  "expected": "pass",
+  "rationale": "ConfigEditor, compilation, defaultStore, package metadata, and the e2e/unit regression assets all serve the same compiler-playground parsing change. They should stay one semantic unit.",
+  "category": "semantic-bridge",
+  "domains_expected": [],
+  "ecosystem": "typescript",
+  "notes": "Current engine correctly reports pass; retained to keep recent playground implementation-plus-test PRs represented in the corpus.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 10005,
+    "collection_name": "Javascript Framework",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-04-03T00:25:46Z"
+  },
+  "target_rule": "detect-unscoped-change"
+}

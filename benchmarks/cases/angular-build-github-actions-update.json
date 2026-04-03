@@ -1,0 +1,20 @@
+{
+  "id": "angular-build-github-actions-update",
+  "description": "Angular updates multiple GitHub workflow definitions as one CI-only maintenance change",
+  "repo": "angular/angular",
+  "pr_number": 67991,
+  "expected": "pass",
+  "rationale": "The PR edits only workflow YAML files under .github/workflows. This is one cohesive CI maintenance change with no product-code scope expansion.",
+  "category": "ci-only",
+  "domains_expected": [],
+  "ecosystem": "yaml",
+  "notes": "Current engine correctly reports pass; retained as a regression guard for workflow-only PRs discovered from the live OSS Insight corpus.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 10005,
+    "collection_name": "Javascript Framework",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-04-03T00:25:46Z"
+  },
+  "target_rule": "detect-unscoped-change"
+}

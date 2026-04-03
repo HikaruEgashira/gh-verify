@@ -1,0 +1,20 @@
+{
+  "id": "ember-internal-test-helpers-public-exports",
+  "description": "Ember removes a helper export and updates the integration tests that exercise that public surface",
+  "repo": "emberjs/ember.js",
+  "pr_number": 21281,
+  "expected": "pass",
+  "rationale": "The internal-test-helpers export change and the affected integration/component tests move together as one public-surface cleanup.",
+  "category": "semantic-bridge",
+  "domains_expected": [],
+  "ecosystem": "typescript",
+  "notes": "Current engine correctly reports pass; retained to keep test-heavy public-surface cleanup PRs in the live benchmark corpus.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 10005,
+    "collection_name": "Javascript Framework",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-04-03T00:25:46Z"
+  },
+  "target_rule": "detect-unscoped-change"
+}

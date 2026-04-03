@@ -1,0 +1,20 @@
+{
+  "id": "svelte-const-tag-visible-references",
+  "description": "Svelte updates const-tag invalidation logic together with a focused legacy-mode regression sample",
+  "repo": "sveltejs/svelte",
+  "pr_number": 18041,
+  "expected": "pass",
+  "rationale": "The compiler visitor change and the runtime-legacy sample files are one implementation-plus-proof fix for visible-reference invalidation behavior.",
+  "category": "semantic-bridge",
+  "domains_expected": [],
+  "ecosystem": "javascript",
+  "notes": "Current engine correctly reports pass; retained so sample-backed compiler fixes remain represented in the real-world benchmark set.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 10005,
+    "collection_name": "Javascript Framework",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-04-03T00:25:46Z"
+  },
+  "target_rule": "detect-unscoped-change"
+}
