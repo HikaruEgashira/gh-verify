@@ -13,5 +13,5 @@
   ],
   "ecosystem": "typescript",
   "notes": "FALSE POSITIVE: test files under __tests__/ should be test domain (ignored). Without this bug, would be docs+ci = WARNING. Known gap: __tests__ pattern.",
-  "target_rule": "detect-unscoped-change"
+  "target_rule": "scoped-change"
 }

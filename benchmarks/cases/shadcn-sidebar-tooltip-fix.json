@@ -9,5 +9,5 @@
   "domains_expected": [],
   "ecosystem": "typescript",
   "notes": "Previously warning (ui+config = 2 domains). The .json style/registry files are logically related to the UI component but have no call-graph connectivity, making them separate components under the new analysis.",
-  "target_rule": "detect-unscoped-change"
+  "target_rule": "scoped-change"
 }

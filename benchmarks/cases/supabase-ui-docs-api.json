@@ -13,5 +13,5 @@
   ],
   "ecosystem": "typescript",
   "notes": "Documentation site feature adding API endpoint + UI components + markdown docs. A genuinely mixed PR that should ideally be split into: (1) API endpoint, (2) UI components, (3) docs update.",
-  "target_rule": "detect-unscoped-change"
+  "target_rule": "scoped-change"
 }

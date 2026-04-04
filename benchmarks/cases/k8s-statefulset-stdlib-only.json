@@ -11,5 +11,5 @@
   ],
   "ecosystem": "go",
   "notes": "Go standard library imports (fmt, context, etc.) should not trigger any domain classification. The semantic analyzer should recognize these as domain-neutral and yield no hints, letting path-based classification decide. Tests that Go stdlib is correctly treated as non-signal.",
-  "target_rule": "detect-unscoped-change"
+  "target_rule": "scoped-change"
 }

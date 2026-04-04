@@ -14,5 +14,5 @@
   ],
   "ecosystem": "typescript",
   "notes": "Port/backport PRs are inherently multi-domain. Legitimate detection.",
-  "target_rule": "detect-unscoped-change"
+  "target_rule": "scoped-change"
 }

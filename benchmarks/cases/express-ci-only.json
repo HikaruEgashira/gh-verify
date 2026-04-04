@@ -11,5 +11,5 @@
   ],
   "ecosystem": "javascript",
   "notes": "Dependabot bump for actions/upload-artifact. Classic single-domain CI change.",
-  "target_rule": "detect-unscoped-change"
+  "target_rule": "scoped-change"
 }

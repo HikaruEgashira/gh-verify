@@ -11,5 +11,5 @@
   ],
   "ecosystem": "javascript",
   "notes": "Tests that clean single-domain import detection works for CommonJS/no-import patterns. The response.js file uses require() style but is clearly API domain by path. History.md changelog should be filtered by noise threshold.",
-  "target_rule": "detect-unscoped-change"
+  "target_rule": "scoped-change"
 }

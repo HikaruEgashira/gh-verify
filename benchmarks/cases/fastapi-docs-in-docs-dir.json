@@ -11,5 +11,5 @@
   ],
   "ecosystem": "python",
   "notes": "Edge case: .css file normally would be ui domain, but docs/ prefix is checked first. Path prefix takes priority over file extension.",
-  "target_rule": "detect-unscoped-change"
+  "target_rule": "scoped-change"
 }

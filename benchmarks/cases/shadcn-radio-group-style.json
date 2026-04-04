@@ -9,5 +9,5 @@
   "domains_expected": [],
   "ecosystem": "typescript",
   "notes": "Previously warning (ui+config = 2 domains). Call-graph analysis treats .tsx components and package.json as disconnected since there are no import/call edges between them.",
-  "target_rule": "detect-unscoped-change"
+  "target_rule": "scoped-change"
 }

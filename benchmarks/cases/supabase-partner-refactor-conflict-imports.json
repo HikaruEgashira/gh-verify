@@ -9,5 +9,5 @@
   "domains_expected": [],
   "ecosystem": "typescript",
   "notes": "Previously pass (only 1 active domain with unknown files ignored). Call-graph analysis does not ignore unknown-classified files; it checks actual connectivity. The type definition file has no import relationship to the partner refactor files.",
-  "target_rule": "detect-unscoped-change"
+  "target_rule": "scoped-change"
 }

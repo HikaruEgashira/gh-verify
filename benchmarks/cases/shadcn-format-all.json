@@ -13,5 +13,5 @@
   ],
   "ecosystem": "typescript",
   "notes": "FALSE POSITIVE: formatting-only change should arguably be pass. But gh-verify correctly detects the paths touch multiple domains. Scope issue, not classification issue.",
-  "target_rule": "detect-unscoped-change"
+  "target_rule": "scoped-change"
 }

@@ -11,5 +11,5 @@
   ],
   "ecosystem": "python",
   "notes": "Bug fix in router. Classic single api-domain change.",
-  "target_rule": "detect-unscoped-change"
+  "target_rule": "scoped-change"
 }

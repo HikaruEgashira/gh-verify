@@ -14,9 +14,9 @@ Results are saved to `results/run_<timestamp>.json`.
 
 The benchmark runner executes **all controls** against each case via `assessment::assess`, then extracts the result for the specific control under test.
 
-Each case specifies a `target_rule` field (e.g. `detect-unscoped-change`). The runner filters the assessment outcomes to that control's `control_id` and compares its decision against the case's `expected` severity. Cases without `target_rule` fall back to the max severity across all controls.
+Each case specifies a `target_rule` field (e.g. `scoped-change`). The runner filters the assessment outcomes to that control's `control_id` and compares its decision against the case's `expected` severity. Cases without `target_rule` fall back to the max severity across all controls. Legacy case files that still use `detect-unscoped-change` are normalized to `scoped-change` during loading.
 
-Multiple policy presets can be compared in a single run via `--algorithm`:
+Multiple policy presets can be compared in a single run via `--algorithm`. When omitted, the runner defaults to `default`:
 
 ```bash
 cargo run --bin gh-verify-bench -- --algorithm default,slsa-l1,oss
@@ -44,13 +44,15 @@ The manifest records:
 - changed file paths and code file paths for each discovered PR, so curation can happen from one manifest
 
 The collector uses OSS Insight for repository ranking and the authenticated `gh` CLI session for recent merged PR enumeration, so `gh auth status` must succeed before running it.
+`gh` calls are timeout-bounded (default 30s per call). If your network is slow, raise the limit with `GH_VERIFY_GH_TIMEOUT_SECS`.
+OSS Insight collection and PR-creator requests retry transient network / `429` / `5xx` failures with bounded backoff.
 
 Curated benchmark cases should copy the relevant PRs into `cases/` with a `source` block so the provenance remains explicit.
 New case `id` values should be stable descriptive slugs. Legacy severity-prefixed ids remain for historical continuity, but new ids should not encode the expected verdict.
 
 ## Detection Method: Call-Graph Connectivity
 
-The `detect-unscoped-change` control (currently the only benchmarked control) extracts function definitions, function calls, and imports from each changed file's patch using tree-sitter AST analysis (with lexical fallback for unsupported languages). It builds a graph and checks connectivity using Union-Find:
+The `scoped-change` control (currently the only benchmarked control) extracts function definitions, function calls, and imports from each changed file's patch using tree-sitter AST analysis (with lexical fallback for unsupported languages). It builds a graph and checks connectivity using Union-Find:
 
 - **Nodes**: changed files + extracted function definitions
 - **Edges**: function call matches between files, import path resolution
@@ -84,7 +86,7 @@ All benchmark cases are stored as flat JSON files in `cases/`.
 | Field | Required | Description |
 |-------|----------|-------------|
 | `id` | yes | Stable case ID |
-| `target_rule` | no | Control ID to evaluate (e.g. `detect-unscoped-change`). Omit for whole-assessment comparison. |
+| `target_rule` | no | Control ID to evaluate (e.g. `scoped-change`). Omit for whole-assessment comparison. |
 | `expected` | yes | Expected severity: `pass`, `warning`, or `error` |
 | `category` | yes | Case category (see below) |
 | `repo` | yes | GitHub `owner/repo` |

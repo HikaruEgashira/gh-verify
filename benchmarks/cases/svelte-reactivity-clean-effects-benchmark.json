@@ -1,0 +1,20 @@
+{
+  "id": "svelte-reactivity-clean-effects-benchmark",
+  "description": "Svelte enables async benchmark mode and adds a clean-effects reactivity benchmark fixture",
+  "repo": "sveltejs/svelte",
+  "pr_number": 18061,
+  "expected": "pass",
+  "rationale": "The async benchmark flag and the clean_effects benchmark file belong to the same benchmarking scenario. The harness toggle exists to make the new benchmark representative, so they should remain one scoped change.",
+  "category": "semantic-bridge",
+  "domains_expected": [],
+  "ecosystem": "javascript",
+  "notes": "Current engine correctly reports pass; retained to keep recent benchmark-suite maintenance PRs represented in the real-world corpus.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 10005,
+    "collection_name": "Javascript Framework",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-04-04T00:03:39Z"
+  },
+  "target_rule": "scoped-change"
+}
