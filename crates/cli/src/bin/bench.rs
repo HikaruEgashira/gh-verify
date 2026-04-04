@@ -17,6 +17,7 @@ use libverify_core::scope::is_non_code_file;
 use libverify_core::verdict::Severity;
 use libverify_github::graphql;
 use libverify_github::ossinsight::{CollectionRepoRank, OssInsightClient, PullRequestCreator};
+use libverify_github::types::PrFile;
 use libverify_github::{GitHubClient, GitHubConfig};
 use libverify_policy::OpaProfile;
 use serde::Serialize;
@@ -245,6 +246,8 @@ struct GhPullListItem {
 const DEFAULT_BENCHMARK_ALGORITHM: &str = "default";
 const OSSINSIGHT_MAX_ATTEMPTS: usize = 3;
 const OSSINSIGHT_RETRY_BASE_DELAY: Duration = Duration::from_millis(500);
+const GITHUB_PULL_FILES_PAGE_SIZE: usize = 100;
+const GITHUB_PULL_FILES_MAX_PAGES: usize = 30;
 
 fn main() {
     if let Err(e) = run() {
@@ -266,9 +269,15 @@ fn fetch_evidence(
     owner: &str,
     repo: &str,
     pr_number: u32,
+    target_rule: Option<&str>,
 ) -> Result<EvidenceBundle> {
-    let pr_data = graphql::fetch_pr(client, owner, repo, pr_number)
+    let mut pr_data = graphql::fetch_pr(client, owner, repo, pr_number)
         .context("failed to fetch PR data via GraphQL")?;
+
+    if target_rule_requires_patch(target_rule) {
+        pr_data.files = fetch_pr_files_with_patch(owner, repo, pr_number)?;
+        ensure_scoped_change_patch_coverage(&pr_data.files)?;
+    }
 
     let repo_full = format!("{owner}/{repo}");
     Ok(libverify_github::adapter::build_pull_request_bundle(
@@ -739,8 +748,49 @@ fn discover_recent_merged_prs_via_gh(
     Ok(prs)
 }
 
+fn fetch_pr_files_with_patch(owner: &str, repo: &str, pr_number: u32) -> Result<Vec<PrFile>> {
+    let mut files = Vec::new();
+
+    for page in 1..=GITHUB_PULL_FILES_MAX_PAGES {
+        let endpoint = format!(
+            "/repos/{owner}/{repo}/pulls/{pr_number}/files?per_page={GITHUB_PULL_FILES_PAGE_SIZE}&page={page}"
+        );
+        let output = run_gh(&["api", endpoint.as_str()]).with_context(|| {
+            format!("failed to execute gh api for PR files in {owner}/{repo}#{pr_number}")
+        })?;
+
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+            bail!("gh api failed while fetching PR files for {owner}/{repo}#{pr_number}: {stderr}");
+        }
+
+        let page_items = parse_gh_pr_files_page(&output.stdout).with_context(|| {
+            format!("failed to parse gh api PR files page {page} for {owner}/{repo}#{pr_number}")
+        })?;
+        if page_items.is_empty() {
+            break;
+        }
+
+        let page_len = page_items.len();
+        files.extend(page_items);
+        if page_len < GITHUB_PULL_FILES_PAGE_SIZE {
+            break;
+        }
+    }
+
+    if files.is_empty() {
+        bail!("no PR files returned from gh api for {owner}/{repo}#{pr_number}");
+    }
+
+    Ok(files)
+}
+
 fn parse_gh_pull_page(bytes: &[u8]) -> Result<Vec<GhPullListItem>> {
     serde_json::from_slice(bytes).context("invalid gh api pull list payload")
+}
+
+fn parse_gh_pr_files_page(bytes: &[u8]) -> Result<Vec<PrFile>> {
+    serde_json::from_slice(bytes).context("invalid gh api PR files payload")
 }
 
 fn requested_algorithms(raw: &[String]) -> Vec<String> {
@@ -756,6 +806,31 @@ fn canonical_target_rule(rule: &str) -> &str {
         "detect-unscoped-change" => "scoped-change",
         _ => rule,
     }
+}
+
+fn target_rule_requires_patch(target_rule: Option<&str>) -> bool {
+    target_rule
+        .map(canonical_target_rule)
+        .is_some_and(|rule| rule == "scoped-change")
+}
+
+fn ensure_scoped_change_patch_coverage(files: &[PrFile]) -> Result<()> {
+    let code_total = files
+        .iter()
+        .filter(|file| !is_non_code_file(&file.filename))
+        .count();
+    let code_with_patch = files
+        .iter()
+        .filter(|file| !is_non_code_file(&file.filename) && file.patch.is_some())
+        .count();
+
+    if code_total > 1 && code_with_patch <= 1 {
+        bail!(
+            "insufficient patch coverage for scoped-change: {code_with_patch}/{code_total} code files include diff patches"
+        );
+    }
+
+    Ok(())
 }
 
 fn retry_ossinsight<T, F>(label: &str, mut op: F) -> Result<T>
@@ -814,7 +889,7 @@ fn run_case_with(
 
     let target_rule = case.target_rule.as_deref();
 
-    match fetch_evidence(client, owner, repo, case.pr_number) {
+    match fetch_evidence(client, owner, repo, case.pr_number, target_rule) {
         Ok(bundle) => assess_bundle(&bundle, controls, profile, target_rule),
         Err(e) => ActualResult::FetchError(format!("{e}")),
     }
@@ -975,8 +1050,9 @@ fn timestamp_now() -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        Cli, Command, RecentMergedPr, canonical_target_rule, is_retryable_ossinsight_error,
-        parse_gh_pull_page, requested_algorithms,
+        Cli, Command, PrFile, RecentMergedPr, canonical_target_rule,
+        ensure_scoped_change_patch_coverage, is_retryable_ossinsight_error, parse_gh_pr_files_page,
+        parse_gh_pull_page, requested_algorithms, target_rule_requires_patch,
     };
     use clap::Parser;
 
@@ -995,6 +1071,21 @@ mod tests {
         assert_eq!(items[0].merged_at.as_deref(), Some("2026-04-02T20:00:00Z"));
         assert_eq!(items[1].number, 11);
         assert_eq!(items[1].merged_at, None);
+    }
+
+    #[test]
+    fn parse_gh_pr_files_page_keeps_patch_presence() {
+        let payload = br#"
+        [
+          { "filename": "src/lib.rs", "patch": "@@ -1 +1 @@\n-fn old() {}\n+fn new() {}\n", "additions": 1, "deletions": 1, "status": "modified" },
+          { "filename": "README.md", "patch": null, "additions": 1, "deletions": 0, "status": "modified" }
+        ]
+        "#;
+
+        let items = parse_gh_pr_files_page(payload).expect("gh PR files payload should parse");
+        assert_eq!(items.len(), 2);
+        assert!(items[0].patch.is_some());
+        assert!(items[1].patch.is_none());
     }
 
     #[test]
@@ -1031,6 +1122,41 @@ mod tests {
             "scoped-change"
         );
         assert_eq!(canonical_target_rule("scoped-change"), "scoped-change");
+    }
+
+    #[test]
+    fn target_rule_requires_patch_for_scoped_change_variants() {
+        assert!(target_rule_requires_patch(Some("scoped-change")));
+        assert!(target_rule_requires_patch(Some("detect-unscoped-change")));
+        assert!(!target_rule_requires_patch(Some("change-request-size")));
+        assert!(!target_rule_requires_patch(None));
+    }
+
+    #[test]
+    fn scoped_change_patch_coverage_guard_rejects_multi_code_without_diffs() {
+        let files = vec![
+            PrFile {
+                filename: "src/a.rs".into(),
+                patch: None,
+                additions: 1,
+                deletions: 0,
+                status: "modified".into(),
+            },
+            PrFile {
+                filename: "src/b.rs".into(),
+                patch: None,
+                additions: 1,
+                deletions: 0,
+                status: "modified".into(),
+            },
+        ];
+
+        let err = ensure_scoped_change_patch_coverage(&files)
+            .expect_err("multi-file scoped-change should require at least two diff patches");
+        assert!(
+            format!("{err:#}").contains("insufficient patch coverage for scoped-change"),
+            "unexpected error: {err:#}"
+        );
     }
 
     #[test]
