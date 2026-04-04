@@ -1085,9 +1085,9 @@ checksum = "48f5d2a454e16a5ea0f4ced81bd44e4cfc7bd3a507b61887c99fd3538b28e4af"
 
 [[package]]
 name = "libverify-core"
-version = "0.9.0"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "362172a2790a4fcafb195087d0cd2215b87e7079853cb11ad4a79e34f868dc96"
+checksum = "d487e9000c91f2a90ac19c6e5fc7edda334318436b88b839e853b9ae4dae1c5a"
 dependencies = [
  "serde",
  "serde_json",
@@ -1095,9 +1095,9 @@ dependencies = [
 
 [[package]]
 name = "libverify-github"
-version = "0.9.0"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f88f3b0e30d4ccbb571d68503730c41f2e7aa56bc23beda20e51e5e41151350e"
+checksum = "d0aafe744806e090459e68feecfc0f50649074e030aa13c9c65d656c645eaddb"
 dependencies = [
  "anyhow",
  "base64",
@@ -1114,9 +1114,9 @@ dependencies = [
 
 [[package]]
 name = "libverify-output"
-version = "0.9.0"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "969970376eb9161d32303f47c2b5b02b837431440988e264e660427cfc257b90"
+checksum = "7b5a58f840c5c5af4b7d0280c0ad4360566a62006ef5acca11bcf6b3be7def7a"
 dependencies = [
  "anyhow",
  "libverify-core",
@@ -1126,9 +1126,9 @@ dependencies = [
 
 [[package]]
 name = "libverify-policy"
-version = "0.9.0"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "40dfd24ee678d099d95e2ec1a26dcd8d057da127ca5445575b5481cc040cee49"
+checksum = "109b263187abd6d738645941a39faa64e3b2ea08e705fa3dbdaf041c881a2037"
 dependencies = [
  "anyhow",
  "libverify-core",
