@@ -11,5 +11,5 @@
   ],
   "ecosystem": "go",
   "notes": "Pure path-only fallback case. File contains only a version string - no imports, no code structure to analyze semantically. Verifies that the semantic analyzer gracefully handles files with zero parseable imports and does not interfere with path classification.",
-  "target_rule": "detect-unscoped-change"
+  "target_rule": "scoped-change"
 }

@@ -2,10 +2,12 @@ use std::collections::HashMap;
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::process;
-use std::time::Instant;
+use std::thread;
+use std::time::{Duration, Instant};
 
 use anyhow::{Context, Result, bail};
 use clap::{Args, Parser, Subcommand};
+use gh_verify::gh_cli::run_gh;
 use libverify_core::assessment;
 use libverify_core::control::Control;
 use libverify_core::controls;
@@ -33,7 +35,8 @@ struct Cli {
     format: String,
     /// Policy presets to benchmark (comma-separated or repeated).
     /// Available: default, oss, aiops, soc1, soc2, slsa-l1, slsa-l2, slsa-l3, slsa-l4, or .rego path.
-    #[arg(long = "algorithm", value_delimiter = ',', required = true)]
+    /// Defaults to `default` when omitted.
+    #[arg(long = "algorithm", value_delimiter = ',')]
     algorithms: Vec<String>,
     #[command(subcommand)]
     command: Option<Command>,
@@ -239,6 +242,10 @@ struct GhPullListItem {
     merged_at: Option<String>,
 }
 
+const DEFAULT_BENCHMARK_ALGORITHM: &str = "default";
+const OSSINSIGHT_MAX_ATTEMPTS: usize = 3;
+const OSSINSIGHT_RETRY_BASE_DELAY: Duration = Duration::from_millis(500);
+
 fn main() {
     if let Err(e) = run() {
         eprintln!("Error: {e:#}");
@@ -300,6 +307,7 @@ fn assess_bundle(
 
     // When target_rule is specified, use only that control's outcome.
     if let Some(rule) = target_rule {
+        let rule = canonical_target_rule(rule);
         if let Some(outcome) = report
             .outcomes
             .iter()
@@ -329,8 +337,10 @@ fn run_benchmarks(cli: &Cli) -> Result<()> {
         anyhow::bail!("no benchmark cases found in {}", dir.display());
     }
 
+    let algorithms = requested_algorithms(&cli.algorithms);
+
     // Validate all algorithm names upfront.
-    for name in &cli.algorithms {
+    for name in &algorithms {
         resolve_algorithm(name)?;
     }
 
@@ -339,14 +349,14 @@ fn run_benchmarks(cli: &Cli) -> Result<()> {
 
     eprintln!("ghverify benchmark");
     eprintln!("==================");
-    eprintln!("Algorithms: {}", cli.algorithms.join(", "));
+    eprintln!("Algorithms: {}", algorithms.join(", "));
     eprintln!();
 
     let total_cases = cases.len();
     let bench_started = Instant::now();
     let mut algo_reports: Vec<(String, Report)> = Vec::new();
 
-    for algo_name in &cli.algorithms {
+    for algo_name in &algorithms {
         let (controls, profile) = resolve_algorithm(algo_name)?;
 
         eprintln!("--- Algorithm: {algo_name} ---");
@@ -397,6 +407,7 @@ fn run_benchmarks(cli: &Cli) -> Result<()> {
             let target = case
                 .target_rule
                 .as_deref()
+                .map(canonical_target_rule)
                 .unwrap_or("assessment")
                 .to_owned();
             results.push(CaseResult {
@@ -542,7 +553,13 @@ fn collect_real_world(args: CollectRealWorldArgs) -> Result<()> {
     let github = GitHubClient::new(&cfg)?;
     let ossinsight = OssInsightClient::new()?;
 
-    let ranked_repos = ossinsight.ranking_by_prs(args.collection_id, &args.period)?;
+    let ranked_repos = retry_ossinsight(
+        &format!(
+            "OSS Insight collection {} ranking_by_prs(period={})",
+            args.collection_id, args.period
+        ),
+        || ossinsight.ranking_by_prs(args.collection_id, &args.period),
+    )?;
     if ranked_repos.is_empty() {
         anyhow::bail!("OSS Insight returned no ranked repositories");
     }
@@ -590,7 +607,10 @@ fn discover_repo(
         .split_once('/')
         .ok_or_else(|| anyhow::anyhow!("invalid repo name from OSS Insight: {}", rank.repo_name))?;
 
-    let top_pr_creators = ossinsight.pull_request_creators(owner, repo, creators_per_repo)?;
+    let top_pr_creators = retry_ossinsight(
+        &format!("OSS Insight pull_request_creators for {owner}/{repo}"),
+        || ossinsight.pull_request_creators(owner, repo, creators_per_repo),
+    )?;
     let recent_prs = discover_recent_merged_prs_via_gh(owner, repo, prs_per_repo)?;
     let merged_at_by_number: HashMap<u32, String> = recent_prs
         .iter()
@@ -680,17 +700,12 @@ fn discover_recent_merged_prs_via_gh(
 
     let mut prs = Vec::new();
     for page in 1..=10 {
-        let output = process::Command::new("gh")
-            .args([
-                "api",
-                &format!(
-                    "/repos/{owner}/{repo}/pulls?state=closed&sort=updated&direction=desc&per_page=100&page={page}"
-                ),
-            ])
-            .output()
-            .with_context(|| {
-                format!("failed to execute gh api for merged PR discovery in {owner}/{repo}")
-            })?;
+        let endpoint = format!(
+            "/repos/{owner}/{repo}/pulls?state=closed&sort=updated&direction=desc&per_page=100&page={page}"
+        );
+        let output = run_gh(&["api", endpoint.as_str()]).with_context(|| {
+            format!("failed to execute gh api for merged PR discovery in {owner}/{repo}")
+        })?;
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
@@ -726,6 +741,64 @@ fn discover_recent_merged_prs_via_gh(
 
 fn parse_gh_pull_page(bytes: &[u8]) -> Result<Vec<GhPullListItem>> {
     serde_json::from_slice(bytes).context("invalid gh api pull list payload")
+}
+
+fn requested_algorithms(raw: &[String]) -> Vec<String> {
+    if raw.is_empty() {
+        vec![DEFAULT_BENCHMARK_ALGORITHM.to_owned()]
+    } else {
+        raw.to_vec()
+    }
+}
+
+fn canonical_target_rule(rule: &str) -> &str {
+    match rule {
+        "detect-unscoped-change" => "scoped-change",
+        _ => rule,
+    }
+}
+
+fn retry_ossinsight<T, F>(label: &str, mut op: F) -> Result<T>
+where
+    F: FnMut() -> Result<T>,
+{
+    let mut delay = OSSINSIGHT_RETRY_BASE_DELAY;
+    for attempt in 1..=OSSINSIGHT_MAX_ATTEMPTS {
+        match op() {
+            Ok(value) => return Ok(value),
+            Err(err) => {
+                let retryable = is_retryable_ossinsight_error(&err);
+                if !retryable || attempt == OSSINSIGHT_MAX_ATTEMPTS {
+                    return Err(err);
+                }
+                eprintln!(
+                    "Warning: {label} failed on attempt {attempt}/{OSSINSIGHT_MAX_ATTEMPTS}: {err:#}. Retrying in {}ms...",
+                    delay.as_millis()
+                );
+                thread::sleep(delay);
+                delay = delay.saturating_mul(2);
+            }
+        }
+    }
+    unreachable!("retry loop always returns")
+}
+
+fn is_retryable_ossinsight_error(err: &anyhow::Error) -> bool {
+    let msg = format!("{err:#}").to_ascii_lowercase();
+    [
+        "oss insight request failed",
+        "timed out",
+        "timeout",
+        "connection reset",
+        "connection refused",
+        "429 too many requests",
+        "500 internal server error",
+        "502 bad gateway",
+        "503 service unavailable",
+        "504 gateway timeout",
+    ]
+    .iter()
+    .any(|needle| msg.contains(needle))
 }
 
 fn run_case_with(
@@ -901,7 +974,11 @@ fn timestamp_now() -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{RecentMergedPr, parse_gh_pull_page};
+    use super::{
+        Cli, Command, RecentMergedPr, canonical_target_rule, is_retryable_ossinsight_error,
+        parse_gh_pull_page, requested_algorithms,
+    };
+    use clap::Parser;
 
     #[test]
     fn parse_gh_pull_page_keeps_merged_and_unmerged_entries() {
@@ -936,5 +1013,41 @@ mod tests {
         prs.sort_by(|a, b| b.merged_at.cmp(&a.merged_at));
         assert_eq!(prs[0].number, 2);
         assert_eq!(prs[1].number, 1);
+    }
+
+    #[test]
+    fn requested_algorithms_defaults_to_default() {
+        assert_eq!(requested_algorithms(&[]), vec!["default".to_string()]);
+        assert_eq!(
+            requested_algorithms(&["oss".to_string(), "soc2".to_string()]),
+            vec!["oss".to_string(), "soc2".to_string()]
+        );
+    }
+
+    #[test]
+    fn canonical_target_rule_maps_legacy_unscoped_change_name() {
+        assert_eq!(
+            canonical_target_rule("detect-unscoped-change"),
+            "scoped-change"
+        );
+        assert_eq!(canonical_target_rule("scoped-change"), "scoped-change");
+    }
+
+    #[test]
+    fn transient_ossinsight_errors_are_retryable() {
+        assert!(is_retryable_ossinsight_error(&anyhow::anyhow!(
+            "OSS Insight API error: 500 Internal Server Error"
+        )));
+        assert!(!is_retryable_ossinsight_error(&anyhow::anyhow!(
+            "OSS Insight API error: 404 Not Found"
+        )));
+    }
+
+    #[test]
+    fn collect_real_world_parses_without_algorithm() {
+        let cli = Cli::try_parse_from(["gh-verify-bench", "collect-real-world"])
+            .expect("collect-real-world should parse without --algorithm");
+        assert!(cli.algorithms.is_empty());
+        assert!(matches!(cli.command, Some(Command::CollectRealWorld(_))));
     }
 }

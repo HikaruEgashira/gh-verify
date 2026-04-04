@@ -3,15 +3,16 @@ use std::process;
 use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
 use colored::Colorize;
+use gh_verify::gh_cli::run_gh;
 
 use libverify_github::range::{
     detect_latest_release_tag, parse_range, parse_release_arg, resolve_pr_numbers,
 };
 use libverify_github::verify::exit_if_assessment_fails;
 use libverify_github::{
-    GitHubClient, GitHubConfig, assess_bundle, assess_repo_bundle, collect_repo_evidence,
+    GitHubClient, GitHubConfig, assess_bundle, assess_repo_bundle,
     collect_release_attestation_evidence, collect_release_pr_evidence,
-    collect_release_repo_evidence, verify_pr, verify_pr_batch, verify_repo,
+    collect_release_repo_evidence, collect_repo_evidence, verify_pr, verify_pr_batch, verify_repo,
 };
 
 mod output;
@@ -420,7 +421,6 @@ fn run() -> Result<()> {
 }
 
 fn print_controls() {
-
     println!(
         "{}",
         "SLSA levels: L1 (basic) → L2 (attested) → L3 (hardened) → L4 (comprehensive)".dimmed()
@@ -713,8 +713,7 @@ fn apply_exclusions(
     if exclude.is_empty() {
         return;
     }
-    let exclude_set: std::collections::HashSet<&str> =
-        exclude.iter().map(String::as_str).collect();
+    let exclude_set: std::collections::HashSet<&str> = exclude.iter().map(String::as_str).collect();
     let known_ids: std::collections::HashSet<String> = result
         .report
         .outcomes
@@ -804,14 +803,10 @@ fn apply_batch_exclusions(batch: &mut libverify_core::assessment::BatchReport, e
 }
 
 fn check_repo_exists(owner: &str, repo: &str) -> Result<()> {
-    let output = std::process::Command::new("gh")
-        .args(["api", &format!("repos/{owner}/{repo}"), "--silent"])
-        .stderr(std::process::Stdio::piped())
-        .stdout(std::process::Stdio::null())
-        .output()
-        .context(
-            "failed to run 'gh api'. Ensure the GitHub CLI (gh) is installed and authenticated",
-        )?;
+    let endpoint = format!("repos/{owner}/{repo}");
+    let output = run_gh(&["api", endpoint.as_str(), "--silent"]).context(
+        "failed to run 'gh api'. Ensure the GitHub CLI (gh) is installed and authenticated",
+    )?;
     if !output.status.success() {
         anyhow::bail!(
             "repository '{owner}/{repo}' not found or not accessible. Check the name and your permissions"
@@ -916,12 +911,9 @@ fn parse_github_remote_url(url: &str) -> Option<String> {
 }
 
 fn detect_pr_number() -> Result<u32> {
-    let output = std::process::Command::new("gh")
-        .args(["pr", "view", "--json", "number", "--jq", ".number"])
-        .output()
-        .context(
-            "failed to run 'gh pr view'. Ensure the GitHub CLI (gh) is installed and authenticated",
-        )?;
+    let output = run_gh(&["pr", "view", "--json", "number", "--jq", ".number"]).context(
+        "failed to run 'gh pr view'. Ensure the GitHub CLI (gh) is installed and authenticated",
+    )?;
     if !output.status.success() {
         anyhow::bail!(
             "no PR number provided and no open PR found for current branch. Specify a PR number: gh verify pr 123"
@@ -1000,72 +992,68 @@ fn run_fleet_matrix(
     use libverify_core::profile::GateDecision;
     use rayon::prelude::*;
 
-    let exclude_set: std::collections::HashSet<&str> =
-        exclude.iter().map(String::as_str).collect();
+    let exclude_set: std::collections::HashSet<&str> = exclude.iter().map(String::as_str).collect();
     let only_set: std::collections::HashSet<&str> = only.iter().map(String::as_str).collect();
 
     type HotspotMap = BTreeMap<String, BTreeMap<String, usize>>;
 
     // Parallel evidence collection and assessment per repo
     let repo_results: Vec<Result<(FleetMatrixRow, HotspotMap)>> = repo_list
-            .par_iter()
-            .map(|(owner, repo_name)| {
-                let repo_id = format!("{owner}/{repo_name}");
+        .par_iter()
+        .map(|(owner, repo_name)| {
+            let repo_id = format!("{owner}/{repo_name}");
+            if !quiet {
+                eprintln!("Collecting evidence for {repo_id}...");
+            }
+
+            let bundle = collect_repo_evidence(client, owner, repo_name, reference)
+                .with_context(|| format!("failed to collect evidence for {repo_id}"))?;
+
+            let mut results = BTreeMap::new();
+            let mut local_hotspots: BTreeMap<String, BTreeMap<String, usize>> = BTreeMap::new();
+
+            for &policy in policies {
                 if !quiet {
-                    eprintln!("Collecting evidence for {repo_id}...");
+                    eprintln!("  Assessing {repo_id} with policy: {policy}");
                 }
 
-                let bundle = collect_repo_evidence(client, owner, repo_name, reference)
-                    .with_context(|| format!("failed to collect evidence for {repo_id}"))?;
+                let mut report = assess_repo_bundle(&bundle, Some(policy), vec![])
+                    .with_context(|| format!("failed to assess {repo_id} with policy {policy}"))?;
 
-                let mut results = BTreeMap::new();
-                let mut local_hotspots: BTreeMap<String, BTreeMap<String, usize>> =
-                    BTreeMap::new();
+                if !exclude_set.is_empty() {
+                    report
+                        .outcomes
+                        .retain(|o| !exclude_set.contains(o.control_id.as_ref()));
+                }
+                if !only_set.is_empty() {
+                    report
+                        .outcomes
+                        .retain(|o| only_set.contains(o.control_id.as_ref()));
+                }
 
-                for &policy in policies {
-                    if !quiet {
-                        eprintln!("  Assessing {repo_id} with policy: {policy}");
-                    }
-
-                    let mut report =
-                        assess_repo_bundle(&bundle, Some(policy), vec![]).with_context(|| {
-                            format!("failed to assess {repo_id} with policy {policy}")
-                        })?;
-
-                    if !exclude_set.is_empty() {
-                        report
-                            .outcomes
-                            .retain(|o| !exclude_set.contains(o.control_id.as_ref()));
-                    }
-                    if !only_set.is_empty() {
-                        report
-                            .outcomes
-                            .retain(|o| only_set.contains(o.control_id.as_ref()));
-                    }
-
-                    let mut summary = PolicySummary::default();
-                    for outcome in &report.outcomes {
-                        match outcome.decision {
-                            GateDecision::Pass => summary.pass += 1,
-                            GateDecision::Review => summary.review += 1,
-                            GateDecision::Fail => {
-                                summary.fail += 1;
-                                let cid = outcome.control_id.to_string();
-                                summary.failing_controls.push(cid.clone());
-                                *local_hotspots
-                                    .entry(cid)
-                                    .or_default()
-                                    .entry(policy.to_string())
-                                    .or_default() += 1;
-                            }
+                let mut summary = PolicySummary::default();
+                for outcome in &report.outcomes {
+                    match outcome.decision {
+                        GateDecision::Pass => summary.pass += 1,
+                        GateDecision::Review => summary.review += 1,
+                        GateDecision::Fail => {
+                            summary.fail += 1;
+                            let cid = outcome.control_id.to_string();
+                            summary.failing_controls.push(cid.clone());
+                            *local_hotspots
+                                .entry(cid)
+                                .or_default()
+                                .entry(policy.to_string())
+                                .or_default() += 1;
                         }
                     }
-                    results.insert(policy.to_string(), summary);
                 }
+                results.insert(policy.to_string(), summary);
+            }
 
-                Ok((FleetMatrixRow { repo_id, results }, local_hotspots))
-            })
-            .collect();
+            Ok((FleetMatrixRow { repo_id, results }, local_hotspots))
+        })
+        .collect();
 
     // Merge results preserving input order
     let mut rows = Vec::with_capacity(repo_list.len());

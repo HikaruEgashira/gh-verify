@@ -11,5 +11,5 @@
   ],
   "ecosystem": "typescript",
   "notes": "CSS class fix in a single component. Ideal focused PR.",
-  "target_rule": "detect-unscoped-change"
+  "target_rule": "scoped-change"
 }

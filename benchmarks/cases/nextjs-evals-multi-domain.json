@@ -15,5 +15,5 @@
   ],
   "ecosystem": "typescript",
   "notes": "Large PR (5 domains). Evals are test-like but live under evals/ not test/, so not classified as test.",
-  "target_rule": "detect-unscoped-change"
+  "target_rule": "scoped-change"
 }

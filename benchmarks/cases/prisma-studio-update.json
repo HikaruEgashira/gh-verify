@@ -12,5 +12,5 @@
   ],
   "ecosystem": "typescript",
   "notes": "__tests__/ directory not recognized as test path. This is a FALSE POSITIVE - the file is a test. Known gap: __tests__ pattern missing from scope analysis.",
-  "target_rule": "detect-unscoped-change"
+  "target_rule": "scoped-change"
 }

@@ -11,5 +11,5 @@
   ],
   "ecosystem": "javascript",
   "notes": "README fix. docs domain = PASS.",
-  "target_rule": "detect-unscoped-change"
+  "target_rule": "scoped-change"
 }

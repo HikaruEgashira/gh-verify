@@ -13,5 +13,5 @@
   ],
   "ecosystem": "typescript",
   "notes": "Tree-sitter semantic analysis correctly identifies @prisma/ imports → database domain. This PR is genuinely multi-domain: adapter code + docs + config.",
-  "target_rule": "detect-unscoped-change"
+  "target_rule": "scoped-change"
 }

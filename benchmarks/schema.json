@@ -56,6 +56,10 @@
         "path-only-fallback"
       ]
     },
+    "target_rule": {
+      "type": "string",
+      "description": "Control ID to evaluate (e.g. `scoped-change`). Omit for whole-assessment comparison."
+    },
     "domains_expected": {
       "type": "array",
       "items": {

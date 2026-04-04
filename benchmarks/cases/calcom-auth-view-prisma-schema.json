@@ -9,5 +9,5 @@
   "domains_expected": [],
   "ecosystem": "typescript",
   "notes": "Under domain-based classification, noise threshold filtered small changes leaving 1 domain. Under call-graph connectivity, these files are independent with no import/call relationships, forming multiple disconnected components.",
-  "target_rule": "detect-unscoped-change"
+  "target_rule": "scoped-change"
 }

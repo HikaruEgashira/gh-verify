@@ -15,5 +15,5 @@
   ],
   "ecosystem": "typescript",
   "notes": "Very large release PR. Legitimate multi-domain detection.",
-  "target_rule": "detect-unscoped-change"
+  "target_rule": "scoped-change"
 }

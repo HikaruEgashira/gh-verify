@@ -13,5 +13,5 @@
   ],
   "ecosystem": "typescript",
   "notes": "auth-client.ts classified as database despite 'auth' in name - worth investigating if this is correct or a false positive from semantic analysis.",
-  "target_rule": "detect-unscoped-change"
+  "target_rule": "scoped-change"
 }
