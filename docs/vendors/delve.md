@@ -1,0 +1,259 @@
+# Delve
+https://delve.co/
+https://github.com/delve-co (存在未確認)
+
+## 会社の歴史
+
+- 2023年11月創業。サンフランシスコ (301 Howard St)
+- 創業者: **Karun Kaushik** (CEO) と **Selin Kocalar** (COO)。両名ともMIT中退 (2年次)
+- 創業の動機: AIメディカルスクライブを構築中にHIPAAコンプライアンスの煩雑さに直面 → コンプライアンス自動化にピボット
+  - "4 million people spend their days taking screenshots and filling out spreadsheets to prove compliance"
+- **Y Combinator Winter 2024 (W24)** バッチ
+- Forbes 30 Under 30 選出 (両創業者)
+- 社名の由来: 不明 (公式説明なし)
+
+### 創業者
+
+**Karun Kaushik** (CEO & Co-founder)
+- MIT AI学部 (中退)
+- MIT化学科リサーチアシスタント (2021年6月〜2023年3月): 計算生物学、タンパク質安定性予測の並列アルゴリズム
+- Broad Institute Feng Zhang Lab (2022年9月〜2023年5月): CRISPR遺伝子編集研究
+- ISS National Lab "Genes in Space-9" (2021年1月〜2022年12月): 微小重力環境でのバイオセンサー検証
+- インド系
+  - https://www.linkedin.com/in/karunkaushik/
+
+**Selin Kocalar** (COO & Co-founder)
+- MIT AI学部 (中退)
+- Broad Institute Feng Zhang Lab (2022年9月〜2023年5月): Kaushikと同ラボ
+- ISS National Lab "Genes in Space-9" (2021年1月〜2022年12月): Kaushikと同プロジェクト
+- トルコ系
+  - https://www.linkedin.com/in/selin-kocalar/
+
+### チーム
+
+- 創業者はMIT, Stanford, Berkeley出身の研究者と説明
+- 正確な従業員数: 非公開。Series A時に「チーム拡大」を表明
+- エンタープライズサポートチームにMIT/Stanfordエンジニアが在籍と主張
+
+## 資金調達
+
+| ラウンド | 時期 | 金額 | 主要投資家 |
+|----------|------|------|------------|
+| Seed | 2024年1月頃 | $3.3M | General Catalyst, Y Combinator, FundersClub, Soma Capital |
+| Series A | 2025年7月 | **$32M** | **Insight Partners** (リード), Fortune 500 CISO群 |
+
+- 累計調達額: 約$35.3M
+  - https://www.crunchbase.com/organization/delve-8733
+- Series A時バリュエーション: **$300M**
+  - https://techcrunch.com/2025/07/22/21-year-old-mit-dropouts-raise-32m-at-300m-valuation-led-by-insight/
+- Series A時点でプロフィタブルと主張
+- Series A発表後、Insight Partnersはスキャンダル発覚を受け投資関連ブログ記事を削除
+  - https://techcrunch.com/2026/03/23/insight-partners-scrubs-investment-post-amid-fake-compliance-allegations/
+
+## プロダクトの変遷
+
+| 時期 | プロダクト/機能 | 概要 |
+|------|-----------------|------|
+| 2023年 | (AIメディカルスクライブ) | 創業時の初期プロダクト。HIPAAの壁に直面しピボット |
+| 2024年初頭 | **Delve Compliance Platform** | AIエージェントによるコンプライアンス自動化SaaS |
+| 2024年〜 | AI Evidence Collection | スクリーンショット自動取得、ログ集約、レポート生成 |
+| 2024年〜 | Security Questionnaire Automation | ポリシーに基づくベンダー質問票の自動回答 |
+| 2024年〜 | AI SAST + Infrastructure Scanning | PRごとのコードセキュリティスキャン + 日次クラウドスキャン |
+| 2025年頃 | **Pathways** | ワークフロー自動化機能 (後にSim.aiのコード盗用疑惑の対象) |
+| 2025年頃 | Computer Use Agent | デバイスレベルのコンプライアンス検証 (エンタープライズ向け) |
+| 2025年頃 | Trust Reports | コンプライアンス文書の外部共有機能 |
+
+**ピボットの有無**: あり。AIメディカルスクライブ → コンプライアンス自動化。HIPAAの煩雑さが直接のきっかけ。
+
+## ユーザーインターフェイス
+
+- Web SaaSダッシュボード (「TurboTax-style」と評されるUI)
+- Slackベースの1:1サポート (応答時間 <5分と主張)
+- 対応フレームワーク設定 → AIエージェントが自動で証拠収集・レポート生成
+- オンボーディング: 約30分、セットアップ: 10〜15時間、監査準備: 2〜4週間
+- AWS Marketplaceでも提供
+  - https://aws.amazon.com/marketplace/pp/prodview-nrt542cwf6epa
+
+## 要素技術
+
+### AIコンプライアンスエージェント
+- 自律型エージェントがスクリーンショット取得、レポート生成、証拠バリデーションを実行
+- セキュリティ質問票の自動回答 (既存ポリシー・技術構成から生成)
+- AIポリシーアシスタント: コンプライアンス・監査質問にリアルタイム回答
+
+### コードスキャン (SAST)
+- PRごとのセキュリティスキャン
+- GitHub統合
+
+### インフラスキャン
+- 日次でクラウド構成をスキャン
+- AWS, Azure, GCP対応
+
+### 対応コンプライアンスフレームワーク
+- SOC 2 (Type I & II)
+- HIPAA
+- ISO 27001
+- GDPR
+- PCI-DSS
+- ISO 42001
+- HITRUST
+- FedRAMP
+- EU AI Act
+- NIST AI RMF
+- NIST CSF
+- CMMC
+- CCPA
+- カスタムフレームワーク
+
+### インテグレーション
+- クラウド: AWS, Microsoft Azure, Google Cloud Platform
+- 開発: GitHub
+- 決済: Stripe
+- AI: OpenAI
+- コミュニケーション: Slack (サポート用)
+- Microsoft 365 (制限あり)
+- 「100+インテグレーション」と主張するが、ユーザーレビューでは統合の深さに限界を指摘
+
+## 料金体系
+
+| 項目 | 詳細 |
+|------|------|
+| 価格 | 非公開 (デモベース見積もり) |
+| 推定年間コスト | $10,000〜$22,000 |
+| SOC 2 + ISO 27001 + HIPAAパッケージ | $6,000〜$15,000 (スキャンダル時の報道より) |
+| モデル | 年間サブスクリプション |
+| ティア | Startup / Mid-Market / Enterprise |
+| 追加オプション | ペネトレーションテスト、vCISOサポート |
+
+- https://www.complyjet.com/blog/delve-pricing
+
+## 顧客・事例
+
+- **1,500+社** が利用と主張 (スキャンダル前の公称値)
+- **公開顧客名**: Lovable, Bland, WisprFlow, Thoughtly
+- **Pathways機能の顧客** (スキャンダルで判明): Notion, Brex, Anthropic, Gusto
+- **LiteLLM**: DelveからSOC 2認証を取得 → 後にマルウェア被害。Delve認証の信頼性が疑問視
+- 「43,000時間のコンプライアンス作業を年間削減」「顧客に$2.3Bの新規収益をアンロック」と主張
+- ターゲット: 初回SOC 2を必要とするスタートアップ、AIスタートアップ
+
+## 会社情報
+
+| 項目 | 詳細 |
+|------|------|
+| 設立 | 2023年11月 |
+| 本社 | サンフランシスコ, CA (301 Howard St) |
+| 認証 | SOC 2 Type II, ISO 42001 (自社取得を主張) |
+| YCバッチ | W24 (2026年4月にYCから除名) |
+| 累計調達 | 約$35.3M |
+| バリュエーション | $300M (Series A時) |
+
+## 競合環境
+
+| 競合 | カテゴリ | Delveとの差異 |
+|------|----------|---------------|
+| **Vanta** | コンプライアンス自動化 | 35+フレームワーク、1,300+テスト、300+統合。業界最大手。Delveより圧倒的に統合が深い |
+| **Drata** | コンプライアンス自動化 | エンジニアリング重視チーム向け。リアルタイム制御ステータス、CI/CDパイプライン統合 |
+| **Secureframe** | コンプライアンス自動化 | 35+フレームワーク、ガイド型アプローチ。年間$20K+でDelveよりやや高い |
+| **Sprinto** | コンプライアンス自動化 | 比較記事を多数公開。統合の深さと自動化で差別化 |
+| **OneLeet** | コンプライアンス自動化 | Delveが比較ページを設けている |
+| **ComplyJet** | コンプライアンス自動化 | 価格透明性とターンアラウンド速度で差別化 |
+
+Delveのポジショニング: 「AI-first」「速度重視」「スタートアップ向け低価格」だが、実態は手動作業への依存が大きく、マーケティングとデリバリーのギャップが指摘されていた。
+
+## コンプライアンス不正スキャンダル (2026年3月)
+
+### タイムライン
+
+| 日付 | イベント |
+|------|---------|
+| 2025年4月頃 | Sim.ai (YC X25) がDelve顧客として$15,000で契約。CEO Kaushikが個人的にオンボーディング |
+| 2025年12月 | Googleスプレッドシートがリーク。575ファイルに内部ドラフトレポートが含まれる |
+| 2026年3月18〜20日 | 匿名ブロガー "DeepDelver" がSubstackに「Delve – Fake Compliance as a Service – Part I」を公開 |
+| 2026年3月20日 | Delveがブログ「Response to Misleading Claims」を公開し否定 |
+| 2026年3月22日 | TechCrunchが報道。スキャンダルが業界全体に拡散 |
+| 2026年3月23日 | Insight Partnersが投資関連ブログ記事を削除 |
+| 2026年3月30日 | "DeepDelver" がPart IIを公開。Sim.aiからのコード盗用を告発 |
+| 2026年4月3日 | **Y Combinatorが Delveをディレクトリから削除、創業者にプログラム離脱を要請** |
+
+### Phase 1: SOC 2レポート偽造疑惑
+
+リークされたスプレッドシートの分析結果:
+- **494件のSOC 2レポートのうち493件 (99.8%) が同一のボイラープレート文言**
+- 同一の文法エラーまで一致
+- **監査結論がテスト期間終了前に作成済み**
+- 企業がデータを提出する前に結論が記入済み
+- キーボードマッシュ値 ("sdf", "dlkjf") が複数レポートで同一
+- 259件のType IIレポートで4つのコントロールが「インシデントゼロにつきテスト不能」と同一記載
+- 脆弱性スキャン・ペネトレーションテストの完了記録が実施前に作成
+- **監査法人**: インドの認証ミル (Accorp, Glocert, DKPC) — 検証不能な住所、AICPA認定なし
+
+### Phase 2: コード盗用疑惑
+
+- Sim.ai (YC X25バッチ) のOSSツール **SimStudio** (Apache 2.0) のコードを無断利用
+- Delve内部文書がSimStudioを「Pathwaysの UIインスピレーション」としてフラグ
+- **Pathways**としてリブランドし、帰属表示を削除、「自社開発」として販売
+- 顧客: Notion, Brex, Anthropic, Gusto
+- Apache 2.0ライセンスは帰属表示を義務付けるが、Delveはクレジットを削除
+
+### Delveの反論
+
+- 「監査やレポート発行は行っていない。独立監査法人が最終判断を行う」
+- テンプレートは「業界標準のプラクティス」
+- 証拠は「カスタマイズのための起点」
+- データリークについて調査中
+
+### Y Combinator CEO Garry Tanの声明 (リーク)
+
+> "We have asked Delve to leave YC. YC is a community, not just an accelerator. The founders in our community have to trust each other, and we have to trust them."
+
+### 業界への影響
+
+- **HIPAA**: 影響を受けた医療系企業に刑事責任リスク
+- **GDPR**: グローバル年間売上の最大4%の罰金リスク
+- **保険**: 無効なSOC 2レポートにより保険金請求が無効化される可能性
+- **契約**: エンタープライズ顧客が契約解除する可能性
+- コンプライアンス自動化業界全体の信頼低下
+- **LiteLLMの事例**: DelveのSOC 2認証を取得 → 後にマルウェア侵害。コンプライアンスバッジが偽のセキュリティ感覚を与え、侵害検出を遅延させた可能性
+  - https://trustcompliance.xyz/blog/supply-chain-trust
+
+### 推奨アクション (業界アナリスト)
+
+- 監査法人がGRCプラットフォームから独立してテストを設計したことを確認
+- 5〜10のコントロールを実際の証拠と突き合わせてスポットチェック
+- コンプライアンスプラットフォーム自体をベンダー管理プロセスに追加
+
+## 脅威モデルへのマッピング
+
+- Delveはコンプライアンス自動化プラットフォームであり、SDLC検証ツールではない
+- SASTスキャン、インフラスキャンを提供するが、深さと正確性に疑問
+- **スキャンダルの本質**: コンプライアンスの「形式」(レポート生成) を自動化したが、「実質」(実際のセキュリティ検証) が伴っていなかった
+- attestationや署名付きprovenanceの生成・収集機能はない
+- コード盗用疑惑はサプライチェーン信頼の根本問題を体現
+
+### gh-verifyとの差分
+- Delveは「コンプライアンスレポートを生成する」(フォーム生成)、gh-verifyは「SDLCの健全性を検査する」(ルールベース検証)
+- Delveのスキャンダルはgh-verifyが解こうとしている問題の裏返し: **レポートの存在 ≠ セキュリティの実態**
+- gh-verifyは形式検証でルールロジックの正しさを保証する。Delveにはこの概念がない
+- Delveは多数のコンプライアンスフレームワーク (SOC 2, HIPAA, ISO 27001等) をカバー。gh-verifyはSDLC/SLSA中心
+- Delveは「速度」を訴求 (2〜4週間で監査準備完了)。gh-verifyは「正確性」を訴求
+- gh-verifyは保管をGitHubに委譲し自前で持たない。Delveは自社プラットフォームにレポートを保持
+- Delveの不正は**信頼の委譲先の検証**が不可欠であることを示す。gh-verifyのオープンソース・形式検証アプローチはこの問題を構造的に回避
+- Delve: $300Mバリュエーションのスタートアップ (信頼失墜中) / gh-verify: OSS
+
+### 教訓
+
+Delveスキャンダルはコンプライアンス業界に3つの教訓を与えた:
+1. **コンプライアンスレポートの存在はセキュリティの証明ではない** — 検証ロジック自体の正しさが問われる
+2. **速度とコスト削減の訴求は検証の深さと背反しうる** — 自動化が浅い場合、リスクは顧客に転嫁される
+3. **監査法人の独立性と認定の検証が不可欠** — プラットフォームが監査法人を指定するモデルは利益相反のリスクがある
+
+## 不明な点
+
+- 2026年4月以降の会社の存続状況 (営業継続しているか)
+- 正確な従業員数
+- 規制当局 (SEC, FTC等) の正式な調査開始の有無
+- 影響を受けた1,500+社のうち、何社がレポートを再取得したか
+- Insight Partnersの投資の現在の扱い (ダウンラウンド/回収等)
+- Sim.aiからの訴訟の有無
+- SaaSの技術スタック (言語、DB、インフラ)
+- コード盗用疑惑の法的帰結
