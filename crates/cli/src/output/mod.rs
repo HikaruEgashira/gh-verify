@@ -10,8 +10,12 @@ pub enum Format {
     Human,
     #[value(name = "json")]
     Json,
+    #[value(name = "matrix")]
+    Matrix,
     #[value(name = "sarif")]
     Sarif,
+    #[value(name = "vanta")]
+    Vanta,
 }
 
 impl std::fmt::Display for Format {
@@ -19,7 +23,9 @@ impl std::fmt::Display for Format {
         match self {
             Format::Human => write!(f, "human"),
             Format::Json => write!(f, "json"),
+            Format::Matrix => write!(f, "matrix"),
             Format::Sarif => write!(f, "sarif"),
+            Format::Vanta => write!(f, "vanta"),
         }
     }
 }
@@ -80,16 +86,22 @@ pub fn print(opts: &OutputOptions, result: &VerificationResult) -> Result<()> {
             Some(opts.single_policy()),
             &opts.excluded,
         ),
-        Format::Json => {
-            let out_opts = lib_output_opts(libverify_output::Format::Json, opts.only_failures);
+        fmt => {
+            let lib_fmt = cli_to_lib_format(fmt);
+            let out_opts = lib_output_opts(lib_fmt, opts.only_failures);
             let rendered = libverify_output::render(&out_opts, result)?;
             emit(opts.output_file.as_deref(), &rendered)
         }
-        Format::Sarif => {
-            let out_opts = lib_output_opts(libverify_output::Format::Sarif, opts.only_failures);
-            let rendered = libverify_output::render(&out_opts, result)?;
-            emit(opts.output_file.as_deref(), &rendered)
-        }
+    }
+}
+
+fn cli_to_lib_format(fmt: Format) -> libverify_output::Format {
+    match fmt {
+        Format::Json => libverify_output::Format::Json,
+        Format::Matrix => libverify_output::Format::Matrix,
+        Format::Sarif => libverify_output::Format::Sarif,
+        Format::Vanta => libverify_output::Format::Vanta,
+        Format::Human => unreachable!("human format handled separately"),
     }
 }
 
@@ -101,8 +113,8 @@ pub fn print_fleet_matrix(opts: &OutputOptions, matrix: &crate::FleetMatrix) -> 
                 serde_json::to_string_pretty(matrix).context("failed to serialize fleet matrix")?;
             emit(opts.output_file.as_deref(), &json)
         }
-        Format::Sarif => {
-            anyhow::bail!("SARIF output is not supported for fleet matrix. Use --format json")
+        _ => {
+            anyhow::bail!("fleet matrix only supports human and json formats")
         }
     }
 }
@@ -118,13 +130,9 @@ pub fn print_batch(opts: &OutputOptions, batch: &BatchReport) -> Result<()> {
             Some(opts.single_policy()),
             &opts.excluded,
         ),
-        Format::Json => {
-            let out_opts = lib_output_opts(libverify_output::Format::Json, opts.only_failures);
-            let rendered = libverify_output::render_batch(&out_opts, batch)?;
-            emit(opts.output_file.as_deref(), &rendered)
-        }
-        Format::Sarif => {
-            let out_opts = lib_output_opts(libverify_output::Format::Sarif, opts.only_failures);
+        fmt => {
+            let lib_fmt = cli_to_lib_format(fmt);
+            let out_opts = lib_output_opts(lib_fmt, opts.only_failures);
             let rendered = libverify_output::render_batch(&out_opts, batch)?;
             emit(opts.output_file.as_deref(), &rendered)
         }

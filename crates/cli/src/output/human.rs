@@ -1,7 +1,7 @@
 use anyhow::Result;
 use colored::Colorize;
 use libverify_core::assessment::{BatchReport, VerificationResult};
-use libverify_core::control::builtin_remediation_hint;
+use crate::remediation_hint;
 use libverify_core::profile::GateDecision;
 use libverify_output::utc_now_rfc3339;
 
@@ -35,7 +35,7 @@ pub fn print(
         );
 
         if matches!(outcome.decision, GateDecision::Fail | GateDecision::Review)
-            && let Some(hint) = builtin_remediation_hint(outcome.control_id.as_str())
+            && let Some(hint) = remediation_hint(outcome.control_id.as_str())
         {
             println!("  -> {} {}", "Hint:".cyan(), hint);
         }

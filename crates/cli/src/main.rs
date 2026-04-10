@@ -614,6 +614,28 @@ const CONTROLS: &[ControlSection] = &[
     },
 ];
 
+/// Remediation hint lookup: tries libverify-core builtins first, then gh-verify local overrides.
+pub fn remediation_hint(id: &str) -> Option<&'static str> {
+    libverify_core::control::builtin_remediation_hint(id).or(match id {
+        "workflow-permissions-restricted" => {
+            Some("Set default workflow permissions to read-only: Settings > Actions > General > Workflow permissions")
+        }
+        "dependency-update-tool" => {
+            Some("Add a dependabot.yml or renovate.json to automate dependency updates")
+        }
+        "repository-permissions-audit" => {
+            Some("Limit admin access and use team-based permissions: Settings > Collaborators & teams")
+        }
+        "default-branch-settings-baseline" => {
+            Some("Enable branch protection with admin enforcement and dismiss stale reviews: Settings > Branches")
+        }
+        "protected-tags" => {
+            Some("Add tag protection rules: Settings > Tags > Add rule for release tag patterns")
+        }
+        _ => None,
+    })
+}
+
 fn print_controls_json() {
     let items: Vec<serde_json::Value> = CONTROLS
         .iter()
@@ -1205,11 +1227,10 @@ mod tests {
 
     #[test]
     fn all_controls_have_remediation_hints() {
-        use libverify_core::control::builtin_remediation_hint;
         let missing: Vec<&str> = CONTROLS
             .iter()
             .flat_map(|s| s.controls.iter())
-            .filter(|(id, _)| builtin_remediation_hint(id).is_none())
+            .filter(|(id, _)| remediation_hint(id).is_none())
             .map(|(id, _)| *id)
             .collect();
         assert!(
