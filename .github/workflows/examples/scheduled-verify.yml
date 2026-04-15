@@ -1,0 +1,86 @@
+# gh-verify Scheduled Verification
+# Copy this file to .github/workflows/scheduled-verify.yml in your repository.
+# This runs gh-verify on a schedule to provide continuous SDLC monitoring.
+#
+# Results appear in the GitHub Security tab under Code Scanning alerts.
+
+name: Scheduled SDLC Verification
+
+on:
+  schedule:
+    # Run every hour at minute 0
+    - cron: "0 * * * *"
+  workflow_dispatch:
+    inputs:
+      policy:
+        description: "Policy preset to use"
+        required: false
+        default: "default"
+        type: choice
+        options:
+          - default
+          - oss
+          - soc2
+          - slsa-l1
+          - slsa-l2
+          - slsa-l3
+          - slsa-l4
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  verify-repo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Install gh-verify
+        run: gh extension install HikaruEgashira/gh-verify
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify repository posture
+        run: |
+          gh verify repo \
+            --format sarif \
+            --policy ${{ inputs.policy || 'default' }} \
+            --output-file results.sarif
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload SARIF results
+        uses: github/codeql-action/upload-sarif@ce64ddcb0d8d890d2df4a9d1c04ff297367dea2a # v3
+        with:
+          sarif_file: results.sarif
+          category: gh-verify-scheduled
+        if: always()
+
+  verify-recent-prs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Install gh-verify
+        run: gh extension install HikaruEgashira/gh-verify
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify recently merged PRs (last 24h)
+        run: |
+          YESTERDAY=$(date -u -d '24 hours ago' '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || date -u -v-24H '+%Y-%m-%dT%H:%M:%SZ')
+          TODAY=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+          gh verify pr "${YESTERDAY}..${TODAY}" \
+            --format sarif \
+            --policy ${{ inputs.policy || 'default' }} \
+            --output-file pr-results.sarif || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload PR SARIF results
+        uses: github/codeql-action/upload-sarif@ce64ddcb0d8d890d2df4a9d1c04ff297367dea2a # v3
+        with:
+          sarif_file: pr-results.sarif
+          category: gh-verify-prs
+        if: always()

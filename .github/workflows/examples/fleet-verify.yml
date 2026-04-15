@@ -1,0 +1,35 @@
+# gh-verify Fleet Verification
+# Verify multiple repositories with multiple policies in a single workflow.
+# Uses gh-verify's matrix mode for cross-repo, cross-policy assessment.
+
+name: Fleet SDLC Verification
+
+on:
+  schedule:
+    - cron: "0 */6 * * *" # Every 6 hours
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  fleet-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Install gh-verify
+        run: gh extension install HikaruEgashira/gh-verify
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Fleet matrix verification
+        run: |
+          gh verify repo \
+            --repos owner/repo1,owner/repo2,owner/repo3 \
+            --policy soc2,slsa-l2 \
+            --format matrix \
+            --output-file fleet-results.json
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,36 @@
+# gh-verify Daily Verification (lightweight)
+# Runs once daily. Use scheduled-verify.yml for hourly monitoring.
+
+name: Daily SDLC Verification
+
+on:
+  schedule:
+    - cron: "0 6 * * *" # Daily at 06:00 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Install gh-verify
+        run: gh extension install HikaruEgashira/gh-verify
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify repository
+        run: gh verify repo --format sarif --output-file results.sarif
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload results
+        uses: github/codeql-action/upload-sarif@ce64ddcb0d8d890d2df4a9d1c04ff297367dea2a # v3
+        with:
+          sarif_file: results.sarif
+          category: gh-verify-daily
+        if: always()
