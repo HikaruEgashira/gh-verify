@@ -1,24 +1,25 @@
 name: verify-repo
-
 on:
   push:
     branches: [main]
   schedule:
     - cron: "17 3 * * 1" # Mon 03:17 UTC
   workflow_dispatch:
-
 permissions:
   contents: read
   security-events: read
-
 jobs:
   verify:
+    timeout-minutes: 5
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-
+        timeout-minutes: 5
+        with:
+          persist-credentials: false
       - uses: ./
         id: verify
+        timeout-minutes: 5
         with:
           command: repo
           format: json
