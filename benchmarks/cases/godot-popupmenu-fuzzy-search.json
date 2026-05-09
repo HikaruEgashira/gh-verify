@@ -1,0 +1,20 @@
+{
+  "id": "godot-popupmenu-fuzzy-search",
+  "description": "Godot fixes PopupMenu fuzzy search across PopupMenu, OptionButton, and the matching XML API docs",
+  "repo": "godotengine/godot",
+  "pr_number": 119117,
+  "expected": "pass",
+  "rationale": "The UI behavior change spans linked widget code and accompanying API docs, so it should remain a single semantic unit.",
+  "category": "semantic-bridge",
+  "domains_expected": [],
+  "ecosystem": "cpp",
+  "notes": "Current engine reports warning. This case also exercises how XML API docs interact with scoped-change classification in C++ projects.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 10013,
+    "collection_name": "Game Engine",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-05-09T14:26:32Z"
+  },
+  "target_rule": "scoped-change"
+}

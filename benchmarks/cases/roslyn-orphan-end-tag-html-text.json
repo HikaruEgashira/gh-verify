@@ -1,0 +1,20 @@
+{
+  "id": "roslyn-orphan-end-tag-html-text",
+  "description": "Roslyn fixes orphan end tag handling and updates the matching Razor binder test",
+  "repo": "dotnet/roslyn",
+  "pr_number": 83574,
+  "expected": "pass",
+  "rationale": "The implementation files and focused test represent one parser fix, so scoped-change should not split them.",
+  "category": "semantic-bridge",
+  "domains_expected": [],
+  "ecosystem": "csharp",
+  "notes": "Current engine passes; this case covers a semantic bridge in C# / Razor code paths.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 10024,
+    "collection_name": "Programming Language",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-05-09T14:25:59Z"
+  },
+  "target_rule": "scoped-change"
+}
