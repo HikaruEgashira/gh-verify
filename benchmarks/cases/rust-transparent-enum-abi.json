@@ -1,0 +1,20 @@
+{
+  "id": "rust-transparent-enum-abi",
+  "description": "Rust updates repr(transparent) enum handling together with the paired Miri ABI regression test",
+  "repo": "rust-lang/rust",
+  "pr_number": 156105,
+  "expected": "pass",
+  "rationale": "The compiler logic and ABI regression test exercise the same behavior change, so this is one semantic unit.",
+  "category": "semantic-bridge",
+  "domains_expected": [],
+  "ecosystem": "rust",
+  "notes": "Current engine reports warning because the compiler file and Miri test lack a direct patch-local connectivity edge.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 10024,
+    "collection_name": "Programming Language",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-05-09T14:25:59Z"
+  },
+  "target_rule": "scoped-change"
+}

@@ -1,0 +1,20 @@
+{
+  "id": "rust-windows-time-near-zero",
+  "description": "Rust adjusts the Windows time floor and the matching std regression test together",
+  "repo": "rust-lang/rust",
+  "pr_number": 156177,
+  "expected": "pass",
+  "rationale": "The std implementation and time regression test are one corrective unit, so scoped-change should treat them as a coherent change.",
+  "category": "semantic-bridge",
+  "domains_expected": [],
+  "ecosystem": "rust",
+  "notes": "Current engine passes; this case preserves coverage for implementation+test pairs in the Rust standard library.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 10024,
+    "collection_name": "Programming Language",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-05-09T14:25:59Z"
+  },
+  "target_rule": "scoped-change"
+}

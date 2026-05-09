@@ -15,12 +15,11 @@ use libverify_core::evidence::EvidenceBundle;
 use libverify_core::profile::{ControlProfile, GateDecision};
 use libverify_core::scope::is_non_code_file;
 use libverify_core::verdict::Severity;
-use libverify_github::graphql;
-use libverify_github::ossinsight::{CollectionRepoRank, OssInsightClient, PullRequestCreator};
-use libverify_github::types::PrFile;
-use libverify_github::{GitHubClient, GitHubConfig};
+use libverify_github::ossinsight::{CollectionRepoRank, PullRequestCreator};
+use libverify_github::types::{PrCommit, PrFile, PrMetadata, Review};
 use libverify_policy::OpaProfile;
-use serde::Serialize;
+use serde::de::DeserializeOwned;
+use serde::{Deserialize, Serialize};
 
 #[derive(Parser)]
 #[command(
@@ -243,9 +242,32 @@ struct GhPullListItem {
     merged_at: Option<String>,
 }
 
+#[derive(Debug)]
+struct BenchPrData {
+    metadata: PrMetadata,
+    files: Vec<PrFile>,
+    reviews: Vec<Review>,
+    commits: Vec<PrCommit>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct SqlRowsResponse<T> {
+    data: SqlRows<T>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct SqlRows<T> {
+    rows: Vec<T>,
+}
+
 const DEFAULT_BENCHMARK_ALGORITHM: &str = "default";
 const OSSINSIGHT_MAX_ATTEMPTS: usize = 3;
 const OSSINSIGHT_RETRY_BASE_DELAY: Duration = Duration::from_millis(500);
+const CURL_TIMEOUT_SECS: u64 = 30;
+const GITHUB_PULL_REVIEWS_PAGE_SIZE: usize = 100;
+const GITHUB_PULL_REVIEWS_MAX_PAGES: usize = 10;
+const GITHUB_PULL_COMMITS_PAGE_SIZE: usize = 100;
+const GITHUB_PULL_COMMITS_MAX_PAGES: usize = 3;
 const GITHUB_PULL_FILES_PAGE_SIZE: usize = 100;
 const GITHUB_PULL_FILES_MAX_PAGES: usize = 30;
 
@@ -265,19 +287,12 @@ fn run() -> Result<()> {
 }
 
 fn fetch_evidence(
-    client: &GitHubClient,
     owner: &str,
     repo: &str,
     pr_number: u32,
     target_rule: Option<&str>,
 ) -> Result<EvidenceBundle> {
-    let mut pr_data = graphql::fetch_pr(client, owner, repo, pr_number)
-        .context("failed to fetch PR data via GraphQL")?;
-
-    if target_rule_requires_patch(target_rule) {
-        pr_data.files = fetch_pr_files_with_patch(owner, repo, pr_number)?;
-        ensure_scoped_change_patch_coverage(&pr_data.files)?;
-    }
+    let pr_data = fetch_pr_data_via_gh(owner, repo, pr_number, target_rule)?;
 
     let repo_full = format!("{owner}/{repo}");
     Ok(libverify_github::adapter::build_pull_request_bundle(
@@ -288,6 +303,82 @@ fn fetch_evidence(
         &pr_data.reviews,
         &pr_data.commits,
     ))
+}
+
+fn fetch_pr_data_via_gh(
+    owner: &str,
+    repo: &str,
+    pr_number: u32,
+    target_rule: Option<&str>,
+) -> Result<BenchPrData> {
+    let metadata = fetch_gh_json(&format!("/repos/{owner}/{repo}/pulls/{pr_number}"))
+        .with_context(|| format!("failed to fetch PR metadata for {owner}/{repo}#{pr_number}"))?;
+    let files = fetch_pr_files_with_patch(owner, repo, pr_number)?;
+    if target_rule_requires_patch(target_rule) {
+        ensure_scoped_change_patch_coverage(&files)?;
+    }
+    let reviews: Vec<Review> = fetch_paginated_gh_json(
+        &format!("/repos/{owner}/{repo}/pulls/{pr_number}/reviews"),
+        GITHUB_PULL_REVIEWS_PAGE_SIZE,
+        GITHUB_PULL_REVIEWS_MAX_PAGES,
+    )
+    .with_context(|| format!("failed to fetch PR reviews for {owner}/{repo}#{pr_number}"))?;
+    let commits: Vec<PrCommit> = fetch_paginated_gh_json(
+        &format!("/repos/{owner}/{repo}/pulls/{pr_number}/commits"),
+        GITHUB_PULL_COMMITS_PAGE_SIZE,
+        GITHUB_PULL_COMMITS_MAX_PAGES,
+    )
+    .with_context(|| format!("failed to fetch PR commits for {owner}/{repo}#{pr_number}"))?;
+
+    Ok(BenchPrData {
+        metadata,
+        files,
+        reviews,
+        commits,
+    })
+}
+
+fn fetch_gh_json<T>(endpoint: &str) -> Result<T>
+where
+    T: DeserializeOwned,
+{
+    let output = run_gh(&["api", endpoint])
+        .with_context(|| format!("failed to execute gh api for endpoint {endpoint}"))?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+        bail!("gh api failed for {endpoint}: {stderr}");
+    }
+
+    serde_json::from_slice(&output.stdout)
+        .with_context(|| format!("failed to parse gh api payload for {endpoint}"))
+}
+
+fn fetch_paginated_gh_json<T>(
+    endpoint_base: &str,
+    page_size: usize,
+    max_pages: usize,
+) -> Result<Vec<T>>
+where
+    T: DeserializeOwned,
+{
+    let mut items = Vec::new();
+
+    for page in 1..=max_pages {
+        let endpoint = format!("{endpoint_base}?per_page={page_size}&page={page}");
+        let mut page_items: Vec<T> = fetch_gh_json(&endpoint)?;
+        if page_items.is_empty() {
+            break;
+        }
+
+        let page_len = page_items.len();
+        items.append(&mut page_items);
+        if page_len < page_size {
+            break;
+        }
+    }
+
+    Ok(items)
 }
 
 fn decision_to_result(d: GateDecision) -> ActualResult {
@@ -353,9 +444,6 @@ fn run_benchmarks(cli: &Cli) -> Result<()> {
         resolve_algorithm(name)?;
     }
 
-    let cfg = GitHubConfig::load()?;
-    let client = GitHubClient::new(&cfg)?;
-
     eprintln!("ghverify benchmark");
     eprintln!("==================");
     eprintln!("Algorithms: {}", algorithms.join(", "));
@@ -386,7 +474,7 @@ fn run_benchmarks(cli: &Cli) -> Result<()> {
             let _ = io::stderr().flush();
 
             let case_started = Instant::now();
-            let actual = run_case_with(&client, case, &controls, profile.as_ref());
+            let actual = run_case_with(case, &controls, profile.as_ref());
             let pass = actual.matches(&case.expected);
             let case_secs = case_started.elapsed().as_secs_f32();
 
@@ -558,16 +646,12 @@ fn print_report(algo_name: &str, report: &Report) {
 }
 
 fn collect_real_world(args: CollectRealWorldArgs) -> Result<()> {
-    let cfg = GitHubConfig::load()?;
-    let github = GitHubClient::new(&cfg)?;
-    let ossinsight = OssInsightClient::new()?;
-
     let ranked_repos = retry_ossinsight(
         &format!(
             "OSS Insight collection {} ranking_by_prs(period={})",
             args.collection_id, args.period
         ),
-        || ossinsight.ranking_by_prs(args.collection_id, &args.period),
+        || fetch_ossinsight_ranking_by_prs(args.collection_id, &args.period),
     )?;
     if ranked_repos.is_empty() {
         anyhow::bail!("OSS Insight returned no ranked repositories");
@@ -576,8 +660,6 @@ fn collect_real_world(args: CollectRealWorldArgs) -> Result<()> {
     let mut repos = Vec::new();
     for rank in ranked_repos.into_iter().take(args.repo_limit) {
         repos.push(discover_repo(
-            &github,
-            &ossinsight,
             &rank,
             args.collection_id,
             &args.period,
@@ -603,8 +685,6 @@ fn collect_real_world(args: CollectRealWorldArgs) -> Result<()> {
 }
 
 fn discover_repo(
-    github: &GitHubClient,
-    ossinsight: &OssInsightClient,
     rank: &CollectionRepoRank,
     collection_id: u64,
     period: &str,
@@ -618,7 +698,7 @@ fn discover_repo(
 
     let top_pr_creators = retry_ossinsight(
         &format!("OSS Insight pull_request_creators for {owner}/{repo}"),
-        || ossinsight.pull_request_creators(owner, repo, creators_per_repo),
+        || fetch_ossinsight_pr_creators(owner, repo, creators_per_repo),
     )?;
     let recent_prs = discover_recent_merged_prs_via_gh(owner, repo, prs_per_repo)?;
     let merged_at_by_number: HashMap<u32, String> = recent_prs
@@ -626,10 +706,9 @@ fn discover_repo(
         .map(|pr| (pr.number, pr.merged_at.clone()))
         .collect();
     let pr_numbers: Vec<u32> = recent_prs.iter().map(|pr| pr.number).collect();
-    let fetched = graphql::fetch_prs(github, owner, repo, &pr_numbers);
     let mut prs = Vec::new();
 
-    for (pr_number, result) in fetched {
+    for (pr_number, result) in fetch_prs_via_gh(owner, repo, &pr_numbers) {
         let pr_data = match result {
             Ok(d) => d,
             Err(e) => {
@@ -696,6 +775,72 @@ fn discover_repo(
         top_pr_creators,
         prs,
     })
+}
+
+fn fetch_prs_via_gh(
+    owner: &str,
+    repo: &str,
+    pr_numbers: &[u32],
+) -> Vec<(u32, Result<BenchPrData>)> {
+    pr_numbers
+        .iter()
+        .map(|&pr_number| {
+            (
+                pr_number,
+                fetch_pr_data_via_gh(owner, repo, pr_number, None).with_context(|| {
+                    format!("failed to fetch PR data via gh api for {owner}/{repo}#{pr_number}")
+                }),
+            )
+        })
+        .collect()
+}
+
+fn fetch_ossinsight_ranking_by_prs(
+    collection_id: u64,
+    period: &str,
+) -> Result<Vec<CollectionRepoRank>> {
+    fetch_ossinsight_rows(&format!(
+        "https://api.ossinsight.io/v1/collections/{collection_id}/ranking_by_prs/?period={period}"
+    ))
+}
+
+fn fetch_ossinsight_pr_creators(
+    owner: &str,
+    repo: &str,
+    page_size: u32,
+) -> Result<Vec<PullRequestCreator>> {
+    fetch_ossinsight_rows(&format!(
+        "https://api.ossinsight.io/v1/repos/{owner}/{repo}/pull_request_creators/?sort=prs-desc&exclude_bots=true&page=1&page_size={page_size}"
+    ))
+}
+
+fn fetch_ossinsight_rows<T>(url: &str) -> Result<Vec<T>>
+where
+    T: DeserializeOwned,
+{
+    let output = process::Command::new("curl")
+        .args([
+            "--fail",
+            "--silent",
+            "--show-error",
+            "--location",
+            "--max-time",
+            &CURL_TIMEOUT_SECS.to_string(),
+            "--header",
+            "Accept: application/json",
+            url,
+        ])
+        .output()
+        .with_context(|| format!("failed to spawn curl for OSS Insight URL {url}"))?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+        bail!("curl failed for OSS Insight URL {url}: {stderr}");
+    }
+
+    let payload: SqlRowsResponse<T> = serde_json::from_slice(&output.stdout)
+        .with_context(|| format!("failed to parse OSS Insight response from {url}"))?;
+    Ok(payload.data.rows)
 }
 
 fn discover_recent_merged_prs_via_gh(
@@ -877,7 +1022,6 @@ fn is_retryable_ossinsight_error(err: &anyhow::Error) -> bool {
 }
 
 fn run_case_with(
-    client: &GitHubClient,
     case: &BenchCase,
     controls: &[Box<dyn Control>],
     profile: &dyn ControlProfile,
@@ -889,7 +1033,7 @@ fn run_case_with(
 
     let target_rule = case.target_rule.as_deref();
 
-    match fetch_evidence(client, owner, repo, case.pr_number, target_rule) {
+    match fetch_evidence(owner, repo, case.pr_number, target_rule) {
         Ok(bundle) => assess_bundle(&bundle, controls, profile, target_rule),
         Err(e) => ActualResult::FetchError(format!("{e}")),
     }
