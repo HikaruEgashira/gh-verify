@@ -1,0 +1,919 @@
+{
+  "generated_at": "2026-05-10T00:10:50Z",
+  "collection_id": 10024,
+  "period": "past_28_days",
+  "repos": [
+    {
+      "repo": "rust-lang/rust",
+      "current_period_rank": "1",
+      "current_period_growth": "113",
+      "total_prs": "90393",
+      "top_pr_creators": [
+        {
+          "id": "476013",
+          "login": "matthiaskrgr",
+          "name": "Matthias Krüger",
+          "prs": "3157",
+          "first_pr_opened_at": "2018-02-06 12:06:28",
+          "first_pr_merged_at": "2018-02-06 22:21:22"
+        },
+        {
+          "id": "3050060",
+          "login": "GuillaumeGomez",
+          "name": "Guillaume Gomez",
+          "prs": "3032",
+          "first_pr_opened_at": "2015-01-09 19:09:27",
+          "first_pr_merged_at": "2015-01-10 16:15:24"
+        },
+        {
+          "id": "3674314",
+          "login": "compiler-errors",
+          "name": "Michael Goulet",
+          "prs": "2542",
+          "first_pr_opened_at": "2021-11-15 23:34:42",
+          "first_pr_merged_at": "2021-11-17 06:09:20"
+        },
+        {
+          "id": "330628",
+          "login": "RalfJung",
+          "name": "Ralf Jung",
+          "prs": "2250",
+          "first_pr_opened_at": "2015-07-02 19:07:00",
+          "first_pr_merged_at": "2015-07-31 02:57:36"
+        },
+        {
+          "id": "64996",
+          "login": "alexcrichton",
+          "name": "Alex Crichton",
+          "prs": "1628",
+          "first_pr_opened_at": "2015-01-01 00:06:29",
+          "first_pr_merged_at": "2013-01-20 01:41:00"
+        }
+      ],
+      "prs": [
+        {
+          "number": 155321,
+          "title": "`BufWriter`: Make the soundness of `BorrowedBuf` usage clearer.",
+          "merged_at": "2026-05-09T21:52:26Z",
+          "changed_files": 4,
+          "code_files": 4,
+          "changed_paths": [
+            "library/alloc/src/vec/mod.rs",
+            "library/core/src/io/borrowed_buf.rs",
+            "library/std/src/io/buffered/bufwriter.rs",
+            "library/std/src/io/copy.rs"
+          ],
+          "code_paths": [
+            "library/alloc/src/vec/mod.rs",
+            "library/core/src/io/borrowed_buf.rs",
+            "library/std/src/io/buffered/bufwriter.rs",
+            "library/std/src/io/copy.rs"
+          ],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10024,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-05-10T00:10:08Z"
+          }
+        },
+        {
+          "number": 156361,
+          "title": "Rollup of 5 pull requests",
+          "merged_at": "2026-05-09T17:09:02Z",
+          "changed_files": 88,
+          "code_files": 87,
+          "changed_paths": [
+            "compiler/rustc_abi/src/extern_abi.rs",
+            "compiler/rustc_abi/src/lib.rs",
+            "compiler/rustc_ast/src/ast.rs",
+            "compiler/rustc_ast/src/node_id.rs",
+            "compiler/rustc_ast/src/tokenstream.rs",
+            "compiler/rustc_ast_lowering/src/lib.rs",
+            "compiler/rustc_codegen_cranelift/src/driver/aot.rs",
+            "compiler/rustc_codegen_llvm/src/common.rs",
+            "compiler/rustc_codegen_llvm/src/debuginfo/metadata/type_map.rs",
+            "compiler/rustc_codegen_ssa/src/back/link/raw_dylib.rs",
+            "compiler/rustc_codegen_ssa/src/common.rs",
+            "compiler/rustc_codegen_ssa/src/debuginfo/type_names.rs",
+            "compiler/rustc_data_structures/src/fingerprint.rs",
+            "compiler/rustc_data_structures/src/intern.rs",
+            "compiler/rustc_data_structures/src/lib.rs",
+            "compiler/rustc_data_structures/src/packed.rs",
+            "compiler/rustc_data_structures/src/sorted_map.rs",
+            "compiler/rustc_data_structures/src/sorted_map/index_map.rs",
+            "compiler/rustc_data_structures/src/stable_hash.rs",
+            "compiler/rustc_data_structures/src/stable_hash/tests.rs",
+            "compiler/rustc_data_structures/src/steal.rs",
+            "compiler/rustc_data_structures/src/tagged_ptr.rs",
+            "compiler/rustc_data_structures/src/tagged_ptr/tests.rs",
+            "compiler/rustc_data_structures/src/unord.rs",
+            "compiler/rustc_errors/src/lib.rs",
+            "compiler/rustc_feature/src/unstable.rs",
+            "compiler/rustc_hir/src/definitions.rs",
+            "compiler/rustc_hir/src/diagnostic_items.rs",
+            "compiler/rustc_hir/src/hir.rs",
+            "compiler/rustc_hir/src/lang_items.rs",
+            "compiler/rustc_hir/src/stable_hash_impls.rs",
+            "compiler/rustc_hir_id/src/lib.rs",
+            "compiler/rustc_hir_typeck/src/intrinsicck.rs",
+            "compiler/rustc_index_macros/src/newtype.rs",
+            "compiler/rustc_lint/src/types.rs",
+            "compiler/rustc_lint_defs/src/lib.rs",
+            "compiler/rustc_macros/src/lib.rs",
+            "compiler/rustc_macros/src/stable_hash.rs",
+            "compiler/rustc_middle/src/dep_graph/dep_node.rs",
+            "compiler/rustc_middle/src/dep_graph/dep_node_key.rs",
+            "compiler/rustc_middle/src/dep_graph/graph.rs",
+            "compiler/rustc_middle/src/error.rs",
+            "compiler/rustc_middle/src/hir/map.rs",
+            "compiler/rustc_middle/src/hir/mod.rs",
+            "compiler/rustc_middle/src/ich.rs",
+            "compiler/rustc_middle/src/middle/privacy.rs",
+            "compiler/rustc_middle/src/mir/basic_blocks.rs",
+            "compiler/rustc_middle/src/mono.rs",
+            "compiler/rustc_middle/src/query/keys.rs",
+            "compiler/rustc_middle/src/query/on_disk_cache.rs",
+            "compiler/rustc_middle/src/query/plumbing.rs",
+            "compiler/rustc_middle/src/ty/adt.rs",
+            "compiler/rustc_middle/src/ty/consts/int.rs",
+            "compiler/rustc_middle/src/ty/context.rs",
+            "compiler/rustc_middle/src/ty/generics.rs",
+            "compiler/rustc_middle/src/ty/impls_ty.rs",
+            "compiler/rustc_middle/src/ty/layout.rs",
+            "compiler/rustc_middle/src/ty/mod.rs",
+            "compiler/rustc_middle/src/ty/util.rs",
+            "compiler/rustc_middle/src/verify_ich.rs",
+            "compiler/rustc_resolve/src/lib.rs",
+            "compiler/rustc_session/src/config.rs",
+            "compiler/rustc_session/src/options.rs",
+            "compiler/rustc_span/src/def_id.rs",
+            "compiler/rustc_span/src/hygiene.rs",
+            "compiler/rustc_span/src/lib.rs",
+            "compiler/rustc_span/src/span_encoding.rs",
+            "compiler/rustc_span/src/symbol.rs",
+            "compiler/rustc_symbol_mangling/src/export.rs",
+            "compiler/rustc_symbol_mangling/src/hashed.rs",
+            "compiler/rustc_symbol_mangling/src/legacy.rs",
+            "compiler/rustc_symbol_mangling/src/v0.rs",
+            "compiler/rustc_type_ir/src/const_kind.rs",
+            "compiler/rustc_type_ir/src/region_kind.rs",
+            "compiler/rustc_type_ir/src/ty_info.rs",
+            "compiler/rustc_type_ir/src/ty_kind.rs",
+            "library/core/src/array/mod.rs",
+            "library/core/src/num/int_macros.rs",
+            "library/core/src/num/uint_macros.rs",
+            "tests/incremental/stable_hash_span/auxiliary/mod.rs",
+            "tests/incremental/stable_hash_span/auxiliary/sub1.rs",
+            "tests/incremental/stable_hash_span/auxiliary/sub2.rs",
+            "tests/incremental/stable_hash_span/main.rs",
+            "tests/ui-fulldeps/stable-hash-is-unstable.rs",
+            "tests/ui-fulldeps/stable-hash-is-unstable.stderr",
+            "tests/ui/transmute/recursive-size-skeleton.rs",
+            "tests/ui/transmute/recursive-size-skeleton.stderr",
+            "triagebot.toml"
+          ],
+          "code_paths": [
+            "compiler/rustc_abi/src/extern_abi.rs",
+            "compiler/rustc_abi/src/lib.rs",
+            "compiler/rustc_ast/src/ast.rs",
+            "compiler/rustc_ast/src/node_id.rs",
+            "compiler/rustc_ast/src/tokenstream.rs",
+            "compiler/rustc_ast_lowering/src/lib.rs",
+            "compiler/rustc_codegen_cranelift/src/driver/aot.rs",
+            "compiler/rustc_codegen_llvm/src/common.rs",
+            "compiler/rustc_codegen_llvm/src/debuginfo/metadata/type_map.rs",
+            "compiler/rustc_codegen_ssa/src/back/link/raw_dylib.rs",
+            "compiler/rustc_codegen_ssa/src/common.rs",
+            "compiler/rustc_codegen_ssa/src/debuginfo/type_names.rs",
+            "compiler/rustc_data_structures/src/fingerprint.rs",
+            "compiler/rustc_data_structures/src/intern.rs",
+            "compiler/rustc_data_structures/src/lib.rs",
+            "compiler/rustc_data_structures/src/packed.rs",
+            "compiler/rustc_data_structures/src/sorted_map.rs",
+            "compiler/rustc_data_structures/src/sorted_map/index_map.rs",
+            "compiler/rustc_data_structures/src/stable_hash.rs",
+            "compiler/rustc_data_structures/src/stable_hash/tests.rs",
+            "compiler/rustc_data_structures/src/steal.rs",
+            "compiler/rustc_data_structures/src/tagged_ptr.rs",
+            "compiler/rustc_data_structures/src/tagged_ptr/tests.rs",
+            "compiler/rustc_data_structures/src/unord.rs",
+            "compiler/rustc_errors/src/lib.rs",
+            "compiler/rustc_feature/src/unstable.rs",
+            "compiler/rustc_hir/src/definitions.rs",
+            "compiler/rustc_hir/src/diagnostic_items.rs",
+            "compiler/rustc_hir/src/hir.rs",
+            "compiler/rustc_hir/src/lang_items.rs",
+            "compiler/rustc_hir/src/stable_hash_impls.rs",
+            "compiler/rustc_hir_id/src/lib.rs",
+            "compiler/rustc_hir_typeck/src/intrinsicck.rs",
+            "compiler/rustc_index_macros/src/newtype.rs",
+            "compiler/rustc_lint/src/types.rs",
+            "compiler/rustc_lint_defs/src/lib.rs",
+            "compiler/rustc_macros/src/lib.rs",
+            "compiler/rustc_macros/src/stable_hash.rs",
+            "compiler/rustc_middle/src/dep_graph/dep_node.rs",
+            "compiler/rustc_middle/src/dep_graph/dep_node_key.rs",
+            "compiler/rustc_middle/src/dep_graph/graph.rs",
+            "compiler/rustc_middle/src/error.rs",
+            "compiler/rustc_middle/src/hir/map.rs",
+            "compiler/rustc_middle/src/hir/mod.rs",
+            "compiler/rustc_middle/src/ich.rs",
+            "compiler/rustc_middle/src/middle/privacy.rs",
+            "compiler/rustc_middle/src/mir/basic_blocks.rs",
+            "compiler/rustc_middle/src/mono.rs",
+            "compiler/rustc_middle/src/query/keys.rs",
+            "compiler/rustc_middle/src/query/on_disk_cache.rs",
+            "compiler/rustc_middle/src/query/plumbing.rs",
+            "compiler/rustc_middle/src/ty/adt.rs",
+            "compiler/rustc_middle/src/ty/consts/int.rs",
+            "compiler/rustc_middle/src/ty/context.rs",
+            "compiler/rustc_middle/src/ty/generics.rs",
+            "compiler/rustc_middle/src/ty/impls_ty.rs",
+            "compiler/rustc_middle/src/ty/layout.rs",
+            "compiler/rustc_middle/src/ty/mod.rs",
+            "compiler/rustc_middle/src/ty/util.rs",
+            "compiler/rustc_middle/src/verify_ich.rs",
+            "compiler/rustc_resolve/src/lib.rs",
+            "compiler/rustc_session/src/config.rs",
+            "compiler/rustc_session/src/options.rs",
+            "compiler/rustc_span/src/def_id.rs",
+            "compiler/rustc_span/src/hygiene.rs",
+            "compiler/rustc_span/src/lib.rs",
+            "compiler/rustc_span/src/span_encoding.rs",
+            "compiler/rustc_span/src/symbol.rs",
+            "compiler/rustc_symbol_mangling/src/export.rs",
+            "compiler/rustc_symbol_mangling/src/hashed.rs",
+            "compiler/rustc_symbol_mangling/src/legacy.rs",
+            "compiler/rustc_symbol_mangling/src/v0.rs",
+            "compiler/rustc_type_ir/src/const_kind.rs",
+            "compiler/rustc_type_ir/src/region_kind.rs",
+            "compiler/rustc_type_ir/src/ty_info.rs",
+            "compiler/rustc_type_ir/src/ty_kind.rs",
+            "library/core/src/array/mod.rs",
+            "library/core/src/num/int_macros.rs",
+            "library/core/src/num/uint_macros.rs",
+            "tests/incremental/stable_hash_span/auxiliary/mod.rs",
+            "tests/incremental/stable_hash_span/auxiliary/sub1.rs",
+            "tests/incremental/stable_hash_span/auxiliary/sub2.rs",
+            "tests/incremental/stable_hash_span/main.rs",
+            "tests/ui-fulldeps/stable-hash-is-unstable.rs",
+            "tests/ui-fulldeps/stable-hash-is-unstable.stderr",
+            "tests/ui/transmute/recursive-size-skeleton.rs",
+            "tests/ui/transmute/recursive-size-skeleton.stderr"
+          ],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10024,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-05-10T00:10:09Z"
+          }
+        },
+        {
+          "number": 156359,
+          "title": "use `cfg_select!` in integer `{to, from}_{le, be}`",
+          "merged_at": "2026-05-09T17:09:02Z",
+          "changed_files": 2,
+          "code_files": 2,
+          "changed_paths": [
+            "library/core/src/num/int_macros.rs",
+            "library/core/src/num/uint_macros.rs"
+          ],
+          "code_paths": [
+            "library/core/src/num/int_macros.rs",
+            "library/core/src/num/uint_macros.rs"
+          ],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10024,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-05-10T00:10:09Z"
+          }
+        },
+        {
+          "number": 156353,
+          "title": "resolve: Set correct parent and expansion for `self` declarations",
+          "merged_at": "2026-05-09T17:09:02Z",
+          "changed_files": 1,
+          "code_files": 1,
+          "changed_paths": [
+            "compiler/rustc_resolve/src/lib.rs"
+          ],
+          "code_paths": [
+            "compiler/rustc_resolve/src/lib.rs"
+          ],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10024,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-05-10T00:10:09Z"
+          }
+        }
+      ]
+    },
+    {
+      "repo": "python/cpython",
+      "current_period_rank": "2",
+      "current_period_growth": "80",
+      "total_prs": "67425",
+      "top_pr_creators": [
+        {
+          "id": "54418",
+          "login": "brettcannon",
+          "name": "Brett Cannon",
+          "prs": "7",
+          "first_pr_opened_at": "2017-01-06 18:54:21",
+          "first_pr_merged_at": ""
+        },
+        {
+          "id": "194129",
+          "login": "vstinner",
+          "name": "Victor Stinner",
+          "prs": "5",
+          "first_pr_opened_at": "2016-11-25 12:27:19",
+          "first_pr_merged_at": ""
+        },
+        {
+          "id": "1100216",
+          "login": "JDLH",
+          "name": "Jim DeLaHunt",
+          "prs": "2",
+          "first_pr_opened_at": "2017-02-09 08:27:09",
+          "first_pr_merged_at": ""
+        },
+        {
+          "id": "4369372",
+          "login": "krichter722",
+          "name": "Karl-Philipp Richter",
+          "prs": "2",
+          "first_pr_opened_at": "2015-06-24 13:40:36",
+          "first_pr_merged_at": ""
+        },
+        {
+          "id": "25100769",
+          "login": "eszense",
+          "name": "",
+          "prs": "2",
+          "first_pr_opened_at": "2017-01-18 19:31:09",
+          "first_pr_merged_at": ""
+        }
+      ],
+      "prs": [
+        {
+          "number": 149304,
+          "title": "[3.14] gh-141388: Improve docs/tests for non-function callables as annotate functions (GH-142327)",
+          "merged_at": "2026-05-09T21:58:51Z",
+          "changed_files": 4,
+          "code_files": 1,
+          "changed_paths": [
+            "Doc/glossary.rst",
+            "Doc/library/annotationlib.rst",
+            "Lib/test/test_annotationlib.py",
+            "Misc/NEWS.d/next/Library/2025-12-06-08-48-26.gh-issue-141449.hQvNW_.rst"
+          ],
+          "code_paths": [
+            "Lib/test/test_annotationlib.py"
+          ],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10024,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-05-10T00:10:22Z"
+          }
+        },
+        {
+          "number": 149622,
+          "title": "[3.15] gh-139871: Fix 3.15 bytearray.take_bytes example (GH-149520)",
+          "merged_at": "2026-05-09T21:47:22Z",
+          "changed_files": 1,
+          "code_files": 0,
+          "changed_paths": [
+            "Doc/whatsnew/3.15.rst"
+          ],
+          "code_paths": [],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10024,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-05-10T00:10:22Z"
+          }
+        },
+        {
+          "number": 149620,
+          "title": "[3.15] Fix minor typos in unicode.rst (GH-149587)",
+          "merged_at": "2026-05-09T21:39:36Z",
+          "changed_files": 1,
+          "code_files": 0,
+          "changed_paths": [
+            "Doc/c-api/unicode.rst"
+          ],
+          "code_paths": [],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10024,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-05-10T00:10:22Z"
+          }
+        },
+        {
+          "number": 149520,
+          "title": "gh-139871: Fix 3.15 bytearray.take_bytes example",
+          "merged_at": "2026-05-09T21:39:01Z",
+          "changed_files": 1,
+          "code_files": 0,
+          "changed_paths": [
+            "Doc/whatsnew/3.15.rst"
+          ],
+          "code_paths": [],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10024,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-05-10T00:10:22Z"
+          }
+        }
+      ]
+    },
+    {
+      "repo": "dotnet/roslyn",
+      "current_period_rank": "3",
+      "current_period_growth": "48",
+      "total_prs": "44071",
+      "top_pr_creators": [
+        {
+          "id": "4564579",
+          "login": "CyrusNajmabadi",
+          "name": "Cyrus Najmabadi",
+          "prs": "5354",
+          "first_pr_opened_at": "2015-02-10 02:54:21",
+          "first_pr_merged_at": "2015-02-12 20:22:02"
+        },
+        {
+          "id": "41759",
+          "login": "tmat",
+          "name": "Tomáš Matoušek",
+          "prs": "1902",
+          "first_pr_opened_at": "2015-02-09 01:22:15",
+          "first_pr_merged_at": "2015-02-10 02:09:14"
+        },
+        {
+          "id": "1408396",
+          "login": "sharwell",
+          "name": "Sam Harwell",
+          "prs": "1597",
+          "first_pr_opened_at": "2015-05-01 06:45:03",
+          "first_pr_merged_at": "2017-03-31 03:13:15"
+        },
+        {
+          "id": "10522107",
+          "login": "AlekseyTs",
+          "name": "",
+          "prs": "1428",
+          "first_pr_opened_at": "2015-03-23 02:57:26",
+          "first_pr_merged_at": "2015-03-23 23:34:00"
+        },
+        {
+          "id": "12466233",
+          "login": "jcouv",
+          "name": "Julien Couvreur",
+          "prs": "1413",
+          "first_pr_opened_at": "2016-02-18 03:23:27",
+          "first_pr_merged_at": "2016-02-19 04:01:24"
+        }
+      ],
+      "prs": [
+        {
+          "number": 83457,
+          "title": "Add support for writing HTML literals using UTF-8 strings",
+          "merged_at": "2026-05-09T02:13:30Z",
+          "changed_files": 23,
+          "code_files": 23,
+          "changed_paths": [
+            "src/Razor/src/Compiler/Microsoft.AspNetCore.Mvc.Razor.Extensions/test/IntegrationTests/CodeGenerationIntegrationTest.cs",
+            "src/Razor/src/Compiler/Microsoft.AspNetCore.Razor.Language/test/CodeGeneration/RuntimeNodeWriterTest.cs",
+            "src/Razor/src/Compiler/Microsoft.AspNetCore.Razor.Language/test/RazorProjectEngineTest.cs",
+            "src/Razor/src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/CSharp/CompilationExtensions.cs",
+            "src/Razor/src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/CSharp/DefaultUtf8WriteLiteralFeature.cs",
+            "src/Razor/src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/CSharp/IUtf8WriteLiteralFeature.cs",
+            "src/Razor/src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/CSharp/Utf8WriteLiteralDetectionPass.cs",
+            "src/Razor/src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/Language/CodeGeneration/CodeWriterExtensions.cs",
+            "src/Razor/src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/Language/CodeGeneration/IntermediateNodeWriter.cs",
+            "src/Razor/src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/Language/DefaultRazorCSharpLoweringPhase.cs",
+            "src/Razor/src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/Language/RazorCodeDocumentExtensions.cs",
+            "src/Razor/src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/Language/RazorCodeGenerationOptions.Builder.cs",
+            "src/Razor/src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/Language/RazorCodeGenerationOptions.Flags.cs",
+            "src/Razor/src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/Language/RazorCodeGenerationOptions.cs",
+            "src/Razor/src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/Language/RazorProjectEngine.cs",
+            "src/Razor/src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/SourceGenerators/RazorSourceGenerator.Helpers.cs",
+            "src/Razor/src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/SourceGenerators/RazorSourceGenerator.cs",
+            "src/Razor/src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/SourceGenerators/SourceGeneratorProjectEngine.cs",
+            "src/Razor/src/Compiler/perf/Microsoft.AspNetCore.Razor.Microbenchmarks.Generator/Microsoft.AspNetCore.Razor.Microbenchmarks.Generator.csproj",
+            "src/Razor/src/Compiler/test/Microsoft.NET.Sdk.Razor.SourceGenerators.UnitTests/RazorSourceGeneratorCshtmlTests.cs",
+            "src/Razor/src/Compiler/test/Microsoft.NET.Sdk.Razor.SourceGenerators.UnitTests/TestFiles/RazorSourceGeneratorCshtmlTests/Utf8HtmlLiterals_AutoDetectedFromInherits/Pages/Index_cshtml.g.cs",
+            "src/Razor/src/Compiler/test/Microsoft.NET.Sdk.Razor.SourceGenerators.UnitTests/TestFiles/RazorSourceGeneratorCshtmlTests/Utf8HtmlLiterals_WithoutOverload_UsesStringLiterals/Pages/Index_cshtml.g.cs",
+            "src/Razor/src/Shared/Microsoft.AspNetCore.Razor.Test.Common/Language/CodeGeneration/TestCodeRenderingContext.cs"
+          ],
+          "code_paths": [
+            "src/Razor/src/Compiler/Microsoft.AspNetCore.Mvc.Razor.Extensions/test/IntegrationTests/CodeGenerationIntegrationTest.cs",
+            "src/Razor/src/Compiler/Microsoft.AspNetCore.Razor.Language/test/CodeGeneration/RuntimeNodeWriterTest.cs",
+            "src/Razor/src/Compiler/Microsoft.AspNetCore.Razor.Language/test/RazorProjectEngineTest.cs",
+            "src/Razor/src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/CSharp/CompilationExtensions.cs",
+            "src/Razor/src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/CSharp/DefaultUtf8WriteLiteralFeature.cs",
+            "src/Razor/src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/CSharp/IUtf8WriteLiteralFeature.cs",
+            "src/Razor/src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/CSharp/Utf8WriteLiteralDetectionPass.cs",
+            "src/Razor/src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/Language/CodeGeneration/CodeWriterExtensions.cs",
+            "src/Razor/src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/Language/CodeGeneration/IntermediateNodeWriter.cs",
+            "src/Razor/src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/Language/DefaultRazorCSharpLoweringPhase.cs",
+            "src/Razor/src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/Language/RazorCodeDocumentExtensions.cs",
+            "src/Razor/src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/Language/RazorCodeGenerationOptions.Builder.cs",
+            "src/Razor/src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/Language/RazorCodeGenerationOptions.Flags.cs",
+            "src/Razor/src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/Language/RazorCodeGenerationOptions.cs",
+            "src/Razor/src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/Language/RazorProjectEngine.cs",
+            "src/Razor/src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/SourceGenerators/RazorSourceGenerator.Helpers.cs",
+            "src/Razor/src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/SourceGenerators/RazorSourceGenerator.cs",
+            "src/Razor/src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/SourceGenerators/SourceGeneratorProjectEngine.cs",
+            "src/Razor/src/Compiler/perf/Microsoft.AspNetCore.Razor.Microbenchmarks.Generator/Microsoft.AspNetCore.Razor.Microbenchmarks.Generator.csproj",
+            "src/Razor/src/Compiler/test/Microsoft.NET.Sdk.Razor.SourceGenerators.UnitTests/RazorSourceGeneratorCshtmlTests.cs",
+            "src/Razor/src/Compiler/test/Microsoft.NET.Sdk.Razor.SourceGenerators.UnitTests/TestFiles/RazorSourceGeneratorCshtmlTests/Utf8HtmlLiterals_AutoDetectedFromInherits/Pages/Index_cshtml.g.cs",
+            "src/Razor/src/Compiler/test/Microsoft.NET.Sdk.Razor.SourceGenerators.UnitTests/TestFiles/RazorSourceGeneratorCshtmlTests/Utf8HtmlLiterals_WithoutOverload_UsesStringLiterals/Pages/Index_cshtml.g.cs",
+            "src/Razor/src/Shared/Microsoft.AspNetCore.Razor.Test.Common/Language/CodeGeneration/TestCodeRenderingContext.cs"
+          ],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10024,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-05-10T00:10:35Z"
+          }
+        },
+        {
+          "number": 83570,
+          "title": "Fix flaky AssemblyLoading_MultipleVersions_AnalyzerDependency test",
+          "merged_at": "2026-05-08T23:45:21Z",
+          "changed_files": 1,
+          "code_files": 1,
+          "changed_paths": [
+            "src/Compilers/Core/CodeAnalysisTest/InvokeUtil.cs"
+          ],
+          "code_paths": [
+            "src/Compilers/Core/CodeAnalysisTest/InvokeUtil.cs"
+          ],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10024,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-05-10T00:10:35Z"
+          }
+        },
+        {
+          "number": 83630,
+          "title": "Shorten ServiceBroker test pipe names",
+          "merged_at": "2026-05-08T23:05:56Z",
+          "changed_files": 3,
+          "code_files": 3,
+          "changed_paths": [
+            "src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer.UnitTests/ServiceBrokerFactoryTests.cs",
+            "src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer.UnitTests/Utilities/AbstractLanguageServerClientTests.TestLspClient.cs",
+            "src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer.UnitTests/Utilities/NamedPipeTestUtilities.cs"
+          ],
+          "code_paths": [
+            "src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer.UnitTests/ServiceBrokerFactoryTests.cs",
+            "src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer.UnitTests/Utilities/AbstractLanguageServerClientTests.TestLspClient.cs",
+            "src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer.UnitTests/Utilities/NamedPipeTestUtilities.cs"
+          ],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10024,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-05-10T00:10:35Z"
+          }
+        },
+        {
+          "number": 83619,
+          "title": "Normalize some Razor URI helpers",
+          "merged_at": "2026-05-08T23:05:46Z",
+          "changed_files": 27,
+          "code_files": 27,
+          "changed_paths": [
+            "src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer.UnitTests/AutoLoadProjectsInitializerTests.cs",
+            "src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/FileBasedPrograms/FileBasedProgramsProjectSystem.cs",
+            "src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/HostWorkspace/AutoLoadProjectsInitializer.cs",
+            "src/LanguageServer/Protocol.TestUtilities/AbstractLspMiscellaneousFilesWorkspaceTests.cs",
+            "src/LanguageServer/Protocol/Extensions/Extensions.cs",
+            "src/LanguageServer/Protocol/Extensions/ProtocolConversions.cs",
+            "src/LanguageServer/Protocol/Handler/InitializeManager.cs",
+            "src/LanguageServer/Protocol/Handler/MapCode/MapCodeHandler.cs",
+            "src/LanguageServer/Protocol/Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj",
+            "src/LanguageServer/Protocol/Workspaces/LspMiscellaneousFilesWorkspaceProvider.cs",
+            "src/LanguageServer/ProtocolUnitTests/MapCode/MapCodeTests.cs",
+            "src/Razor/src/Razor/src/Microsoft.CodeAnalysis.Razor.CohostingShared/CallHierarchy/CohostCallHierarchyIncomingCallsEndpoint.cs",
+            "src/Razor/src/Razor/src/Microsoft.CodeAnalysis.Razor.CohostingShared/CallHierarchy/CohostCallHierarchyOutgoingCallsEndpoint.cs",
+            "src/Razor/src/Razor/src/Microsoft.CodeAnalysis.Razor.CohostingShared/CallHierarchy/CohostPrepareCallHierarchyEndpoint.cs",
+            "src/Razor/src/Razor/src/Microsoft.CodeAnalysis.Razor.CohostingShared/IncompatibleProjectService.cs",
+            "src/Razor/src/Razor/src/Microsoft.CodeAnalysis.Razor.Workspaces/AbstractFilePathService.cs",
+            "src/Razor/src/Razor/src/Microsoft.CodeAnalysis.Razor.Workspaces/CodeActions/Razor/GenerateEventHandlerCodeActionResolver.cs",
+            "src/Razor/src/Razor/src/Microsoft.CodeAnalysis.Razor.Workspaces/Extensions/SolutionExtensions.cs",
+            "src/Razor/src/Razor/src/Microsoft.CodeAnalysis.Razor.Workspaces/UriExtensions.cs",
+            "src/Razor/src/Razor/src/Microsoft.CodeAnalysis.Remote.Razor/CodeActions/RoslynCodeActionHelpers.cs",
+            "src/Razor/src/Razor/src/Microsoft.CodeAnalysis.Remote.Razor/FindAllReferences/RemoteFindAllReferencesService.cs",
+            "src/Razor/src/Razor/src/Microsoft.VisualStudio.LanguageServices.Razor/LanguageClient/Cohost/CohostApplyRenameEditEndpoint.cs",
+            "src/Razor/src/Razor/src/Microsoft.VisualStudio.LanguageServices.Razor/ProjectSystem/RenameProjectTreeHandler.cs",
+            "src/Razor/src/Razor/test/Microsoft.AspNetCore.Razor.Test.Common.Tooling/AssertExtensions.cs",
+            "src/Razor/src/Razor/test/Microsoft.CodeAnalysis.Razor.CohostingShared.UnitTests/ComputedTargetPathTest.cs",
+            "src/Tools/ExternalAccess/Razor/Features/RazorUri.cs",
+            "src/Tools/ExternalAccess/Razor/Features/SolutionExtensions.cs"
+          ],
+          "code_paths": [
+            "src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer.UnitTests/AutoLoadProjectsInitializerTests.cs",
+            "src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/FileBasedPrograms/FileBasedProgramsProjectSystem.cs",
+            "src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/HostWorkspace/AutoLoadProjectsInitializer.cs",
+            "src/LanguageServer/Protocol.TestUtilities/AbstractLspMiscellaneousFilesWorkspaceTests.cs",
+            "src/LanguageServer/Protocol/Extensions/Extensions.cs",
+            "src/LanguageServer/Protocol/Extensions/ProtocolConversions.cs",
+            "src/LanguageServer/Protocol/Handler/InitializeManager.cs",
+            "src/LanguageServer/Protocol/Handler/MapCode/MapCodeHandler.cs",
+            "src/LanguageServer/Protocol/Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj",
+            "src/LanguageServer/Protocol/Workspaces/LspMiscellaneousFilesWorkspaceProvider.cs",
+            "src/LanguageServer/ProtocolUnitTests/MapCode/MapCodeTests.cs",
+            "src/Razor/src/Razor/src/Microsoft.CodeAnalysis.Razor.CohostingShared/CallHierarchy/CohostCallHierarchyIncomingCallsEndpoint.cs",
+            "src/Razor/src/Razor/src/Microsoft.CodeAnalysis.Razor.CohostingShared/CallHierarchy/CohostCallHierarchyOutgoingCallsEndpoint.cs",
+            "src/Razor/src/Razor/src/Microsoft.CodeAnalysis.Razor.CohostingShared/CallHierarchy/CohostPrepareCallHierarchyEndpoint.cs",
+            "src/Razor/src/Razor/src/Microsoft.CodeAnalysis.Razor.CohostingShared/IncompatibleProjectService.cs",
+            "src/Razor/src/Razor/src/Microsoft.CodeAnalysis.Razor.Workspaces/AbstractFilePathService.cs",
+            "src/Razor/src/Razor/src/Microsoft.CodeAnalysis.Razor.Workspaces/CodeActions/Razor/GenerateEventHandlerCodeActionResolver.cs",
+            "src/Razor/src/Razor/src/Microsoft.CodeAnalysis.Razor.Workspaces/Extensions/SolutionExtensions.cs",
+            "src/Razor/src/Razor/src/Microsoft.CodeAnalysis.Razor.Workspaces/UriExtensions.cs",
+            "src/Razor/src/Razor/src/Microsoft.CodeAnalysis.Remote.Razor/CodeActions/RoslynCodeActionHelpers.cs",
+            "src/Razor/src/Razor/src/Microsoft.CodeAnalysis.Remote.Razor/FindAllReferences/RemoteFindAllReferencesService.cs",
+            "src/Razor/src/Razor/src/Microsoft.VisualStudio.LanguageServices.Razor/LanguageClient/Cohost/CohostApplyRenameEditEndpoint.cs",
+            "src/Razor/src/Razor/src/Microsoft.VisualStudio.LanguageServices.Razor/ProjectSystem/RenameProjectTreeHandler.cs",
+            "src/Razor/src/Razor/test/Microsoft.AspNetCore.Razor.Test.Common.Tooling/AssertExtensions.cs",
+            "src/Razor/src/Razor/test/Microsoft.CodeAnalysis.Razor.CohostingShared.UnitTests/ComputedTargetPathTest.cs",
+            "src/Tools/ExternalAccess/Razor/Features/RazorUri.cs",
+            "src/Tools/ExternalAccess/Razor/Features/SolutionExtensions.cs"
+          ],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10024,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-05-10T00:10:35Z"
+          }
+        }
+      ]
+    },
+    {
+      "repo": "nodejs/node",
+      "current_period_rank": "4",
+      "current_period_growth": "45",
+      "total_prs": "39439",
+      "top_pr_creators": [
+        {
+          "id": "718899",
+          "login": "Trott",
+          "name": "Rich Trott",
+          "prs": "2837",
+          "first_pr_opened_at": "2015-05-17 02:39:59",
+          "first_pr_merged_at": "2015-10-21 22:53:36"
+        },
+        {
+          "id": "899444",
+          "login": "addaleax",
+          "name": "Anna Henningsen",
+          "prs": "1332",
+          "first_pr_opened_at": "2015-12-20 11:39:09",
+          "first_pr_merged_at": "2016-05-10 05:52:34"
+        },
+        {
+          "id": "14309773",
+          "login": "aduh95",
+          "name": "Antoine du Hamel",
+          "prs": "1035",
+          "first_pr_opened_at": "2018-03-27 19:01:09",
+          "first_pr_merged_at": "2020-09-05 20:56:38"
+        },
+        {
+          "id": "439929",
+          "login": "jasnell",
+          "name": "James M Snell",
+          "prs": "1001",
+          "first_pr_opened_at": "2015-08-04 21:49:14",
+          "first_pr_merged_at": "2016-10-14 18:27:42"
+        },
+        {
+          "id": "2512748",
+          "login": "cjihrig",
+          "name": "Colin Ihrig",
+          "prs": "924",
+          "first_pr_opened_at": "2015-01-12 14:31:27",
+          "first_pr_merged_at": "2015-03-05 15:13:49"
+        }
+      ],
+      "prs": [
+        {
+          "number": 62784,
+          "title": "[v24.x] deps: V8: cherry-pick 657d8de27427",
+          "merged_at": "2026-05-09T11:56:40Z",
+          "changed_files": 3,
+          "code_files": 3,
+          "changed_paths": [
+            "common.gypi",
+            "deps/v8/src/maglev/maglev-graph-builder.h",
+            "deps/v8/test/mjsunit/regress-417768368.js"
+          ],
+          "code_paths": [
+            "common.gypi",
+            "deps/v8/src/maglev/maglev-graph-builder.h",
+            "deps/v8/test/mjsunit/regress-417768368.js"
+          ],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10024,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-05-10T00:10:50Z"
+          }
+        },
+        {
+          "number": 63176,
+          "title": "[v24.x backport] inspector: support storage inspection and webstorage events",
+          "merged_at": "2026-05-09T07:33:43Z",
+          "changed_files": 31,
+          "code_files": 29,
+          "changed_paths": [
+            "doc/api/cli.md",
+            "doc/api/inspector.md",
+            "doc/node.1",
+            "eslint.config.mjs",
+            "lib/inspector.js",
+            "lib/internal/inspector/webstorage.js",
+            "lib/internal/webstorage.js",
+            "src/inspector/dom_storage_agent.cc",
+            "src/inspector/dom_storage_agent.h",
+            "src/inspector/domain_dom_storage.pdl",
+            "src/inspector/domain_storage.pdl",
+            "src/inspector/inspector_object_utils.cc",
+            "src/inspector/inspector_object_utils.h",
+            "src/inspector/network_agent.cc",
+            "src/inspector/network_agent.h",
+            "src/inspector/node_inspector.gypi",
+            "src/inspector/node_protocol.pdl",
+            "src/inspector/notification_emitter.cc",
+            "src/inspector/notification_emitter.h",
+            "src/inspector/storage_agent.cc",
+            "src/inspector/storage_agent.h",
+            "src/inspector_agent.cc",
+            "src/node_builtins.cc",
+            "src/node_options.cc",
+            "src/node_options.h",
+            "src/node_webstorage.cc",
+            "src/node_webstorage.h",
+            "test/fixtures/test-inspector-dom-storage.mjs",
+            "test/parallel/test-inspector-dom-storage.js",
+            "test/parallel/test-inspector-emit-protocol-event-errors.js",
+            "test/parallel/test-inspector-emit-protocol-event.js"
+          ],
+          "code_paths": [
+            "doc/node.1",
+            "eslint.config.mjs",
+            "lib/inspector.js",
+            "lib/internal/inspector/webstorage.js",
+            "lib/internal/webstorage.js",
+            "src/inspector/dom_storage_agent.cc",
+            "src/inspector/dom_storage_agent.h",
+            "src/inspector/domain_dom_storage.pdl",
+            "src/inspector/domain_storage.pdl",
+            "src/inspector/inspector_object_utils.cc",
+            "src/inspector/inspector_object_utils.h",
+            "src/inspector/network_agent.cc",
+            "src/inspector/network_agent.h",
+            "src/inspector/node_inspector.gypi",
+            "src/inspector/node_protocol.pdl",
+            "src/inspector/notification_emitter.cc",
+            "src/inspector/notification_emitter.h",
+            "src/inspector/storage_agent.cc",
+            "src/inspector/storage_agent.h",
+            "src/inspector_agent.cc",
+            "src/node_builtins.cc",
+            "src/node_options.cc",
+            "src/node_options.h",
+            "src/node_webstorage.cc",
+            "src/node_webstorage.h",
+            "test/fixtures/test-inspector-dom-storage.mjs",
+            "test/parallel/test-inspector-dom-storage.js",
+            "test/parallel/test-inspector-emit-protocol-event-errors.js",
+            "test/parallel/test-inspector-emit-protocol-event.js"
+          ],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10024,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-05-10T00:10:50Z"
+          }
+        },
+        {
+          "number": 63173,
+          "title": "[v24.x backport] crypto,doc: selected crypto changes",
+          "merged_at": "2026-05-09T07:28:14Z",
+          "changed_files": 19,
+          "code_files": 17,
+          "changed_paths": [
+            "doc/api/crypto.md",
+            "doc/api/webcrypto.md",
+            "lib/internal/crypto/aes.js",
+            "lib/internal/crypto/cfrg.js",
+            "lib/internal/crypto/chacha20_poly1305.js",
+            "lib/internal/crypto/ec.js",
+            "lib/internal/crypto/keys.js",
+            "lib/internal/crypto/mac.js",
+            "lib/internal/crypto/ml_dsa.js",
+            "lib/internal/crypto/ml_kem.js",
+            "lib/internal/crypto/rsa.js",
+            "lib/internal/crypto/util.js",
+            "src/crypto/crypto_argon2.cc",
+            "src/node_errors.h",
+            "test/parallel/test-crypto-argon2-job.js",
+            "test/parallel/test-crypto-key-objects-raw.js",
+            "test/parallel/test-webcrypto-deduplicate-usages.js",
+            "test/parallel/test-webcrypto-keygen.js",
+            "test/pummel/test-crypto-argon2-nonblocking-constructor.js"
+          ],
+          "code_paths": [
+            "lib/internal/crypto/aes.js",
+            "lib/internal/crypto/cfrg.js",
+            "lib/internal/crypto/chacha20_poly1305.js",
+            "lib/internal/crypto/ec.js",
+            "lib/internal/crypto/keys.js",
+            "lib/internal/crypto/mac.js",
+            "lib/internal/crypto/ml_dsa.js",
+            "lib/internal/crypto/ml_kem.js",
+            "lib/internal/crypto/rsa.js",
+            "lib/internal/crypto/util.js",
+            "src/crypto/crypto_argon2.cc",
+            "src/node_errors.h",
+            "test/parallel/test-crypto-argon2-job.js",
+            "test/parallel/test-crypto-key-objects-raw.js",
+            "test/parallel/test-webcrypto-deduplicate-usages.js",
+            "test/parallel/test-webcrypto-keygen.js",
+            "test/pummel/test-crypto-argon2-nonblocking-constructor.js"
+          ],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10024,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-05-10T00:10:50Z"
+          }
+        },
+        {
+          "number": 63194,
+          "title": "[v24.x backport] repl: keep reference count for `process.on('newListener')`",
+          "merged_at": "2026-05-09T07:22:16Z",
+          "changed_files": 2,
+          "code_files": 2,
+          "changed_paths": [
+            "lib/repl.js",
+            "test/parallel/test-repl-no-terminal-restore-process-listeners.js"
+          ],
+          "code_paths": [
+            "lib/repl.js",
+            "test/parallel/test-repl-no-terminal-restore-process-listeners.js"
+          ],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10024,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-05-10T00:10:50Z"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,470 @@
+{
+  "generated_at": "2026-05-10T00:15:03Z",
+  "collection_id": 10044,
+  "period": "past_28_days",
+  "repos": [
+    {
+      "repo": "PostHog/posthog",
+      "current_period_rank": "1",
+      "current_period_growth": "270",
+      "total_prs": "35621",
+      "top_pr_creators": [
+        {
+          "id": "984817",
+          "login": "pauldambra",
+          "name": "Paul D'Ambra",
+          "prs": "2651",
+          "first_pr_opened_at": "2021-09-20 14:27:22",
+          "first_pr_merged_at": "2021-09-22 10:39:19"
+        },
+        {
+          "id": "4550621",
+          "login": "Twixes",
+          "name": "Michael Matloka",
+          "prs": "1799",
+          "first_pr_opened_at": "2020-06-29 11:05:06",
+          "first_pr_merged_at": "2020-06-29 12:49:26"
+        },
+        {
+          "id": "2536520",
+          "login": "benjackwhite",
+          "name": "Ben White",
+          "prs": "1620",
+          "first_pr_opened_at": "2022-05-02 13:27:49",
+          "first_pr_merged_at": "2022-05-03 15:12:48"
+        },
+        {
+          "id": "53387",
+          "login": "mariusandra",
+          "name": "Marius Andra",
+          "prs": "1589",
+          "first_pr_opened_at": "2020-03-04 09:13:57",
+          "first_pr_merged_at": "2020-03-05 00:07:30"
+        },
+        {
+          "id": "13127476",
+          "login": "EDsCODE",
+          "name": "Eric Duong",
+          "prs": "1290",
+          "first_pr_opened_at": "2020-03-29 21:43:06",
+          "first_pr_merged_at": "2020-04-02 17:11:14"
+        }
+      ],
+      "prs": [
+        {
+          "number": 58077,
+          "title": "feat(phrocs): add hotkey to restart all failed processes",
+          "merged_at": "2026-05-09T19:07:23Z",
+          "changed_files": 5,
+          "code_files": 4,
+          "changed_paths": [
+            "tools/phrocs/README.md",
+            "tools/phrocs/internal/tui/app.go",
+            "tools/phrocs/internal/tui/keymap.go",
+            "tools/phrocs/internal/tui/keys.go",
+            "tools/phrocs/internal/tui/restart_failed_test.go"
+          ],
+          "code_paths": [
+            "tools/phrocs/internal/tui/app.go",
+            "tools/phrocs/internal/tui/keymap.go",
+            "tools/phrocs/internal/tui/keys.go",
+            "tools/phrocs/internal/tui/restart_failed_test.go"
+          ],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10044,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-05-10T00:14:42Z"
+          }
+        },
+        {
+          "number": 58203,
+          "title": "feat(replay-vision): add CRUD API for lenses and observations",
+          "merged_at": "2026-05-09T16:22:51Z",
+          "changed_files": 24,
+          "code_files": 21,
+          "changed_paths": [
+            ".semgrep/rules/idor-team-scoped-models.yaml",
+            "frontend/src/lib/scopes.tsx",
+            "frontend/src/types.ts",
+            "posthog/api/__init__.py",
+            "posthog/rbac/user_access_control.py",
+            "posthog/scopes.py",
+            "posthog/settings/web.py",
+            "products/replay_vision/README.md",
+            "products/replay_vision/backend/admin.py",
+            "products/replay_vision/backend/api/__init__.py",
+            "products/replay_vision/backend/api/lenses.py",
+            "products/replay_vision/backend/api/observations.py",
+            "products/replay_vision/backend/feature_flag.py",
+            "products/replay_vision/backend/migrations/0002_rename_replaylensobservation_replayobservation_and_more.py",
+            "products/replay_vision/backend/migrations/max_migration.txt",
+            "products/replay_vision/backend/models/__init__.py",
+            "products/replay_vision/backend/models/replay_lens.py",
+            "products/replay_vision/backend/models/replay_observation.py",
+            "products/replay_vision/backend/tests/test_api.py",
+            "products/replay_vision/backend/tests/test_models.py",
+            "products/replay_vision/frontend/generated/api.schemas.ts",
+            "products/replay_vision/frontend/generated/api.ts",
+            "products/replay_vision/frontend/generated/api.zod.ts",
+            "services/mcp/src/api/generated.ts"
+          ],
+          "code_paths": [
+            "frontend/src/lib/scopes.tsx",
+            "frontend/src/types.ts",
+            "posthog/api/__init__.py",
+            "posthog/rbac/user_access_control.py",
+            "posthog/scopes.py",
+            "posthog/settings/web.py",
+            "products/replay_vision/backend/admin.py",
+            "products/replay_vision/backend/api/__init__.py",
+            "products/replay_vision/backend/api/lenses.py",
+            "products/replay_vision/backend/api/observations.py",
+            "products/replay_vision/backend/feature_flag.py",
+            "products/replay_vision/backend/migrations/0002_rename_replaylensobservation_replayobservation_and_more.py",
+            "products/replay_vision/backend/models/__init__.py",
+            "products/replay_vision/backend/models/replay_lens.py",
+            "products/replay_vision/backend/models/replay_observation.py",
+            "products/replay_vision/backend/tests/test_api.py",
+            "products/replay_vision/backend/tests/test_models.py",
+            "products/replay_vision/frontend/generated/api.schemas.ts",
+            "products/replay_vision/frontend/generated/api.ts",
+            "products/replay_vision/frontend/generated/api.zod.ts",
+            "services/mcp/src/api/generated.ts"
+          ],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10044,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-05-10T00:14:42Z"
+          }
+        },
+        {
+          "number": 58223,
+          "title": "fix(llma): use trace id as download filename prefix",
+          "merged_at": "2026-05-09T15:34:22Z",
+          "changed_files": 2,
+          "code_files": 1,
+          "changed_paths": [
+            "frontend/snapshots.yml",
+            "products/llm_analytics/frontend/traceExportUtils.ts"
+          ],
+          "code_paths": [
+            "products/llm_analytics/frontend/traceExportUtils.ts"
+          ],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10044,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-05-10T00:14:42Z"
+          }
+        }
+      ]
+    },
+    {
+      "repo": "airbytehq/airbyte",
+      "current_period_rank": "2",
+      "current_period_growth": "178",
+      "total_prs": "51705",
+      "top_pr_creators": [
+        {
+          "id": "92915184",
+          "login": "airbyteio",
+          "name": "Airbyte",
+          "prs": "14409",
+          "first_pr_opened_at": "2024-08-12 12:14:50",
+          "first_pr_merged_at": "2024-08-12 16:49:25"
+        },
+        {
+          "id": "5551758",
+          "login": "alafanechere",
+          "name": "Augustin",
+          "prs": "4370",
+          "first_pr_opened_at": "2021-07-02 07:32:25",
+          "first_pr_merged_at": "2021-11-23 17:04:54"
+        },
+        {
+          "id": "5741425",
+          "login": "edgao",
+          "name": "Edward Gao",
+          "prs": "775",
+          "first_pr_opened_at": "2021-12-06 22:57:00",
+          "first_pr_merged_at": "2021-12-10 23:51:26"
+        },
+        {
+          "id": "9092207",
+          "login": "cgardens",
+          "name": "Charles",
+          "prs": "770",
+          "first_pr_opened_at": "2020-08-27 17:41:07",
+          "first_pr_merged_at": "2020-08-27 18:01:06"
+        },
+        {
+          "id": "5154322",
+          "login": "marcosmarxm",
+          "name": "Marcos Marx",
+          "prs": "659",
+          "first_pr_opened_at": "2021-02-23 23:23:51",
+          "first_pr_merged_at": "2021-03-12 01:11:34"
+        }
+      ],
+      "prs": [
+        {
+          "number": 77830,
+          "title": "docs(privatelink): rename to Private Links and update for self-serve UI",
+          "merged_at": "2026-05-09T14:48:13Z",
+          "changed_files": 1,
+          "code_files": 0,
+          "changed_paths": [
+            "docs/platform/operating-airbyte/privatelink.md"
+          ],
+          "code_paths": [],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10044,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-05-10T00:14:52Z"
+          }
+        },
+        {
+          "number": 77895,
+          "title": "fix(source-customer-io): align SDM runtime with CDK tests",
+          "merged_at": "2026-05-08T19:31:26Z",
+          "changed_files": 4,
+          "code_files": 0,
+          "changed_paths": [
+            "airbyte-integrations/connectors/source-customer-io/metadata.yaml",
+            "airbyte-integrations/connectors/source-customer-io/unit_tests/poetry.lock",
+            "airbyte-integrations/connectors/source-customer-io/unit_tests/pyproject.toml",
+            "docs/integrations/sources/customer-io.md"
+          ],
+          "code_paths": [],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10044,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-05-10T00:14:52Z"
+          }
+        },
+        {
+          "number": 77819,
+          "title": "fix(source-customer-io): paginate campaigns_actions/newsletters, add client-side incremental, support EU region",
+          "merged_at": "2026-05-08T18:49:37Z",
+          "changed_files": 9,
+          "code_files": 4,
+          "changed_paths": [
+            "airbyte-integrations/connectors/source-customer-io/manifest.yaml",
+            "airbyte-integrations/connectors/source-customer-io/metadata.yaml",
+            "airbyte-integrations/connectors/source-customer-io/unit_tests/__init__.py",
+            "airbyte-integrations/connectors/source-customer-io/unit_tests/_helpers.py",
+            "airbyte-integrations/connectors/source-customer-io/unit_tests/conftest.py",
+            "airbyte-integrations/connectors/source-customer-io/unit_tests/poetry.lock",
+            "airbyte-integrations/connectors/source-customer-io/unit_tests/pyproject.toml",
+            "airbyte-integrations/connectors/source-customer-io/unit_tests/test_pagination_region_incremental.py",
+            "docs/integrations/sources/customer-io.md"
+          ],
+          "code_paths": [
+            "airbyte-integrations/connectors/source-customer-io/unit_tests/__init__.py",
+            "airbyte-integrations/connectors/source-customer-io/unit_tests/_helpers.py",
+            "airbyte-integrations/connectors/source-customer-io/unit_tests/conftest.py",
+            "airbyte-integrations/connectors/source-customer-io/unit_tests/test_pagination_region_incremental.py"
+          ],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10044,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-05-10T00:14:52Z"
+          }
+        }
+      ]
+    },
+    {
+      "repo": "ClickHouse/ClickHouse",
+      "current_period_rank": "3",
+      "current_period_growth": "173",
+      "total_prs": "67631",
+      "top_pr_creators": [
+        {
+          "id": "18581488",
+          "login": "alexey-milovidov",
+          "name": "Alexey Milovidov",
+          "prs": "4501",
+          "first_pr_opened_at": "2016-06-30 18:44:22",
+          "first_pr_merged_at": "2016-06-30 18:44:24"
+        },
+        {
+          "id": "430798",
+          "login": "azat",
+          "name": "Azat Khuzhin",
+          "prs": "2276",
+          "first_pr_opened_at": "2019-02-22 19:52:28",
+          "first_pr_merged_at": "2019-03-23 02:54:05"
+        },
+        {
+          "id": "3684697",
+          "login": "alesapin",
+          "name": "",
+          "prs": "1207",
+          "first_pr_opened_at": "2018-06-06 08:53:40",
+          "first_pr_merged_at": "2018-06-07 19:04:39"
+        },
+        {
+          "id": "100446237",
+          "login": "rschu1ze",
+          "name": "Robert Schulze",
+          "prs": "1143",
+          "first_pr_opened_at": "2022-02-28 20:29:57",
+          "first_pr_merged_at": "2022-03-01 21:21:06"
+        },
+        {
+          "id": "54203879",
+          "login": "kssenii",
+          "name": "Kseniia Sumarokova",
+          "prs": "1046",
+          "first_pr_opened_at": "2020-01-28 20:20:30",
+          "first_pr_merged_at": "2020-05-07 00:27:38"
+        }
+      ],
+      "prs": [
+        {
+          "number": 104248,
+          "title": "Guard private-only includes with #if CLICKHOUSE_CLOUD (small files)",
+          "merged_at": "2026-05-09T23:40:15Z",
+          "changed_files": 29,
+          "code_files": 29,
+          "changed_paths": [
+            "src/Access/ContextAccess.cpp",
+            "src/Access/ContextAccess.h",
+            "src/Common/NamedCollections/NamedCollectionsMetadataStorage.cpp",
+            "src/Functions/FunctionsMergeTreePartInfo.cpp",
+            "src/Interpreters/ActionsVisitor.cpp",
+            "src/Interpreters/DatabaseCatalog.cpp",
+            "src/Interpreters/InterpreterCreateQuery.h",
+            "src/Interpreters/ServerAsynchronousMetrics.cpp",
+            "src/Interpreters/executeDDLQueryOnCluster.cpp",
+            "src/Interpreters/executeQuery.cpp",
+            "src/Interpreters/tests/gtest_filecache.cpp",
+            "src/Planner/CollectSets.cpp",
+            "src/Processors/QueryPlan/Optimizations/optimizeJoin.cpp",
+            "src/Processors/QueryPlan/QueryPlan.h",
+            "src/Processors/QueryPlan/ReadFromMergeTree.h",
+            "src/Processors/QueryPlan/ReadFromObjectStorageStep.h",
+            "src/Server/HTTPHandlerFactory.cpp",
+            "src/Storages/MergeTree/DataPartStorageOnDiskFull.h",
+            "src/Storages/MergeTree/MergeFromLogEntryTask.cpp",
+            "src/Storages/MergeTree/MutatePlainMergeTreeTask.cpp",
+            "src/Storages/MergeTree/ReplicatedMergeTreeSink.cpp",
+            "src/Storages/ObjectStorage/S3/Configuration.h",
+            "src/Storages/StorageDictionary.cpp",
+            "src/Storages/StorageKeeperMap.cpp",
+            "src/Storages/StorageTimeSeries.h",
+            "src/Storages/System/StorageSystemDroppedTables.cpp",
+            "src/Storages/System/StorageSystemFilesystemCache.cpp",
+            "src/Storages/System/StorageSystemReplicas.h",
+            "src/Storages/System/StorageSystemTables.cpp"
+          ],
+          "code_paths": [
+            "src/Access/ContextAccess.cpp",
+            "src/Access/ContextAccess.h",
+            "src/Common/NamedCollections/NamedCollectionsMetadataStorage.cpp",
+            "src/Functions/FunctionsMergeTreePartInfo.cpp",
+            "src/Interpreters/ActionsVisitor.cpp",
+            "src/Interpreters/DatabaseCatalog.cpp",
+            "src/Interpreters/InterpreterCreateQuery.h",
+            "src/Interpreters/ServerAsynchronousMetrics.cpp",
+            "src/Interpreters/executeDDLQueryOnCluster.cpp",
+            "src/Interpreters/executeQuery.cpp",
+            "src/Interpreters/tests/gtest_filecache.cpp",
+            "src/Planner/CollectSets.cpp",
+            "src/Processors/QueryPlan/Optimizations/optimizeJoin.cpp",
+            "src/Processors/QueryPlan/QueryPlan.h",
+            "src/Processors/QueryPlan/ReadFromMergeTree.h",
+            "src/Processors/QueryPlan/ReadFromObjectStorageStep.h",
+            "src/Server/HTTPHandlerFactory.cpp",
+            "src/Storages/MergeTree/DataPartStorageOnDiskFull.h",
+            "src/Storages/MergeTree/MergeFromLogEntryTask.cpp",
+            "src/Storages/MergeTree/MutatePlainMergeTreeTask.cpp",
+            "src/Storages/MergeTree/ReplicatedMergeTreeSink.cpp",
+            "src/Storages/ObjectStorage/S3/Configuration.h",
+            "src/Storages/StorageDictionary.cpp",
+            "src/Storages/StorageKeeperMap.cpp",
+            "src/Storages/StorageTimeSeries.h",
+            "src/Storages/System/StorageSystemDroppedTables.cpp",
+            "src/Storages/System/StorageSystemFilesystemCache.cpp",
+            "src/Storages/System/StorageSystemReplicas.h",
+            "src/Storages/System/StorageSystemTables.cpp"
+          ],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10044,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-05-10T00:15:03Z"
+          }
+        },
+        {
+          "number": 104442,
+          "title": "Support array paths in  table function `file`",
+          "merged_at": "2026-05-09T23:36:11Z",
+          "changed_files": 4,
+          "code_files": 3,
+          "changed_paths": [
+            "docs/en/sql-reference/table-functions/file.md",
+            "src/TableFunctions/TableFunctionFile.cpp",
+            "tests/queries/0_stateless/04212_file_table_function_array_argument.reference",
+            "tests/queries/0_stateless/04212_file_table_function_array_argument.sql"
+          ],
+          "code_paths": [
+            "src/TableFunctions/TableFunctionFile.cpp",
+            "tests/queries/0_stateless/04212_file_table_function_array_argument.reference",
+            "tests/queries/0_stateless/04212_file_table_function_array_argument.sql"
+          ],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10044,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-05-10T00:15:03Z"
+          }
+        },
+        {
+          "number": 104314,
+          "title": "Add test: `recursiveRemoveLowCardinality` equivalence stripping in `tryDirectJoin` is untested across the entire suite",
+          "merged_at": "2026-05-09T23:24:31Z",
+          "changed_files": 2,
+          "code_files": 2,
+          "changed_paths": [
+            "tests/queries/0_stateless/04209_rocksdb_direct_join_lowcardinality_pk_equivalence.reference",
+            "tests/queries/0_stateless/04209_rocksdb_direct_join_lowcardinality_pk_equivalence.sql"
+          ],
+          "code_paths": [
+            "tests/queries/0_stateless/04209_rocksdb_direct_join_lowcardinality_pk_equivalence.reference",
+            "tests/queries/0_stateless/04209_rocksdb_direct_join_lowcardinality_pk_equivalence.sql"
+          ],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10044,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-05-10T00:15:03Z"
+          }
+        }
+      ]
+    }
+  ]
+}

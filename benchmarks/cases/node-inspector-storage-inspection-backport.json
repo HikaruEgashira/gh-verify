@@ -1,0 +1,26 @@
+{
+  "id": "node-inspector-storage-inspection-backport",
+  "description": "Node backports inspector storage inspection across protocol, runtime, docs, and tests",
+  "repo": "nodejs/node",
+  "pr_number": 63176,
+  "expected": "warning",
+  "rationale": "The PR is one feature backport, but it spans JavaScript runtime glue, native inspector and storage agents, protocol definitions, documentation, and tests. That breadth merits warning rather than pass.",
+  "category": "multi-domain-warn",
+  "domains_expected": [
+    "runtime",
+    "native",
+    "protocol",
+    "docs",
+    "tests"
+  ],
+  "ecosystem": "javascript",
+  "notes": "Current engine reports warning; retained as a positive warning calibration case from the Programming Language collection.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 10024,
+    "collection_name": "Programming Language",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-05-10T00:10:50Z"
+  },
+  "target_rule": "scoped-change"
+}

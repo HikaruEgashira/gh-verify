@@ -1,0 +1,450 @@
+{
+  "generated_at": "2026-05-10T00:11:53Z",
+  "collection_id": 10005,
+  "period": "past_28_days",
+  "repos": [
+    {
+      "repo": "neomjs/neo",
+      "current_period_rank": "1",
+      "current_period_growth": "51",
+      "total_prs": "2142",
+      "top_pr_creators": [],
+      "prs": [
+        {
+          "number": 11069,
+          "title": "feat(ai): extract BackupCoordinatorService as M4 per-task coordinator (#11062)",
+          "merged_at": "2026-05-09T23:03:09Z",
+          "changed_files": 7,
+          "code_files": 7,
+          "changed_paths": [
+            "ai/daemons/Orchestrator.mjs",
+            "ai/daemons/TaskDefinitions.mjs",
+            "ai/daemons/services/BackupCoordinatorService.mjs",
+            "buildScripts/ai/backup.mjs",
+            "test/playwright/unit/ai/daemons/Orchestrator.spec.mjs",
+            "test/playwright/unit/ai/daemons/services/BackupCoordinatorService.spec.mjs",
+            "test/playwright/unit/ai/scripts/orchestrator-daemon.spec.mjs"
+          ],
+          "code_paths": [
+            "ai/daemons/Orchestrator.mjs",
+            "ai/daemons/TaskDefinitions.mjs",
+            "ai/daemons/services/BackupCoordinatorService.mjs",
+            "buildScripts/ai/backup.mjs",
+            "test/playwright/unit/ai/daemons/Orchestrator.spec.mjs",
+            "test/playwright/unit/ai/daemons/services/BackupCoordinatorService.spec.mjs",
+            "test/playwright/unit/ai/scripts/orchestrator-daemon.spec.mjs"
+          ],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-05-10T00:11:24Z"
+          }
+        },
+        {
+          "number": 11064,
+          "title": "refactor(ai): decompose orchestrator into CadenceEngine and extract definitions (#11022)",
+          "merged_at": "2026-05-09T22:40:01Z",
+          "changed_files": 8,
+          "code_files": 8,
+          "changed_paths": [
+            "ai/daemons/Orchestrator.mjs",
+            "ai/daemons/TaskDefinitions.mjs",
+            "ai/daemons/services/CadenceEngine.mjs",
+            "ai/scripts/orchestrator-daemon.mjs",
+            "test/playwright/unit/ai/daemons/DreamService.spec.mjs",
+            "test/playwright/unit/ai/daemons/Orchestrator.spec.mjs",
+            "test/playwright/unit/ai/daemons/services/CadenceEngine.spec.mjs",
+            "test/playwright/unit/ai/scripts/orchestrator-daemon.spec.mjs"
+          ],
+          "code_paths": [
+            "ai/daemons/Orchestrator.mjs",
+            "ai/daemons/TaskDefinitions.mjs",
+            "ai/daemons/services/CadenceEngine.mjs",
+            "ai/scripts/orchestrator-daemon.mjs",
+            "test/playwright/unit/ai/daemons/DreamService.spec.mjs",
+            "test/playwright/unit/ai/daemons/Orchestrator.spec.mjs",
+            "test/playwright/unit/ai/daemons/services/CadenceEngine.spec.mjs",
+            "test/playwright/unit/ai/scripts/orchestrator-daemon.spec.mjs"
+          ],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-05-10T00:11:25Z"
+          }
+        },
+        {
+          "number": 11063,
+          "title": "fix(memory-core): stabilize broadcast sentinel permission spec (#10937)",
+          "merged_at": "2026-05-09T22:35:46Z",
+          "changed_files": 3,
+          "code_files": 3,
+          "changed_paths": [
+            "ai/services/memory-core/GraphService.mjs",
+            "test/playwright/unit/ai/services/memory-core/MailboxService.spec.mjs",
+            "test/playwright/unit/ai/services/memory-core/PermissionService.spec.mjs"
+          ],
+          "code_paths": [
+            "ai/services/memory-core/GraphService.mjs",
+            "test/playwright/unit/ai/services/memory-core/MailboxService.spec.mjs",
+            "test/playwright/unit/ai/services/memory-core/PermissionService.spec.mjs"
+          ],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-05-10T00:11:25Z"
+          }
+        },
+        {
+          "number": 11061,
+          "title": "refactor(ai): split SwarmHeartbeatService into class + entry-point wrapper (#11058)",
+          "merged_at": "2026-05-09T21:33:42Z",
+          "changed_files": 5,
+          "code_files": 4,
+          "changed_paths": [
+            "ai/daemons/SwarmHeartbeatService.mjs",
+            "ai/scripts/swarm-heartbeat-daemon.mjs",
+            "learn/agentos/wake-substrate/PersistentProcessManagement.md",
+            "learn/agentos/wake-substrate/com.neomjs.swarm-heartbeat.plist.template",
+            "test/playwright/unit/ai/daemons/SwarmHeartbeatService.spec.mjs"
+          ],
+          "code_paths": [
+            "ai/daemons/SwarmHeartbeatService.mjs",
+            "ai/scripts/swarm-heartbeat-daemon.mjs",
+            "learn/agentos/wake-substrate/com.neomjs.swarm-heartbeat.plist.template",
+            "test/playwright/unit/ai/daemons/SwarmHeartbeatService.spec.mjs"
+          ],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-05-10T00:11:25Z"
+          }
+        }
+      ]
+    },
+    {
+      "repo": "angular/angular",
+      "current_period_rank": "2",
+      "current_period_growth": "41",
+      "total_prs": "34121",
+      "top_pr_creators": [
+        {
+          "id": "8604205",
+          "login": "gkalpak",
+          "name": "George Kalpakas",
+          "prs": "1242",
+          "first_pr_opened_at": "2015-09-11 17:45:21",
+          "first_pr_merged_at": "2016-10-18 05:51:48"
+        },
+        {
+          "id": "1300985",
+          "login": "JeanMeche",
+          "name": "Matthieu Riegler",
+          "prs": "1077",
+          "first_pr_opened_at": "2022-11-02 13:22:07",
+          "first_pr_merged_at": "2024-10-16 15:43:25"
+        },
+        {
+          "id": "479713",
+          "login": "atscott",
+          "name": "Andrew Scott",
+          "prs": "1073",
+          "first_pr_opened_at": "2019-07-16 16:40:40",
+          "first_pr_merged_at": "2021-01-07 20:29:21"
+        },
+        {
+          "id": "4450522",
+          "login": "crisbeto",
+          "name": "Kristiyan Kostadinov",
+          "prs": "929",
+          "first_pr_opened_at": "2016-12-14 21:41:37",
+          "first_pr_merged_at": "2020-06-12 22:41:25"
+        },
+        {
+          "id": "43554145",
+          "login": "AndrewKushnir",
+          "name": "Andrew Kushnir",
+          "prs": "928",
+          "first_pr_opened_at": "2018-09-26 20:46:59",
+          "first_pr_merged_at": "2018-09-27 18:52:08"
+        }
+      ],
+      "prs": [
+        {
+          "number": 68173,
+          "title": "fix(platform-server): forward BEFORE_APP_SERIALIZED errors to ErrorHandler",
+          "merged_at": "2026-05-08T21:10:10Z",
+          "changed_files": 2,
+          "code_files": 2,
+          "changed_paths": [
+            "packages/platform-server/src/utils.ts",
+            "packages/platform-server/test/integration_spec.ts"
+          ],
+          "code_paths": [
+            "packages/platform-server/src/utils.ts",
+            "packages/platform-server/test/integration_spec.ts"
+          ],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-05-10T00:11:39Z"
+          }
+        },
+        {
+          "number": 68641,
+          "title": "docs: fix two 404 links in the roadmap",
+          "merged_at": "2026-05-08T21:05:41Z",
+          "changed_files": 1,
+          "code_files": 0,
+          "changed_paths": [
+            "adev/src/content/reference/roadmap.md"
+          ],
+          "code_paths": [],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-05-10T00:11:39Z"
+          }
+        },
+        {
+          "number": 68633,
+          "title": "build: update pnpm to v10.33.4 (22.0.x)",
+          "merged_at": "2026-05-08T16:05:58Z",
+          "changed_files": 25,
+          "code_files": 1,
+          "changed_paths": [
+            "MODULE.bazel",
+            "integration/animations/package.json",
+            "integration/cli-hello-world-ivy-i18n/package.json",
+            "integration/cli-hello-world-lazy/package.json",
+            "integration/cli-hello-world/package.json",
+            "integration/cli-signal-inputs/package.json",
+            "integration/defer/package.json",
+            "integration/legacy-animations-async/package.json",
+            "integration/legacy-animations/package.json",
+            "integration/ng-add-localize/package.json",
+            "integration/ng_elements/package.json",
+            "integration/ng_update/package.json",
+            "integration/no_ts_linker/package.json",
+            "integration/nodenext_resolution/package.json",
+            "integration/platform-server-hydration/package.json",
+            "integration/platform-server-zoneless/package.json",
+            "integration/platform-server/package.json",
+            "integration/service-worker-schema/package.json",
+            "integration/standalone-bootstrap/package.json",
+            "integration/terser/package.json",
+            "integration/trusted-types/package.json",
+            "integration/typings_test_rxjs7/package.json",
+            "integration/typings_test_ts60/package.json",
+            "package.json",
+            "pnpm-lock.yaml"
+          ],
+          "code_paths": [
+            "MODULE.bazel"
+          ],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-05-10T00:11:39Z"
+          }
+        },
+        {
+          "number": 68634,
+          "title": "build: update dependency bazel to v8.7.0 (22.0.x)",
+          "merged_at": "2026-05-08T15:59:44Z",
+          "changed_files": 2,
+          "code_files": 0,
+          "changed_paths": [
+            ".bazelversion",
+            "MODULE.bazel.lock"
+          ],
+          "code_paths": [],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-05-10T00:11:39Z"
+          }
+        }
+      ]
+    },
+    {
+      "repo": "facebook/react",
+      "current_period_rank": "3",
+      "current_period_growth": "15",
+      "total_prs": "18720",
+      "top_pr_creators": [
+        {
+          "id": "63648",
+          "login": "sebmarkbage",
+          "name": "Sebastian Markbåge",
+          "prs": "1497",
+          "first_pr_opened_at": "2015-01-05 07:32:10",
+          "first_pr_merged_at": "2014-10-03 17:49:31"
+        },
+        {
+          "id": "810438",
+          "login": "gaearon",
+          "name": "dan",
+          "prs": "1148",
+          "first_pr_opened_at": "2015-04-07 16:44:51",
+          "first_pr_merged_at": "2014-08-11 17:52:32"
+        },
+        {
+          "id": "3624098",
+          "login": "acdlite",
+          "name": "Andrew Clark",
+          "prs": "1143",
+          "first_pr_opened_at": "2015-10-30 23:21:07",
+          "first_pr_merged_at": "2015-11-12 00:45:13"
+        },
+        {
+          "id": "29597",
+          "login": "bvaughn",
+          "name": "Brian Vaughn",
+          "prs": "808",
+          "first_pr_opened_at": "2016-12-07 20:07:48",
+          "first_pr_merged_at": "2016-12-07 23:35:17"
+        },
+        {
+          "id": "6820",
+          "login": "sophiebits",
+          "name": "Sophie Alpert",
+          "prs": "676",
+          "first_pr_opened_at": "2015-01-22 22:44:14",
+          "first_pr_merged_at": "2013-05-31 05:20:01"
+        }
+      ],
+      "prs": [
+        {
+          "number": 36386,
+          "title": "[Fiber] track stylesheet preloads when explicitly preloaded",
+          "merged_at": "2026-05-07T17:48:58Z",
+          "changed_files": 3,
+          "code_files": 3,
+          "changed_paths": [
+            "packages/react-dom-bindings/src/client/ReactDOMComponentTree.js",
+            "packages/react-dom-bindings/src/client/ReactFiberConfigDOM.js",
+            "packages/react-dom/src/__tests__/ReactDOMFloat-test.js"
+          ],
+          "code_paths": [
+            "packages/react-dom-bindings/src/client/ReactDOMComponentTree.js",
+            "packages/react-dom-bindings/src/client/ReactFiberConfigDOM.js",
+            "packages/react-dom/src/__tests__/ReactDOMFloat-test.js"
+          ],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-05-10T00:11:53Z"
+          }
+        },
+        {
+          "number": 36425,
+          "title": "[FlightReply] Type hardening and performance improvements",
+          "merged_at": "2026-05-06T17:39:46Z",
+          "changed_files": 6,
+          "code_files": 4,
+          "changed_paths": [
+            ".eslintrc.js",
+            "flow-typed/environments/bom.js",
+            "packages/react-client/src/ReactFlightReplyClient.js",
+            "packages/react-server/src/ReactFlightReplyBackingFormData.js",
+            "packages/react-server/src/ReactFlightReplyServer.js",
+            "scripts/error-codes/codes.json"
+          ],
+          "code_paths": [
+            "flow-typed/environments/bom.js",
+            "packages/react-client/src/ReactFlightReplyClient.js",
+            "packages/react-server/src/ReactFlightReplyBackingFormData.js",
+            "packages/react-server/src/ReactFlightReplyServer.js"
+          ],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-05-10T00:11:53Z"
+          }
+        },
+        {
+          "number": 36347,
+          "title": "[DevTools] Preserve -Infinity in inspected values",
+          "merged_at": "2026-05-02T08:50:41Z",
+          "changed_files": 6,
+          "code_files": 6,
+          "changed_paths": [
+            "packages/react-devtools-shared/src/__tests__/inspectedElement-test.js",
+            "packages/react-devtools-shared/src/__tests__/legacy/inspectElement-test.js",
+            "packages/react-devtools-shared/src/devtools/utils.js",
+            "packages/react-devtools-shared/src/hydration.js",
+            "packages/react-devtools-shared/src/utils.js",
+            "packages/react-devtools-shell/src/app/InspectableElements/SimpleValues.js"
+          ],
+          "code_paths": [
+            "packages/react-devtools-shared/src/__tests__/inspectedElement-test.js",
+            "packages/react-devtools-shared/src/__tests__/legacy/inspectElement-test.js",
+            "packages/react-devtools-shared/src/devtools/utils.js",
+            "packages/react-devtools-shared/src/hydration.js",
+            "packages/react-devtools-shared/src/utils.js",
+            "packages/react-devtools-shell/src/app/InspectableElements/SimpleValues.js"
+          ],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-05-10T00:11:53Z"
+          }
+        },
+        {
+          "number": 36177,
+          "title": "fix(devtools): clear highlight when mouse leaves DevTools panel",
+          "merged_at": "2026-05-02T08:50:27Z",
+          "changed_files": 1,
+          "code_files": 1,
+          "changed_paths": [
+            "packages/react-devtools-shared/src/devtools/views/Components/Tree.js"
+          ],
+          "code_paths": [
+            "packages/react-devtools-shared/src/devtools/views/Components/Tree.js"
+          ],
+          "observed": "warning",
+          "source": {
+            "provider": "ossinsight",
+            "collection_id": 10005,
+            "collection_name": null,
+            "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+            "discovered_at": "2026-05-10T00:11:53Z"
+          }
+        }
+      ]
+    }
+  ]
+}
