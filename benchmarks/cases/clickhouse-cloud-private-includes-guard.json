@@ -1,0 +1,26 @@
+{
+  "id": "clickhouse-cloud-private-includes-guard",
+  "description": "ClickHouse guards private-only includes across many storage and interpreter files",
+  "repo": "ClickHouse/ClickHouse",
+  "pr_number": 104248,
+  "expected": "warning",
+  "rationale": "All edits apply the same CLICKHOUSE_CLOUD include guard, but the change touches 29 files across access control, interpreters, planners, storages, and system tables. It is broader than a pass, but still one mechanical concern, so warning is appropriate.",
+  "category": "multi-domain-warn",
+  "domains_expected": [
+    "access",
+    "interpreter",
+    "planner",
+    "storage",
+    "tests"
+  ],
+  "ecosystem": "cpp",
+  "notes": "Current engine reports warning; useful as a positive warning case from the Modern Data Stack collection.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 10044,
+    "collection_name": "Modern Data Stack",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-05-10T00:15:03Z"
+  },
+  "target_rule": "scoped-change"
+}

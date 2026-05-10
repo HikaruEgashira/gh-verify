@@ -263,6 +263,8 @@ struct SqlRows<T> {
 const DEFAULT_BENCHMARK_ALGORITHM: &str = "default";
 const OSSINSIGHT_MAX_ATTEMPTS: usize = 3;
 const OSSINSIGHT_RETRY_BASE_DELAY: Duration = Duration::from_millis(500);
+const GITHUB_API_MAX_ATTEMPTS: usize = 3;
+const GITHUB_API_RETRY_BASE_DELAY: Duration = Duration::from_millis(500);
 const CURL_TIMEOUT_SECS: u64 = 30;
 const GITHUB_PULL_REVIEWS_PAGE_SIZE: usize = 100;
 const GITHUB_PULL_REVIEWS_MAX_PAGES: usize = 10;
@@ -342,16 +344,18 @@ fn fetch_gh_json<T>(endpoint: &str) -> Result<T>
 where
     T: DeserializeOwned,
 {
-    let output = run_gh(&["api", endpoint])
-        .with_context(|| format!("failed to execute gh api for endpoint {endpoint}"))?;
+    retry_gh_api(&format!("gh api {endpoint}"), || {
+        let output = run_gh(&["api", endpoint])
+            .with_context(|| format!("failed to execute gh api for endpoint {endpoint}"))?;
 
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
-        bail!("gh api failed for {endpoint}: {stderr}");
-    }
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+            bail!("gh api failed for {endpoint}: {stderr}");
+        }
 
-    serde_json::from_slice(&output.stdout)
-        .with_context(|| format!("failed to parse gh api payload for {endpoint}"))
+        serde_json::from_slice(&output.stdout)
+            .with_context(|| format!("failed to parse gh api payload for {endpoint}"))
+    })
 }
 
 fn fetch_paginated_gh_json<T>(
@@ -857,17 +861,8 @@ fn discover_recent_merged_prs_via_gh(
         let endpoint = format!(
             "/repos/{owner}/{repo}/pulls?state=closed&sort=updated&direction=desc&per_page=100&page={page}"
         );
-        let output = run_gh(&["api", endpoint.as_str()]).with_context(|| {
-            format!("failed to execute gh api for merged PR discovery in {owner}/{repo}")
-        })?;
-
-        if !output.status.success() {
-            let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
-            bail!("gh api failed while discovering merged PRs for {owner}/{repo}: {stderr}");
-        }
-
-        let page_items = parse_gh_pull_page(&output.stdout)
-            .with_context(|| format!("failed to parse gh api pull page for {owner}/{repo}"))?;
+        let page_items: Vec<GhPullListItem> = fetch_gh_json(&endpoint)
+            .with_context(|| format!("failed to fetch gh api pull page for {owner}/{repo}"))?;
         if page_items.is_empty() {
             break;
         }
@@ -900,17 +895,8 @@ fn fetch_pr_files_with_patch(owner: &str, repo: &str, pr_number: u32) -> Result<
         let endpoint = format!(
             "/repos/{owner}/{repo}/pulls/{pr_number}/files?per_page={GITHUB_PULL_FILES_PAGE_SIZE}&page={page}"
         );
-        let output = run_gh(&["api", endpoint.as_str()]).with_context(|| {
-            format!("failed to execute gh api for PR files in {owner}/{repo}#{pr_number}")
-        })?;
-
-        if !output.status.success() {
-            let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
-            bail!("gh api failed while fetching PR files for {owner}/{repo}#{pr_number}: {stderr}");
-        }
-
-        let page_items = parse_gh_pr_files_page(&output.stdout).with_context(|| {
-            format!("failed to parse gh api PR files page {page} for {owner}/{repo}#{pr_number}")
+        let page_items: Vec<PrFile> = fetch_gh_json(&endpoint).with_context(|| {
+            format!("failed to fetch gh api PR files page {page} for {owner}/{repo}#{pr_number}")
         })?;
         if page_items.is_empty() {
             break;
@@ -930,10 +916,12 @@ fn fetch_pr_files_with_patch(owner: &str, repo: &str, pr_number: u32) -> Result<
     Ok(files)
 }
 
+#[cfg(test)]
 fn parse_gh_pull_page(bytes: &[u8]) -> Result<Vec<GhPullListItem>> {
     serde_json::from_slice(bytes).context("invalid gh api pull list payload")
 }
 
+#[cfg(test)]
 fn parse_gh_pr_files_page(bytes: &[u8]) -> Result<Vec<PrFile>> {
     serde_json::from_slice(bytes).context("invalid gh api PR files payload")
 }
@@ -1016,6 +1004,53 @@ fn is_retryable_ossinsight_error(err: &anyhow::Error) -> bool {
         "502 bad gateway",
         "503 service unavailable",
         "504 gateway timeout",
+    ]
+    .iter()
+    .any(|needle| msg.contains(needle))
+}
+
+fn retry_gh_api<T, F>(label: &str, mut op: F) -> Result<T>
+where
+    F: FnMut() -> Result<T>,
+{
+    let mut delay = GITHUB_API_RETRY_BASE_DELAY;
+    for attempt in 1..=GITHUB_API_MAX_ATTEMPTS {
+        match op() {
+            Ok(value) => return Ok(value),
+            Err(err) => {
+                let retryable = is_retryable_gh_api_error(&err);
+                if !retryable || attempt == GITHUB_API_MAX_ATTEMPTS {
+                    return Err(err);
+                }
+                eprintln!(
+                    "Warning: {label} failed on attempt {attempt}/{GITHUB_API_MAX_ATTEMPTS}: {err:#}. Retrying in {}ms...",
+                    delay.as_millis()
+                );
+                thread::sleep(delay);
+                delay = delay.saturating_mul(2);
+            }
+        }
+    }
+    unreachable!("retry loop always returns")
+}
+
+fn is_retryable_gh_api_error(err: &anyhow::Error) -> bool {
+    let msg = format!("{err:#}").to_ascii_lowercase();
+    [
+        "timed out",
+        "timeout",
+        "connection reset",
+        "connection refused",
+        "connection closed",
+        "429 too many requests",
+        "500 internal server error",
+        "502 bad gateway",
+        "503 service unavailable",
+        "504 gateway timeout",
+        "secondary rate limit",
+        "unexpected end of json input",
+        "unexpected eof",
+        "eof while parsing",
     ]
     .iter()
     .any(|needle| msg.contains(needle))
@@ -1195,8 +1230,9 @@ fn timestamp_now() -> String {
 mod tests {
     use super::{
         Cli, Command, PrFile, RecentMergedPr, canonical_target_rule,
-        ensure_scoped_change_patch_coverage, is_retryable_ossinsight_error, parse_gh_pr_files_page,
-        parse_gh_pull_page, requested_algorithms, target_rule_requires_patch,
+        ensure_scoped_change_patch_coverage, is_retryable_gh_api_error,
+        is_retryable_ossinsight_error, parse_gh_pr_files_page, parse_gh_pull_page,
+        requested_algorithms, target_rule_requires_patch,
     };
     use clap::Parser;
 
@@ -1310,6 +1346,19 @@ mod tests {
         )));
         assert!(!is_retryable_ossinsight_error(&anyhow::anyhow!(
             "OSS Insight API error: 404 Not Found"
+        )));
+    }
+
+    #[test]
+    fn transient_or_truncated_gh_api_errors_are_retryable() {
+        assert!(is_retryable_gh_api_error(&anyhow::anyhow!(
+            "gh api failed for /repos/foo/bar/pulls: 503 Service Unavailable"
+        )));
+        assert!(is_retryable_gh_api_error(&anyhow::anyhow!(
+            "failed to parse gh api payload for /repos/foo/bar/pulls: unexpected end of JSON input"
+        )));
+        assert!(!is_retryable_gh_api_error(&anyhow::anyhow!(
+            "gh api failed for /repos/foo/bar/pulls: 404 Not Found"
         )));
     }
 

@@ -1,0 +1,20 @@
+{
+  "id": "rust-cfg-select-endian-macros",
+  "description": "Rust rewrites paired integer endian macros with cfg_select in lockstep",
+  "repo": "rust-lang/rust",
+  "pr_number": 156359,
+  "expected": "pass",
+  "rationale": "Both files are the signed and unsigned macro variants of the same endian conversion implementation. This is one parallel change across forked macro families and should pass.",
+  "category": "fork-sync",
+  "domains_expected": [],
+  "ecosystem": "rust",
+  "notes": "Current engine reports warning because the paired macro files are sibling implementations without direct import or call edges.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 10024,
+    "collection_name": "Programming Language",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-05-10T00:10:09Z"
+  },
+  "target_rule": "scoped-change"
+}

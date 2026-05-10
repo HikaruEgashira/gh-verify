@@ -1,0 +1,20 @@
+{
+  "id": "roslyn-analyzerdependency-flaky-test",
+  "description": "Roslyn fixes a flaky analyzer dependency loader test in one helper file",
+  "repo": "dotnet/roslyn",
+  "pr_number": 83570,
+  "expected": "pass",
+  "rationale": "The PR changes a single test helper file to stabilize one flaky AssemblyLoading scenario. Single-file fixes should pass.",
+  "category": "single-file",
+  "domains_expected": [],
+  "ecosystem": "csharp",
+  "notes": "Current engine correctly reports pass; retained as a C# single-file control case from the Programming Language collection.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 10024,
+    "collection_name": "Programming Language",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-05-10T00:10:35Z"
+  },
+  "target_rule": "scoped-change"
+}

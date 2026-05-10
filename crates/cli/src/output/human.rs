@@ -1,7 +1,7 @@
+use crate::remediation_hint;
 use anyhow::Result;
 use colored::Colorize;
 use libverify_core::assessment::{BatchReport, VerificationResult};
-use crate::remediation_hint;
 use libverify_core::profile::GateDecision;
 use libverify_output::utc_now_rfc3339;
 

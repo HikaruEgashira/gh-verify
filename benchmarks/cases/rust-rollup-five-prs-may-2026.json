@@ -1,0 +1,25 @@
+{
+  "id": "rust-rollup-five-prs-may-2026",
+  "description": "Rust rollup merges five unrelated compiler, library, test, and triage changes",
+  "repo": "rust-lang/rust",
+  "pr_number": 156361,
+  "expected": "error",
+  "rationale": "This rollup intentionally batches five separate pull requests spanning compiler internals, library macros, UI tests, and triage configuration. Those edits form 3 or more disconnected components and should error.",
+  "category": "multi-component",
+  "domains_expected": [
+    "compiler",
+    "library",
+    "tests",
+    "config"
+  ],
+  "ecosystem": "rust",
+  "notes": "Fresh real-world negative case from the Programming Language collection; the current engine only reports warning.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 10024,
+    "collection_name": "Programming Language",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-05-10T00:10:09Z"
+  },
+  "target_rule": "scoped-change"
+}

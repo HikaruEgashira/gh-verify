@@ -1,0 +1,26 @@
+{
+  "id": "posthog-replay-vision-crud-api",
+  "description": "PostHog adds replay vision CRUD APIs across backend, auth scopes, generated clients, and docs",
+  "repo": "PostHog/posthog",
+  "pr_number": 58203,
+  "expected": "error",
+  "rationale": "This PR spans security rules, frontend scopes and shared types, Django API/models/migrations/tests, generated TypeScript clients, MCP service bindings, and product docs. That is 3 or more disconnected change clusters and should error.",
+  "category": "multi-domain-error",
+  "domains_expected": [
+    "security",
+    "frontend",
+    "backend",
+    "generated",
+    "docs"
+  ],
+  "ecosystem": "python",
+  "notes": "Current engine reports warning even though the PR mixes policy, backend, generated-client, and documentation surfaces.",
+  "source": {
+    "provider": "ossinsight",
+    "collection_id": 10044,
+    "collection_name": "Modern Data Stack",
+    "selection": "ranking_by_prs(period=past_28_days) + recent merged PRs",
+    "discovered_at": "2026-05-10T00:14:42Z"
+  },
+  "target_rule": "scoped-change"
+}
