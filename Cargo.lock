@@ -718,10 +718,10 @@ dependencies = [
  "anyhow",
  "clap",
  "colored",
- "libverify-core",
+ "libverify-core 0.13.1",
  "libverify-github",
  "libverify-output",
- "libverify-policy",
+ "libverify-policy 0.13.1",
  "rayon",
  "serde",
  "serde_json",
@@ -1111,6 +1111,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "libverify-core"
+version = "0.13.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "262068ca1b0e67a66e49a9fde94384fcecd0238aca53c3fa15f91233ef169979"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "libverify-github"
 version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1118,8 +1128,8 @@ checksum = "a16e505559538660fca0975a56894e7d838f766b916f0e3898832455305e299b"
 dependencies = [
  "anyhow",
  "base64",
- "libverify-core",
- "libverify-policy",
+ "libverify-core 0.12.0",
+ "libverify-policy 0.12.0",
  "p256",
  "reqwest",
  "serde",
@@ -1136,7 +1146,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "808a36304630eb86ebd0145f0ee788cccd7a41636cf8439f3e818ac5419e3516"
 dependencies = [
  "anyhow",
- "libverify-core",
+ "libverify-core 0.12.0",
  "libverify-vanta",
  "serde",
  "serde_json",
@@ -1149,7 +1159,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "84a731b5d0c54f40e9a3bb2c2b0990dd551746cd3b37d28dc5b861b78fae56b0"
 dependencies = [
  "anyhow",
- "libverify-core",
+ "libverify-core 0.12.0",
+ "regorus",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "libverify-policy"
+version = "0.13.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "35cf98ccc579179ecda6cac8be01bda4e2511483b9065db5d5ad9293cebe275d"
+dependencies = [
+ "anyhow",
+ "libverify-core 0.13.1",
  "regorus",
  "serde",
  "serde_json",
@@ -1162,7 +1185,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "243f192e27fa595cd319ca97fb48510beace6544ea9de0f8129dc8ee72be9927"
 dependencies = [
  "anyhow",
- "libverify-core",
+ "libverify-core 0.12.0",
  "reqwest",
  "serde",
  "serde_json",
@@ -1852,9 +1875,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.149"
+version = "1.0.150"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "83fc039473c5595ace860d8c4fafa220ff474b3fc6bfdb4293327f1a37e94d86"
+checksum = "e8014e44b4736ed0538adeecded0fce2a272f22dc9578a7eb6b2d9993c74cfb9"
 dependencies = [
  "itoa",
  "memchr",
