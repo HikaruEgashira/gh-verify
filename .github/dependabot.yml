@@ -3,16 +3,24 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: weekly
+      interval: monthly
+    open-pull-requests-limit: 10
     groups:
-      github-actions:
+      minor-and-patch:
         patterns:
           - "*"
+        update-types:
+          - minor
+          - patch
   - package-ecosystem: cargo
     directory: /
     schedule:
-      interval: weekly
+      interval: monthly
+    open-pull-requests-limit: 10
     groups:
-      rust-dependencies:
+      minor-and-patch:
         patterns:
           - "*"
+        update-types:
+          - minor
+          - patch
