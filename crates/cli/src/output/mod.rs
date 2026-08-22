@@ -8,6 +8,8 @@ use libverify_core::assessment::{BatchReport, VerificationResult};
 pub enum Format {
     #[value(name = "human")]
     Human,
+    #[value(name = "drata")]
+    Drata,
     #[value(name = "json")]
     Json,
     #[value(name = "matrix")]
@@ -22,6 +24,7 @@ impl std::fmt::Display for Format {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Format::Human => write!(f, "human"),
+            Format::Drata => write!(f, "drata"),
             Format::Json => write!(f, "json"),
             Format::Matrix => write!(f, "matrix"),
             Format::Sarif => write!(f, "sarif"),
@@ -97,6 +100,7 @@ pub fn print(opts: &OutputOptions, result: &VerificationResult) -> Result<()> {
 
 fn cli_to_lib_format(fmt: Format) -> libverify_output::Format {
     match fmt {
+        Format::Drata => libverify_output::Format::Drata,
         Format::Json => libverify_output::Format::Json,
         Format::Matrix => libverify_output::Format::Matrix,
         Format::Sarif => libverify_output::Format::Sarif,

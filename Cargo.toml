@@ -19,6 +19,12 @@ clap = { version = "4", features = ["derive"] }
 colored = "3"
 rayon = "1"
 
+[patch.crates-io]
+libverify-core = { path = "../libverify/crates/core" }
+libverify-github = { path = "../libverify/crates/github" }
+libverify-output = { path = "../libverify/crates/output" }
+libverify-policy = { path = "../libverify/crates/policy" }
+
 [profile.release]
 lto = true
 strip = true
