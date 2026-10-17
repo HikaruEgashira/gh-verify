@@ -1,15 +1,5 @@
 # Post-merge self-healing
 
-The reusable `post-merge-heal.yml` workflow observes failed pushes and manual deployments on the default branch of `HikaruEgashira` and `plenoai` repositories. It creates an issue, then an ephemeral `hikae-economy` runner uses Pi to prepare one production-source repair PR from the latest default branch.
+Install [hikae-selfheal](https://github.com/apps/hikae-selfheal) to handle default-branch CI failures. Repository workflows and secrets are not required. The App creates a repair PR, validates it with native CI, merges it after successful validation, and closes the failure issue after successful main-branch CI.
 
-Pin both the reusable workflow and `automation_ref` to the same immutable commit. Supply `check_workflows` as a JSON list of existing workflows that accept `workflow_dispatch` and safely test a repair branch. Keep deployment jobs restricted to the default branch. Supply `post_merge_workflows` as the JSON list of workflows to dispatch on the default branch after a repair merge. A workflow requiring inputs can use an entry such as `{"workflow":"arena.yml","inputs":{"reconcile":"true"}}`.
-
-The agent receives the model key, without the repository write token or deployment credentials. It cannot submit changes to automation, dependency manifests, standalone tests, or Terraform state. Existing CI must pass on the exact repair SHA, with at least one completed job. A missing validation workflow leaves the PR for review. A newer default-branch revision prevents stale patches from merging. Branch protection remains in force.
-
-A successful validation is followed by squash merge and explicit dispatch of the default-branch workflows: a `GITHUB_TOKEN` merge does not trigger push workflows. Issues close only when the same workflow succeeds on the failed or a newer revision. Failed repairs retain the issue and PR; repair revisions never start a recursive repair.
-
-Keep concurrency inside the reusable workflow: its native `queue: max` serializes repairs without replacing pending workflow completion events. Do not add a second caller-level concurrency group.
-
-Prerequisites: issues must be enabled, the `hikae-runners` GitHub App must cover the repository, and Actions must be allowed to create pull requests. No cloud credentials or model secrets need to be copied into each caller.
-
-Run the offline regression checks with `python3 .github/self-heal/test_heal.py`.
+Disable and remove any legacy `.github/workflows/self-heal.yml` before App cutover to avoid duplicate repairs. See the [App operations guide](https://github.com/HikaruEgashira/hikae-selfheal#operations) for permissions, supported owners and recovery behavior.
