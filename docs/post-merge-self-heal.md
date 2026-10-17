@@ -8,6 +8,8 @@ The agent receives the model key, without the repository write token or deployme
 
 A successful validation is followed by squash merge and explicit dispatch of the default-branch workflows: a `GITHUB_TOKEN` merge does not trigger push workflows. Issues close only when the same workflow succeeds on the failed or a newer revision. Failed repairs retain the issue and PR; repair revisions never start a recursive repair.
 
-Prerequisites: the `hikae-runners` GitHub App must cover the repository, and Actions must be allowed to create pull requests. No cloud credentials or model secrets need to be copied into each caller.
+Keep concurrency inside the reusable workflow: its native `queue: max` serializes repairs without replacing pending workflow completion events. Do not add a second caller-level concurrency group.
+
+Prerequisites: issues must be enabled, the `hikae-runners` GitHub App must cover the repository, and Actions must be allowed to create pull requests. No cloud credentials or model secrets need to be copied into each caller.
 
 Run the offline regression checks with `python3 .github/self-heal/test_heal.py`.
