@@ -174,7 +174,11 @@ Finish with the cause, fix, and remaining risk.
     run('gh', 'pr', 'merge', pr, '--repo', repo, '--squash', '--match-head-commit', sha)
     # GITHUB_TOKEN merges do not trigger push workflows; verify the new default-branch revision explicitly.
     for workflow in json.loads(os.environ['POST_MERGE_WORKFLOWS']):
-        run('gh', 'workflow', 'run', workflow, '--repo', repo, '--ref', default)
+        inputs = []
+        if isinstance(workflow, dict):
+            inputs = [arg for key, value in workflow.get('inputs', {}).items() for arg in ('-f', f'{key}={value}')]
+            workflow = workflow['workflow']
+        run('gh', 'workflow', 'run', workflow, '--repo', repo, '--ref', default, *inputs)
 
 
 if __name__ == '__main__':
