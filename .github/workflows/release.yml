@@ -21,15 +21,6 @@ jobs:
             target: aarch64-unknown-linux-gnu
             asset: gh-verify-linux-arm64
             cross: true
-          - os: macos-latest
-            target: x86_64-apple-darwin
-            asset: gh-verify-darwin-amd64
-          - os: macos-latest
-            target: aarch64-apple-darwin
-            asset: gh-verify-darwin-arm64
-          - os: windows-latest
-            target: x86_64-pc-windows-msvc
-            asset: gh-verify-windows-amd64.exe
     timeout-minutes: 5
     runs-on: ${{ matrix.os }}
     steps:
@@ -59,11 +50,7 @@ jobs:
         timeout-minutes: 5
         run: |
           mkdir -p dist
-          if [[ "${{ matrix.asset }}" == *.exe ]]; then
-            cp "target/${{ matrix.target }}/release/gh-verify.exe" "dist/${{ matrix.asset }}"
-          else
-            cp "target/${{ matrix.target }}/release/gh-verify" "dist/${{ matrix.asset }}"
-          fi
+          cp "target/${{ matrix.target }}/release/gh-verify" "dist/${{ matrix.asset }}"
         shell: bash
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         timeout-minutes: 5
