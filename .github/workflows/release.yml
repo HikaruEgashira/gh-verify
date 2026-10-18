@@ -13,10 +13,10 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-latest
+          - os: hikae-flash
             target: x86_64-unknown-linux-gnu
             asset: gh-verify-linux-amd64
-          - os: ubuntu-latest
+          - os: hikae-flash
             target: aarch64-unknown-linux-gnu
             asset: gh-verify-linux-arm64
             cross: true
@@ -72,7 +72,7 @@ jobs:
   release:
     needs: build
     timeout-minutes: 5
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, arm64, hikae-flash]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         timeout-minutes: 5
