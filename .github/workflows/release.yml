@@ -14,13 +14,8 @@ jobs:
       matrix:
         include:
           - os: hikae-flash
-            target: x86_64-unknown-linux-gnu
-            asset: gh-verify-linux-amd64
-            cross: true
-          - os: hikae-flash
             target: aarch64-unknown-linux-gnu
             asset: gh-verify-linux-arm64
-            cross: true
     timeout-minutes: 5
     runs-on: ${{ matrix.os }}
     steps:
@@ -33,19 +28,9 @@ jobs:
         with:
           toolchain: "1.88.0"
           targets: ${{ matrix.target }}
-      - name: Install cross
-        if: matrix.cross
-        timeout-minutes: 5
-        run: cargo install cross --version 0.2.5 --locked
       - name: Build
         timeout-minutes: 5
-        run: |
-          if [ "${{ matrix.cross }}" = "true" ]; then
-            cross build --release --target ${{ matrix.target }} -p gh-verify
-          else
-            cargo build --release --target ${{ matrix.target }} -p gh-verify
-          fi
-        shell: bash
+        run: cargo build --release --target ${{ matrix.target }} -p gh-verify
       - name: Package binary
         timeout-minutes: 5
         run: |
