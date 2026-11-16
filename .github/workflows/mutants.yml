@@ -23,6 +23,15 @@ jobs:
           persist-credentials: false
       - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # stable
         timeout-minutes: 5
+        with:
+          toolchain: stable
+      # rust-cache queries `rustup toolchain list`; make sure a default
+      # toolchain is registered so the query succeeds on the self-hosted runner.
+      - name: Set default toolchain
+        timeout-minutes: 5
+        run: |
+          rustup default stable
+          rustup toolchain list
       - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
         timeout-minutes: 5
       - name: Install cargo-mutants
