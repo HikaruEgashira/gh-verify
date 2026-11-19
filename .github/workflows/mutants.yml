@@ -3,7 +3,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "crates/core/src/**"
+      - "crates/cli/src/**"
       - "Cargo.toml"
       - "Cargo.lock"
   workflow_dispatch:
@@ -37,9 +37,9 @@ jobs:
       - name: Install cargo-mutants
         timeout-minutes: 5
         run: cargo install cargo-mutants
-      - name: Run mutation testing on core crate
+      - name: Run mutation testing on gh-verify crate
         timeout-minutes: 5
-        run: cargo mutants -p gh-verify-core --timeout 60 -- --lib
+        run: cargo mutants -p gh-verify --timeout 60
       - name: Upload mutation report
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
